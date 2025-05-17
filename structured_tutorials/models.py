@@ -1,6 +1,7 @@
 """Main models for loading tutorials."""
 
 import shlex
+from pathlib import Path
 from typing import Annotated, Any, Literal, Self
 
 from annotated_types import Ge, Le
@@ -23,7 +24,7 @@ def list_or_str_as_step(value: Any) -> Any:
     return value
 
 
-class StepDocumentation(BaseModel):
+class CommandDocumentation(BaseModel):
     """Model for documentation configuration."""
 
     show_stdout: str = ""
@@ -47,16 +48,24 @@ class CommandBase(BaseModel):
 
 
 class Command(CommandBase):
-    """A step is a command in a part of a tutorial that you want to run."""
+    """A command in a part of a tutorial that you want to run."""
 
-    sphinx: StepDocumentation = StepDocumentation()
+    sphinx: CommandDocumentation = CommandDocumentation()
     cleanup: tuple[CommandBase, ...] = tuple()
+
+
+class File(BaseModel):
+    """A file you want to create at the given destination."""
+
+    source: Path
+    destination: Path
+    template: bool = True  # False for big files
 
 
 class Part(BaseModel):
     """A part splits a tutorial into individual subsections."""
 
-    commands: tuple[Annotated[Command, BeforeValidator(list_or_str_as_step)], ...]
+    commands: tuple[Annotated[Command | File, BeforeValidator(list_or_str_as_step)], ...]
 
 
 class Config(BaseModel):
