@@ -3,7 +3,7 @@ name = "structured-tutorials"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.10"
 dependencies = [
     "pydantic>=2.11.4",
     "pyyaml>=6.0.2",
@@ -15,6 +15,40 @@ run-tutorial = "structured_tutorials.cli:main"
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.ruff]
+extend-exclude = ["migrations", "stubs"]
+line-length = 110
+
+[tool.ruff.lint]
+extend-select = [
+    "B",  # flake8-bugbear
+    "D",  # pydocstyle
+    "E",  # pycodestyle
+    "F",  # pyflakes
+    "I",  # isort
+    "G",  # flake8-logging-format
+    "PT",  # flake8-pytest-style
+    "UP",  # pyupgrade
+    "RUF",  # ruff specific checks
+]
+
+ignore = [
+    "D102",  # Missing docstring in public method - includes inherited methods
+    "D104",  # Missing docstring in public package - includes even empty __init__.py files
+    "D105",  # Missing docstring in magic method - includes __str__() etc
+    "D106",  # Missing docstring in public nested class - includes Meta/Media classes
+    "D203",  # incorrect-blank-line-before-class
+    "D213",  # multi-line-summary-second-line`
+    "D301",  # Use `r"""` if any backslashes in a docstring - incompatible with doctests!
+    "D401",  # First line of docstring should be in imperative mood
+]
+
+[tool.ruff.lint.flake8-pytest-style]
+parametrize-values-type = "tuple"
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
 
 [dependency-groups]
 dev = [

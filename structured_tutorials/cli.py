@@ -1,3 +1,5 @@
+"""Main command line functions."""
+
 import argparse
 import pathlib
 
@@ -8,6 +10,7 @@ from structured_tutorials.runners.local import LocalRunner
 
 
 def load_tutorial(path: pathlib.Path) -> Tutorial:
+    """Load a tutorial from a YAML file."""
     with open(path) as stream:
         tutorial_data = safe_load(stream)
     tutorial = Tutorial.model_validate(tutorial_data)
@@ -15,12 +18,14 @@ def load_tutorial(path: pathlib.Path) -> Tutorial:
 
 
 def run_tutorial(tutorial: Tutorial):
+    """Run a loaded tutorial."""
     if tutorial.config.type == "local":
         runner = LocalRunner(tutorial)
     runner.run()
 
 
 def main():
+    """Main entry function for the command-line."""
     parser = argparse.ArgumentParser()
     parser.add_argument("path", type=pathlib.Path)
     args = parser.parse_args()
