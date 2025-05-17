@@ -1,0 +1,17 @@
+context:
+  documentation:
+    foo: bar
+  execution:
+parts:
+  - commands:
+      - ls
+      - [ls, /]
+  - commands:
+      - command: [rm, -f, /tmp/test]
+      - command: [cat, /tmp/test]
+        returncode: 1
+      - command: touch /tmp/test
+        cleanup:
+          - command: rm -f /tmp/test
+      #- command: cat /tmp/test2
+      - command: cat /tmp/test
