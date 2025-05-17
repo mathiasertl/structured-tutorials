@@ -1,0 +1,7 @@
+# An absolutely minimal tutorial:
+parts:
+  - steps:
+      - test -f tests/data/file.txt
+      - source: tests/data/file.txt
+        dest: /tmp/file.txt
+      - test -f /tmp/file.txt
