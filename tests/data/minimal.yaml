@@ -1,0 +1,4 @@
+# An absolutely minimal tutorial:
+parts:
+  - commands:
+      - ls

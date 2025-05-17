@@ -39,7 +39,7 @@ class StepBase(BaseModel):
     @model_validator(mode="after")
     def check_passwords_match(self) -> Self:
         if self.shell is False and isinstance(self.command, str):
-            self.command = shlex.split(self.command)
+            self.command = tuple(shlex.split(self.command))
         elif self.shell is True and isinstance(self.command, tuple):
             self.command = shlex.join(self.command)
 
@@ -76,5 +76,5 @@ class Tutorial(BaseModel):
     """Top-level model for tutorials."""
 
     config: Annotated[Config, BeforeValidator(none_as_dict)] = Field(default=Config())
-    context: Contexts
+    context: Contexts = Contexts()
     parts: tuple[Part, ...]
