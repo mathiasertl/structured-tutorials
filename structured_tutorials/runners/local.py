@@ -1,4 +1,4 @@
-"""Runner for running commands locally."""
+"""Runner for running steps locally."""
 
 import shlex
 import subprocess
@@ -9,7 +9,7 @@ from structured_tutorials.runners.base import RunnerBase, TutorialError
 
 
 class LocalRunner(RunnerBase):
-    """Runner to run commands locally."""
+    """Runner to run steps locally."""
 
     def run_command(self, command: CommandBase, *, context: dict[str, Any]) -> None:
         cmd_str = shlex.join(command.command)

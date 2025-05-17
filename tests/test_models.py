@@ -30,8 +30,8 @@ def test_step_returncode_out_of_bounds(returncode: int) -> None:
 
 def test_part_with_step_shortcuts() -> None:
     """Test shortcuts for steps in a part."""
-    part = Part(commands=["ls /", ["ls", "/"], {"command": "ls /"}])
-    assert part.commands == (
+    part = Part(steps=["ls /", ["ls", "/"], {"command": "ls /"}])
+    assert part.steps == (
         Command(command=("ls", "/")),
         Command(command=("ls", "/")),
         Command(command=("ls", "/")),

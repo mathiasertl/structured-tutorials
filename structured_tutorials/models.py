@@ -65,7 +65,7 @@ class File(BaseModel):
 class Part(BaseModel):
     """A part splits a tutorial into individual subsections."""
 
-    commands: tuple[Annotated[Command | File, BeforeValidator(list_or_str_as_step)], ...]
+    steps: tuple[Annotated[Command | File, BeforeValidator(list_or_str_as_step)], ...]
 
 
 class Config(BaseModel):
