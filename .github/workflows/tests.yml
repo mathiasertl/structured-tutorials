@@ -1,0 +1,42 @@
+name: Tests
+on:
+  push:
+  pull_request:
+
+env:
+  UV_PYTHON_PREFERENCE: only-system
+  UV_NO_SYNC: 1
+
+jobs:
+  run:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ "3.11", "3.12", "3.13", "3.14" ]
+        sphinx-version: [ "7.3", "7.4", "8.1", "8.2" ]
+
+    name: Python ${{ matrix.python-version }}, Sphinx ${{ matrix.sphinx-version }}
+    steps:
+
+      - name: Acquire sources
+        uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5.5.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x64
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5.3.1
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --no-default-groups --group=dev --group Sphinx${{ matrix.sphinx-version }}
+
+      - name: Run tests
+        run: uv run pytest -v --cov-report term-missing --durations=20

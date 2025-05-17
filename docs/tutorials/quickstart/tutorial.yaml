@@ -1,0 +1,4 @@
+parts:
+  - commands:
+      - command: structured-tutorial --help
+      - command: ls
