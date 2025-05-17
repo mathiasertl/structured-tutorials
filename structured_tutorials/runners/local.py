@@ -4,14 +4,14 @@ import shlex
 import subprocess
 from typing import Any
 
-from structured_tutorials.models import StepBase
+from structured_tutorials.models import CommandBase
 from structured_tutorials.runners.base import RunnerBase, TutorialError
 
 
 class LocalRunner(RunnerBase):
     """Runner to run commands locally."""
 
-    def run_step(self, step: StepBase, *, context: dict[str, Any]) -> None:
+    def run_step(self, step: CommandBase, *, context: dict[str, Any]) -> None:
         cmd_str = shlex.join(step.command)
         print(f"+ {cmd_str}")
         proc = subprocess.run(step.command, check=False)

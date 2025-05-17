@@ -29,7 +29,7 @@ class StepDocumentation(BaseModel):
     show_stdout: str = ""
 
 
-class StepBase(BaseModel):
+class CommandBase(BaseModel):
     """Base class for commands to run."""
 
     command: tuple[str, ...] | str
@@ -37,7 +37,7 @@ class StepBase(BaseModel):
     shell: bool = False
 
     @model_validator(mode="after")
-    def check_passwords_match(self) -> Self:
+    def validate_shell_command(self) -> Self:
         if self.shell is False and isinstance(self.command, str):
             self.command = tuple(shlex.split(self.command))
         elif self.shell is True and isinstance(self.command, tuple):
@@ -46,17 +46,17 @@ class StepBase(BaseModel):
         return self
 
 
-class Step(StepBase):
+class Command(CommandBase):
     """A step is a command in a part of a tutorial that you want to run."""
 
     sphinx: StepDocumentation = StepDocumentation()
-    cleanup: tuple[StepBase, ...] = tuple()
+    cleanup: tuple[CommandBase, ...] = tuple()
 
 
 class Part(BaseModel):
     """A part splits a tutorial into individual subsections."""
 
-    commands: tuple[Annotated[Step, BeforeValidator(list_or_str_as_step)], ...]
+    commands: tuple[Annotated[Command, BeforeValidator(list_or_str_as_step)], ...]
 
 
 class Config(BaseModel):

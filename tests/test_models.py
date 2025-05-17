@@ -2,7 +2,7 @@
 
 import pytest
 
-from structured_tutorials.models import Contexts, Part, Step
+from structured_tutorials.models import Command, Contexts, Part
 
 
 @pytest.mark.parametrize(
@@ -17,7 +17,7 @@ from structured_tutorials.models import Contexts, Part, Step
 )
 def test_step_command_shell(command: list[str] | str, shell: bool, expected: tuple[str, ...] | str) -> None:
     """Test the `shell` parameter."""
-    step = Step(command=command, shell=shell)
+    step = Command(command=command, shell=shell)
     assert step.command == expected
 
 
@@ -25,13 +25,17 @@ def test_step_command_shell(command: list[str] | str, shell: bool, expected: tup
 def test_step_returncode_out_of_bounds(returncode: int) -> None:
     """Test limits in return code."""
     with pytest.raises(ValueError, match=r"returncode"):
-        Step(command=["ls"], returncode=returncode)
+        Command(command=["ls"], returncode=returncode)
 
 
 def test_part_with_step_shortcuts() -> None:
     """Test shortcuts for steps in a part."""
     part = Part(commands=["ls /", ["ls", "/"], {"command": "ls /"}])
-    assert part.commands == (Step(command=("ls", "/")), Step(command=("ls", "/")), Step(command=("ls", "/")))
+    assert part.commands == (
+        Command(command=("ls", "/")),
+        Command(command=("ls", "/")),
+        Command(command=("ls", "/")),
+    )
 
 
 def test_context_default() -> None:

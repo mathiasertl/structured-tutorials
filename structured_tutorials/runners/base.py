@@ -4,7 +4,7 @@ import abc
 import copy
 from typing import Any
 
-from structured_tutorials.models import Step, StepBase, Tutorial
+from structured_tutorials.models import Command, CommandBase, Tutorial
 
 
 class TutorialError(Exception):
@@ -17,7 +17,7 @@ class RunnerBase(abc.ABC):
     """Base class for tutorial runners."""
 
     def __init__(self, tutorial: Tutorial) -> None:
-        self._performed_steps: list[Step] = []
+        self._performed_steps: list[Command] = []
         self.tutorial = tutorial
 
     def run(self) -> None:
@@ -34,4 +34,4 @@ class RunnerBase(abc.ABC):
                     self.run_step(cleanup_step, context=context)
 
     @abc.abstractmethod
-    def run_step(self, step: StepBase, *, context: dict[str, Any]) -> None: ...
+    def run_step(self, step: CommandBase, *, context: dict[str, Any]) -> None: ...
