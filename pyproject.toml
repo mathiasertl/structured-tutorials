@@ -16,6 +16,11 @@ run-tutorial = "structured_tutorials.cli:main"
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.mypy]
+strict = true
+show_error_codes = true
+plugins = ["pydantic.mypy"]
+
 [tool.ruff]
 extend-exclude = ["migrations", "stubs"]
 line-length = 110
@@ -38,6 +43,7 @@ ignore = [
     "D104",  # Missing docstring in public package - includes even empty __init__.py files
     "D105",  # Missing docstring in magic method - includes __str__() etc
     "D106",  # Missing docstring in public nested class - includes Meta/Media classes
+    "D107",  # Missing docstring for __init__()
     "D203",  # incorrect-blank-line-before-class
     "D213",  # multi-line-summary-second-line`
     "D301",  # Use `r"""` if any backslashes in a docstring - incompatible with doctests!
@@ -54,4 +60,5 @@ combine-as-imports = true
 dev = [
     "mypy>=1.15.0",
     "ruff>=0.11.10",
+    "types-pyyaml>=6.0.12.20250516",
 ]

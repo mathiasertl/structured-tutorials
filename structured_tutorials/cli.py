@@ -17,14 +17,14 @@ def load_tutorial(path: pathlib.Path) -> Tutorial:
     return tutorial
 
 
-def run_tutorial(tutorial: Tutorial):
+def run_tutorial(tutorial: Tutorial) -> None:
     """Run a loaded tutorial."""
     if tutorial.config.type == "local":
         runner = LocalRunner(tutorial)
     runner.run()
 
 
-def main():
+def main() -> None:
     """Main entry function for the command-line."""
     parser = argparse.ArgumentParser()
     parser.add_argument("path", type=pathlib.Path)

@@ -1,23 +1,16 @@
 """Main models for loading tutorials."""
 
 import shlex
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, Self
 
 from annotated_types import Ge, Le
-from pydantic import BaseModel, BeforeValidator, Field
+from pydantic import BaseModel, BeforeValidator, Field, model_validator
 
 
 def none_as_dict(value: Any) -> Any:
     """Validate ``None`` as an empty ``dict``."""
     if value is None:
         return {}
-    return value
-
-
-def str_as_command(value: Any) -> Any:
-    """Validate a ``str`` as an argument list."""
-    if isinstance(value, str):
-        return shlex.split(value)
     return value
 
 
@@ -39,8 +32,18 @@ class StepDocumentation(BaseModel):
 class StepBase(BaseModel):
     """Base class for commands to run."""
 
-    command: Annotated[tuple[str, ...], BeforeValidator(str_as_command)]
+    command: tuple[str, ...] | str
     returncode: Annotated[int, Ge(0), Le(255)] = 0
+    shell: bool = False
+
+    @model_validator(mode="after")
+    def check_passwords_match(self) -> Self:
+        if self.shell is False and isinstance(self.command, str):
+            self.command = shlex.split(self.command)
+        elif self.shell is True and isinstance(self.command, tuple):
+            self.command = shlex.join(self.command)
+
+        return self
 
 
 class Step(StepBase):

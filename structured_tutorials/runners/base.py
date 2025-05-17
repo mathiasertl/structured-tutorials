@@ -1,12 +1,23 @@
+"""Module for RunnerBase."""
+
 import abc
 import copy
+from typing import Any
 
 from structured_tutorials.models import Step, StepBase, Tutorial
 
 
+class TutorialError(Exception):
+    """Base class for exceptions."""
+
+    pass
+
+
 class RunnerBase(abc.ABC):
+    """Base class for tutorial runners."""
+
     def __init__(self, tutorial: Tutorial) -> None:
-        self._performed_steps: list[StepBase] = []
+        self._performed_steps: list[Step] = []
         self.tutorial = tutorial
 
     def run(self) -> None:
@@ -14,14 +25,13 @@ class RunnerBase(abc.ABC):
         try:
             for part in self.tutorial.parts:
                 for step in part.commands:
-                    self.run_step(step)
+                    self.run_step(step, context=context)
                     self._performed_steps.append(step)
         finally:
-            print("### cleaning up:")
-            for step in reversed(self._performed_steps):
-                for cleanup_step in step.cleanup:
+            for performed_step in reversed(self._performed_steps):
+                for cleanup_step in performed_step.cleanup:
                     print(cleanup_step)
-                    self.run_step(cleanup_step)
+                    self.run_step(cleanup_step, context=context)
 
     @abc.abstractmethod
-    def run_step(self, step: StepBase) -> None: ...
+    def run_step(self, step: StepBase, *, context: dict[str, Any]) -> None: ...
