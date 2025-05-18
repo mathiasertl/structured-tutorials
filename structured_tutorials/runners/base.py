@@ -51,6 +51,7 @@ class RunnerBase(abc.ABC):
             args = self.env.from_string(step.command).render(context)
         else:
             args = tuple(self.env.from_string(arg).render(context) for arg in step.command)
+
         self.run_command(args, step, context=context)
 
     def run(self) -> None:
@@ -69,7 +70,7 @@ class RunnerBase(abc.ABC):
             for performed_step in reversed(self._performed_steps):
                 if isinstance(performed_step, Command):
                     for cleanup_step in performed_step.cleanup:
-                        self.run_command(cleanup_step, context=context)
+                        self.handle_command(cleanup_step, context=context)
 
     @abc.abstractmethod
     def run_command(

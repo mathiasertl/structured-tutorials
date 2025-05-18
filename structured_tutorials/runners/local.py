@@ -21,7 +21,7 @@ class LocalRunner(RunnerBase):
         print(f"+ {cmd_str}")
 
         proc = subprocess.run(args, shell=step.shell, check=False)
-        if proc.returncode != step.returncode:
+        if step.returncode is not None and proc.returncode != step.returncode:
             raise TutorialError(f"{cmd_str}: Return code {proc.returncode} (expected: {step.returncode}).")
 
     def create_file(self, source: Path, destination: Path, step: File, *, context: dict[str, Any]) -> None:
