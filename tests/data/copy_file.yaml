@@ -1,7 +1,19 @@
 # An absolutely minimal tutorial:
+config:
+  working_directory: "../../"
+context:
+  execution:
+    # destination is overwritten by unittests to a temporary directory
+    destination: does/not/exist
+    # template key in file.txt
+    test_key: test_value
+    filename: example.txt
 parts:
   - steps:
       - test -f tests/data/file.txt
       - source: tests/data/file.txt
-        dest: /tmp/file.txt
-      - test -f /tmp/file.txt
+        destination: "{{ destination }}/{{ filename }}"
+      - "test -f {{destination}}/{{filename}}"
+      - [grep, test_value, "{{ destination }}/{{ filename }}"]
+      - command: [grep, test_key, "{{ destination }}/{{ filename }}"]
+        returncode: 1

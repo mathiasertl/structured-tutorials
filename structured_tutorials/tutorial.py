@@ -12,7 +12,7 @@ def load_tutorial(path: pathlib.Path) -> Tutorial:
     """Load a tutorial from a YAML file."""
     with open(path) as stream:
         tutorial_data = safe_load(stream)
-    tutorial = Tutorial.model_validate(tutorial_data)
+    tutorial = Tutorial.model_validate(tutorial_data, context={"path": path})
     return tutorial
 
 

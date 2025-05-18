@@ -6,6 +6,7 @@ from typing import Annotated, Any, Literal, Self
 
 from annotated_types import Ge, Le
 from pydantic import BaseModel, BeforeValidator, Field, model_validator
+from pydantic_core.core_schema import ValidationInfo
 
 
 def none_as_dict(value: Any) -> Any:
@@ -72,6 +73,7 @@ class Config(BaseModel):
     """Global configuration for a tutorial."""
 
     type: Literal["local", "vagrant"] = "local"
+    working_directory: Path = Path.cwd()
 
 
 class Contexts(BaseModel):
@@ -87,3 +89,16 @@ class Tutorial(BaseModel):
     config: Annotated[Config, BeforeValidator(none_as_dict)] = Field(default=Config())
     context: Contexts = Contexts()
     parts: tuple[Part, ...]
+
+    @model_validator(mode="after")
+    def validate_working_directory(self, info: ValidationInfo) -> Self:
+        if isinstance(info.context, dict):
+            if (path := info.context.get("path")) and not self.config.working_directory.is_absolute():
+                self.config.working_directory = (path.parent / self.config.working_directory).resolve()
+
+        for part in self.parts:
+            for step in part.steps:
+                if isinstance(step, File) and not step.source.is_absolute():
+                    step.source = self.config.working_directory / step.source
+
+        return self

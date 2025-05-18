@@ -1,12 +1,14 @@
 """Test the local runner."""
 
+from pathlib import Path
+
 import pytest
 from pytest_subprocess.fake_process import FakeProcess
 
 from structured_tutorials.models import Command
 from structured_tutorials.runners.base import TutorialError
 from structured_tutorials.tutorial import load_tutorial, run_tutorial
-from tests.conftest import DATA_DIR
+from tests.conftest import DATA_DIR, ROOT_DIR
 
 
 def test_minimal(fp: FakeProcess) -> None:
@@ -35,3 +37,16 @@ def test_minimal_with_expected_error(fp: FakeProcess) -> None:
     step.returncode = 1
     run_tutorial(tutorial)
     assert list(fp.calls) == [("ls",)]
+
+
+def test_copy_file(tmpdir: Path, fp: FakeProcess) -> None:
+    """Test copy_file tutorial."""
+    fp.register(("test", "-f", "tests/data/file.txt"))
+    fp.register(("test", "-f", f"{tmpdir}/example.txt"))
+    fp.register(("grep", "test_value", f"{tmpdir}/example.txt"))
+    fp.register(("grep", "test_key", f"{tmpdir}/example.txt"), returncode=1)
+    tutorial = load_tutorial(DATA_DIR / "copy_file.yaml")
+    tutorial.context.execution["destination"] = tmpdir
+    assert tutorial.config.working_directory == ROOT_DIR
+    run_tutorial(tutorial)
+    assert len(fp.calls) == 4  # four steps registered above

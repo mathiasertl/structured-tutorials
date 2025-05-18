@@ -1,7 +1,9 @@
 """Runner for running steps locally."""
 
 import shlex
+import shutil
 import subprocess
+from pathlib import Path
 from typing import Any
 
 from structured_tutorials.models import CommandBase, File
@@ -11,12 +13,16 @@ from structured_tutorials.runners.base import RunnerBase, TutorialError
 class LocalRunner(RunnerBase):
     """Runner to run steps locally."""
 
-    def run_command(self, command: CommandBase, *, context: dict[str, Any]) -> None:
-        cmd_str = shlex.join(command.command)
+    def run_command(self, args: str | tuple[str], step: CommandBase, *, context: dict[str, Any]) -> None:
+        cmd_str = shlex.join(step.command)
         print(f"+ {cmd_str}")
-        proc = subprocess.run(command.command, check=False)
-        if proc.returncode != command.returncode:
-            raise TutorialError(f"{cmd_str}: Return code {proc.returncode} (expected: {command.returncode}).")
+        proc = subprocess.run(args, shell=step.shell, check=False)
+        if proc.returncode != step.returncode:
+            raise TutorialError(f"{cmd_str}: Return code {proc.returncode} (expected: {step.returncode}).")
 
-    def create_file(self, file: File, *, context: dict[str, Any]) -> None:
-        pass
+    def create_file(self, source: Path, destination: Path, step: File, *, context: dict[str, Any]) -> None:
+        destination.parent.mkdir(exist_ok=True, parents=True)
+        shutil.copy2(source, destination)
+
+    def copy_directory(self, source: Path, destination: Path, step: File, *, context: dict[str, Any]) -> None:
+        raise NotImplementedError
