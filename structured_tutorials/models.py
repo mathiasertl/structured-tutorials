@@ -1,6 +1,5 @@
 """Main models for loading tutorials."""
 
-import shlex
 from pathlib import Path
 from typing import Annotated, Any, Literal, Self
 
@@ -18,9 +17,7 @@ def none_as_dict(value: Any) -> Any:
 
 def list_or_str_as_step(value: Any) -> Any:
     """Validate an argument list or a string as simple command."""
-    if isinstance(value, str):
-        return {"command": shlex.split(value)}
-    elif isinstance(value, list | tuple):
+    if isinstance(value, str | list | tuple):
         return {"command": value}
     return value
 
@@ -34,30 +31,16 @@ class CommandDocumentation(BaseModel):
 class CommandBase(BaseModel):
     """Base class for commands to run.
 
-    The `command` specifies the command to run. It can be either a list of strings or a simple string. Care
-    must be taken when using templates and specifying a simple string and ``shell=False``, as the string is
-    then parsed using ``shlex.split()``.
+    The `command` specifies the command to run. It can be either a list of strings or a simple string. When
+    running a tutorial locally, using a string implies passing ``shell=True`` to ``subprocess.run()``, but
+    the exact semantics may differ with other runners.
 
     The `returncode` specifies the expected return code of the command and defaults to ``0``. If ``None`` is
     specified, the returncode is ignored when running the tutorial.
-
-    The `shell` parameter is passed to ``subprocess.run()`` and defaults to ``False``. If ``True`` and
-    `command` is a list of strings, they will be joined with ``shlex.join()``. If ``False`` and `command` is a
-    string, the string will be parsed with ``shlex.split()``.
     """
 
     command: tuple[str, ...] | str
     returncode: Annotated[int, Ge(0), Le(255)] | None = 0
-    shell: bool = False
-
-    @model_validator(mode="after")
-    def validate_shell_command(self) -> Self:
-        if self.shell is False and isinstance(self.command, str):
-            raise ValueError("command must be iterable if shell is False.")
-        elif self.shell is True and isinstance(self.command, tuple):
-            raise ValueError("command must be a str if shell is True.")
-
-        return self
 
 
 class Command(CommandBase):

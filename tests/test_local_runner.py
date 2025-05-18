@@ -16,7 +16,7 @@ def test_minimal(fp: FakeProcess) -> None:
     fp.register(["ls"])
     tutorial = load_tutorial(DATA_DIR / "minimal.yaml")
     run_tutorial(tutorial)
-    assert list(fp.calls) == [("ls",)]
+    assert list(fp.calls) == ["ls"]
 
 
 def test_minimal_with_error(fp: FakeProcess) -> None:
@@ -25,7 +25,7 @@ def test_minimal_with_error(fp: FakeProcess) -> None:
     tutorial = load_tutorial(DATA_DIR / "minimal.yaml")
     with pytest.raises(TutorialError, match=r"^ls: Return code 1 \(expected: 0\)\.$"):
         run_tutorial(tutorial)
-    assert list(fp.calls) == [("ls",)]
+    assert list(fp.calls) == ["ls"]
 
 
 def test_minimal_with_expected_error(fp: FakeProcess) -> None:
@@ -36,7 +36,7 @@ def test_minimal_with_expected_error(fp: FakeProcess) -> None:
     assert isinstance(step, Command)
     step.returncode = 1
     run_tutorial(tutorial)
-    assert list(fp.calls) == [("ls",)]
+    assert list(fp.calls) == ["ls"]
 
 
 def test_copy_file(tmpdir: Path, fp: FakeProcess) -> None:

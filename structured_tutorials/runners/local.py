@@ -20,7 +20,7 @@ class LocalRunner(RunnerBase):
             cmd_str = shlex.join(args)
         print(f"+ {cmd_str}")
 
-        proc = subprocess.run(args, shell=step.shell, check=False)
+        proc = subprocess.run(args, shell=isinstance(args, str), check=False)
         if step.returncode is not None and proc.returncode != step.returncode:
             raise TutorialError(f"{cmd_str}: Return code {proc.returncode} (expected: {step.returncode}).")
 

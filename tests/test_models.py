@@ -6,18 +6,12 @@ from structured_tutorials.models import Command, Contexts, Part
 
 
 @pytest.mark.parametrize(
-    ("command", "shell", "expected"),
-    (
-        # ("ls", False, ("ls",)),
-        (["ls"], False, ("ls",)),
-        # (["ls"], True, "ls"),
-        # (["ls", "foo bar"], True, "ls 'foo bar'"),
-        ("echo foo | cat", True, "echo foo | cat"),
-    ),
+    ("command", "expected"),
+    ((["ls"], ("ls",)), ("echo foo | cat", "echo foo | cat")),
 )
-def test_step_command_shell(command: list[str] | str, shell: bool, expected: tuple[str, ...] | str) -> None:
+def test_step_command_shell(command: list[str] | str, expected: tuple[str, ...] | str) -> None:
     """Test the `shell` parameter."""
-    step = Command(command=command, shell=shell)
+    step = Command(command=command)
     assert step.command == expected
 
 
@@ -32,7 +26,7 @@ def test_part_with_step_shortcuts() -> None:
     """Test shortcuts for steps in a part."""
     part = Part(steps=["ls /", ["ls", "/"], {"command": ["ls", "/"]}])
     assert part.steps == (
-        Command(command=("ls", "/")),
+        Command(command=("ls /")),
         Command(command=("ls", "/")),
         Command(command=("ls", "/")),
     )
