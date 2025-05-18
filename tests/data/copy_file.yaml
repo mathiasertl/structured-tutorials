@@ -10,10 +10,27 @@ context:
     filename: example.txt
 parts:
   - steps:
+      # Test that target directory does not exist
+      - command: [ test, -e, "{{ destination }}"]
+        returncode: 1
+      # Test that source file actually exist
       - test -f tests/data/file.txt
+      # Copy that file
       - source: tests/data/file.txt
         destination: "{{ destination }}/{{ filename }}"
+      # Test that destination now exists
       - "test -f {{destination}}/{{filename}}"
+      # Test that this was rendered as a template
       - [grep, test_value, "{{ destination }}/{{ filename }}"]
       - command: [grep, test_key, "{{ destination }}/{{ filename }}"]
         returncode: 1
+
+      # Append a string with shell=True, make sure that it's added with grep
+      - command: [ grep, shell_value, "{{ destination }}/{{ filename }}" ]
+        returncode: 1
+      - command: "echo shell_value >> {{destination}}/{{filename}}"
+        shell: true
+      - [ grep, shell_value, "{{ destination }}/{{ filename }}" ]
+
+      # Finally, cat the file for convenience
+      - [ cat, "{{ destination }}/{{ filename }}" ]

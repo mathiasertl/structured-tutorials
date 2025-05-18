@@ -14,8 +14,12 @@ class LocalRunner(RunnerBase):
     """Runner to run steps locally."""
 
     def run_command(self, args: str | tuple[str], step: CommandBase, *, context: dict[str, Any]) -> None:
-        cmd_str = shlex.join(step.command)
+        if isinstance(args, str):
+            cmd_str = args
+        else:
+            cmd_str = shlex.join(args)
         print(f"+ {cmd_str}")
+
         proc = subprocess.run(args, shell=step.shell, check=False)
         if proc.returncode != step.returncode:
             raise TutorialError(f"{cmd_str}: Return code {proc.returncode} (expected: {step.returncode}).")

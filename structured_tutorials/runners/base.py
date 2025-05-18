@@ -23,7 +23,7 @@ class RunnerBase(abc.ABC):
     def __init__(self, tutorial: Tutorial) -> None:
         self._performed_steps: list[Command | File] = []
         self.tutorial = tutorial
-        self.env = Environment()
+        self.env = Environment(keep_trailing_newline=True)
 
     def handle_file_step(self, step: File, context: dict[str, Any]) -> None:
         source = Path(self.env.from_string(str(step.source)).render(context))
@@ -50,7 +50,6 @@ class RunnerBase(abc.ABC):
         if isinstance(step.command, str):
             args = self.env.from_string(step.command).render(context)
         else:
-            print(step.command)
             args = tuple(self.env.from_string(arg).render(context) for arg in step.command)
         self.run_command(args, step, context=context)
 

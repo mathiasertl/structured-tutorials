@@ -41,12 +41,17 @@ def test_minimal_with_expected_error(fp: FakeProcess) -> None:
 
 def test_copy_file(tmpdir: Path, fp: FakeProcess) -> None:
     """Test copy_file tutorial."""
+    fp.register(("test", "-e", str(tmpdir)), returncode=1)
     fp.register(("test", "-f", "tests/data/file.txt"))
     fp.register(("test", "-f", f"{tmpdir}/example.txt"))
     fp.register(("grep", "test_value", f"{tmpdir}/example.txt"))
     fp.register(("grep", "test_key", f"{tmpdir}/example.txt"), returncode=1)
+    fp.register(("grep", "shell_value", f"{tmpdir}/example.txt"), returncode=1)
+    fp.register(f"echo shell_value >> {tmpdir}/example.txt")
+    fp.register(("grep", "shell_value", f"{tmpdir}/example.txt"))
+    fp.register(("cat", f"{tmpdir}/example.txt"))
     tutorial = load_tutorial(DATA_DIR / "copy_file.yaml")
     tutorial.context.execution["destination"] = tmpdir
     assert tutorial.config.working_directory == ROOT_DIR
     run_tutorial(tutorial)
-    assert len(fp.calls) == 4  # four steps registered above
+    assert len(fp.calls) == 9  # the four steps registered above
