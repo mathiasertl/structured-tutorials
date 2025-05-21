@@ -46,6 +46,7 @@ class CommandBase(BaseModel):
 class Command(CommandBase):
     """A command in a part of a tutorial that you want to run."""
 
+    id: str = ""
     sphinx: CommandDocumentation = CommandDocumentation()
     cleanup: tuple[CommandBase, ...] = tuple()
 
@@ -53,6 +54,7 @@ class Command(CommandBase):
 class File(BaseModel):
     """A file you want to create at the given destination."""
 
+    id: str = ""
     source: Path
     destination: Path
     template: bool = True  # False for big files
@@ -61,7 +63,15 @@ class File(BaseModel):
 class Part(BaseModel):
     """A part splits a tutorial into individual subsections."""
 
+    id: str = ""
     steps: tuple[Annotated[Command | File, BeforeValidator(list_or_str_as_step)], ...]
+
+    @model_validator(mode="after")
+    def populate_ids(self) -> Self:
+        for id, step in enumerate(self.steps):
+            if step.id == "":
+                step.id = str(id)
+        return self
 
 
 class Config(BaseModel):
@@ -96,4 +106,11 @@ class Tutorial(BaseModel):
                 if isinstance(step, File) and not step.source.is_absolute():
                     step.source = self.config.working_directory / step.source
 
+        return self
+
+    @model_validator(mode="after")
+    def populate_ids(self) -> Self:
+        for id, part in enumerate(self.parts):
+            if part.id == "":
+                part.id = str(id)
         return self
