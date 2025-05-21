@@ -47,10 +47,14 @@ class RunnerBase(abc.ABC):
                 self.create_file(Path(tmpfile.name), destination, step, context=context)
 
     def handle_command(self, step: Command, context: dict[str, Any]) -> None:
+        command = step.command
+        if step.exec_command:
+            command = step.exec_command
+
         if isinstance(step.command, str):
-            args = self.env.from_string(step.command).render(context)
+            args = self.env.from_string(command).render(context)
         else:
-            args = tuple(self.env.from_string(arg).render(context) for arg in step.command)
+            args = tuple(self.env.from_string(arg).render(context) for arg in command)
 
         self.run_command(args, step, context=context)
 
