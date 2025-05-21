@@ -46,17 +46,23 @@ class RunnerBase(abc.ABC):
 
                 self.create_file(Path(tmpfile.name), destination, step, context=context)
 
+    def render_command(self, args: tuple[str, ...] | str, context: dict[str, Any]) -> tuple[str, ...] | str:
+        if isinstance(args, str):
+            return self.env.from_string(args).render(context)
+        return tuple(self.env.from_string(arg).render(context) for arg in args)
+
     def handle_command(self, step: Command, context: dict[str, Any]) -> None:
-        command = step.command
-        if step.exec_command:
-            command = step.exec_command
+        args = step.command
+        if step.exec_command is not None:
+            args = step.exec_command
 
-        if isinstance(step.command, str):
-            args = self.env.from_string(command).render(context)
-        else:
-            args = tuple(self.env.from_string(arg).render(context) for arg in command)
-
+        args = self.render_command(args, context)
         self.run_command(args, step, context=context)
+
+    def handle_command_cleanup(self, step: Command, context: dict[str, Any]) -> None:
+        for cleanup_command in step.cleanup:
+            args = self.render_command(cleanup_command.command, context)
+            self.run_command(args, cleanup_command, context=context)
 
     def run(self) -> None:
         context = copy.deepcopy(self.tutorial.context.execution)
@@ -73,8 +79,7 @@ class RunnerBase(abc.ABC):
         finally:
             for performed_step in reversed(self._performed_steps):
                 if isinstance(performed_step, Command):
-                    for cleanup_step in performed_step.cleanup:
-                        self.handle_command(cleanup_step, context=context)
+                    self.handle_command_cleanup(performed_step, context=context)
 
     @abc.abstractmethod
     def run_command(

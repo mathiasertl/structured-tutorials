@@ -13,7 +13,7 @@ from structured_tutorials.runners.base import RunnerBase, TutorialError
 class LocalRunner(RunnerBase):
     """Runner to run steps locally."""
 
-    def run_command(self, args: str | tuple[str], step: CommandBase, *, context: dict[str, Any]) -> None:
+    def run_command(self, args: str | tuple[str, ...], step: CommandBase, *, context: dict[str, Any]) -> None:
         if isinstance(args, str):
             cmd_str = args
         else:

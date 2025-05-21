@@ -47,7 +47,7 @@ class Command(CommandBase):
     """A command in a part of a tutorial that you want to run."""
 
     id: str = ""
-    exec_command: tuple[str, ...] | str
+    exec_command: tuple[str, ...] | str | None = None
     sphinx: CommandDocumentation = CommandDocumentation()
     cleanup: tuple[CommandBase, ...] = tuple()
 
