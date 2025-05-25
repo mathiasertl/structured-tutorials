@@ -61,15 +61,15 @@ class File(BaseModel):
     template: bool = True  # False for big files
 
 
-class Part(BaseModel):
+class Commands(BaseModel):
     """A part splits a tutorial into individual subsections."""
 
     id: str = ""
-    steps: tuple[Annotated[Command | File, BeforeValidator(list_or_str_as_step)], ...]
+    commands: tuple[Annotated[Command, BeforeValidator(list_or_str_as_step)], ...]
 
     @model_validator(mode="after")
     def populate_ids(self) -> Self:
-        for id, step in enumerate(self.steps):
+        for id, step in enumerate(self.commands):
             if step.id == "":
                 step.id = str(id)
         return self
@@ -94,7 +94,7 @@ class Tutorial(BaseModel):
 
     config: Annotated[Config, BeforeValidator(none_as_dict)] = Field(default=Config())
     context: Contexts = Contexts()
-    parts: tuple[Part, ...]
+    parts: tuple[Commands | File, ...]
 
     @model_validator(mode="after")
     def validate_working_directory(self, info: ValidationInfo) -> Self:
@@ -103,9 +103,8 @@ class Tutorial(BaseModel):
                 self.config.working_directory = (path.parent / self.config.working_directory).resolve()
 
         for part in self.parts:
-            for step in part.steps:
-                if isinstance(step, File) and not step.source.is_absolute():
-                    step.source = self.config.working_directory / step.source
+            if isinstance(part, File) and not part.source.is_absolute():
+                part.source = self.config.working_directory / part.source
 
         return self
 

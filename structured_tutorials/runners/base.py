@@ -8,7 +8,7 @@ from typing import Any
 
 from jinja2 import Environment
 
-from structured_tutorials.models import Command, CommandBase, File, Tutorial
+from structured_tutorials.models import Command, CommandBase, Commands, File, Tutorial
 
 
 class TutorialError(Exception):
@@ -68,14 +68,14 @@ class RunnerBase(abc.ABC):
         context = copy.deepcopy(self.tutorial.context.execution)
         try:
             for part in self.tutorial.parts:
-                for step in part.steps:
-                    if isinstance(step, Command):
-                        self.handle_command(step, context)
-                    elif isinstance(step, File):
-                        self.handle_file_step(step, context)
-                    else:  # pragma: no cover
-                        raise ValueError(f"{step}: Unknown step type.")
-                    self._performed_steps.append(step)
+                if isinstance(part, File):
+                    self.handle_file_step(part, context)
+                elif isinstance(part, Commands):
+                    for command in part.commands:
+                        self.handle_command(command, context)
+                else:  # pragma: no cover
+                    raise ValueError(f"{part}: Unknown step type.")
+                self._performed_steps.append(part)
         finally:
             for performed_step in reversed(self._performed_steps):
                 if isinstance(performed_step, Command):

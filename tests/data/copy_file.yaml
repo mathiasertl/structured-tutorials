@@ -9,15 +9,16 @@ context:
     test_key: test_value
     filename: example.txt
 parts:
-  - steps:
+  - commands:
       # Test that target directory does not exist
       - command: [ test, -e, "{{ destination }}"]
         returncode: 1
       # Test that source file actually exist
       - test -f tests/data/file.txt
       # Copy that file
-      - source: tests/data/file.txt
-        destination: "{{ destination }}/{{ filename }}"
+  - source: tests/data/file.txt
+    destination: "{{ destination }}/{{ filename }}"
+  - commands:
       # Test that destination now exists
       - "test -f {{destination}}/{{filename}}"
       # Test that this was rendered as a template

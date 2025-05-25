@@ -10,6 +10,15 @@ Add your content using ``reStructuredText`` syntax. See the
 `reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
 documentation for details.
 
+.. tutorial:: tests/data/copy_file.yaml
+
+.. part::
+
+.. part::
+
+.. part::
+
+.. part::
 
 .. toctree::
    :maxdepth: 2

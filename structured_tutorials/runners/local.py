@@ -1,4 +1,4 @@
-"""Runner for running steps locally."""
+"""Runner for running commands locally."""
 
 import shlex
 import shutil
@@ -11,7 +11,7 @@ from structured_tutorials.runners.base import RunnerBase, TutorialError
 
 
 class LocalRunner(RunnerBase):
-    """Runner to run steps locally."""
+    """Runner to run commands locally."""
 
     def run_command(self, args: str | tuple[str, ...], step: CommandBase, *, context: dict[str, Any]) -> None:
         if isinstance(args, str):

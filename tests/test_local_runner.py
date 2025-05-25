@@ -32,7 +32,7 @@ def test_minimal_with_expected_error(fp: FakeProcess) -> None:
     """Test the minimal tutorial that throws an expected error."""
     fp.register(["ls"], returncode=1)
     tutorial = load_tutorial(DATA_DIR / "minimal.yaml")
-    step = tutorial.parts[0].steps[0]
+    step = tutorial.parts[0].commands[0]
     assert isinstance(step, Command)
     step.returncode = 1
     run_tutorial(tutorial)
@@ -54,4 +54,4 @@ def test_copy_file(tmpdir: Path, fp: FakeProcess) -> None:
     tutorial.context.execution["destination"] = tmpdir
     assert tutorial.config.working_directory == ROOT_DIR
     run_tutorial(tutorial)
-    assert len(fp.calls) == 9  # the four steps registered above
+    assert len(fp.calls) == 9  # the four commands registered above

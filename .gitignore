@@ -9,6 +9,9 @@ wheels/
 # Virtual environments
 .venv
 
+# Documentation
+/docs/_build/
+
 # Coverage
 /.coverage
 

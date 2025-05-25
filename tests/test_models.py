@@ -2,7 +2,7 @@
 
 import pytest
 
-from structured_tutorials.models import Command, Contexts, Part
+from structured_tutorials.models import Command, Commands, Contexts
 
 
 @pytest.mark.parametrize(
@@ -23,9 +23,9 @@ def test_step_returncode_out_of_bounds(returncode: int) -> None:
 
 
 def test_part_with_step_shortcuts() -> None:
-    """Test shortcuts for steps in a part."""
-    part = Part(steps=["ls /", ["ls", "/"], {"command": ["ls", "/"]}])
-    assert part.steps == (
+    """Test shortcuts for commands in a part."""
+    part = Commands(commands=["ls /", ["ls", "/"], {"command": ["ls", "/"]}])
+    assert part.commands == (
         Command(command=("ls /"), id="0"),
         Command(command=("ls", "/"), id="1"),
         Command(command=("ls", "/"), id="2"),
