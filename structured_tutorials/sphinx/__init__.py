@@ -19,7 +19,18 @@ _NEXT_PART = "tutorial-next-part"
 LAST_PART = "__end__"
 
 
-class TutorialDirective(SphinxDirective):
+class CurrentDocumentMixin:
+    # NOTE: sphinx 8.2.0 introduced "current_document", temp_data is deprecated and kept only for
+    #   backwards compatability: https://github.com/sphinx-doc/sphinx/pull/13151
+    @property
+    def current_document(self):
+        if hasattr(self.env, "current_document"):
+            return self.env.current_document
+        else:
+            return self.env.temp_data
+
+
+class TutorialDirective(CurrentDocumentMixin, SphinxDirective):
     """Directive to specify the currently rendered tutorial."""
 
     has_content = False
@@ -41,13 +52,15 @@ class TutorialDirective(SphinxDirective):
 
         tutorial_path = self.get_tutorial_path(tutorial)
         tutorial = load_tutorial(tutorial_path)
-        self.env.current_document["tutorial"] = tutorial
-        self.env.current_document["tutorial-next-part"] = tutorial.parts[0].id  # next part to be rendered
+
+        self.current_document["tutorial"] = tutorial
+        self.current_document["tutorial-next-part"] = tutorial.parts[0].id  # next part to be rendered
+
         # NOTE: `highlighting` directive returns a custom Element for unknown reasons
         return []
 
 
-class PartDirective(SphinxDirective):
+class PartDirective(CurrentDocumentMixin, SphinxDirective):
     """Directive to show a tutorial part."""
 
     required_arguments = 0
@@ -68,14 +81,21 @@ class PartDirective(SphinxDirective):
     {file}
 """
 
+    @property
+    def current_document(self):
+        if hasattr(self.env, "current_document"):
+            return self.env.current_document
+        else:
+            return self.env.temp_data
+
     def run(self) -> list[paragraph]:
         node = paragraph()
 
-        tutorial: Tutorial = self.env.current_document["tutorial"]
+        tutorial: Tutorial = self.current_document["tutorial"]
         if self.arguments:
             next_part_id: str = self.arguments[0].strip()
         else:
-            next_part_id = self.env.current_document[_NEXT_PART]
+            next_part_id = self.current_document[_NEXT_PART]
             if next_part_id == LAST_PART:
                 raise SphinxError("Part without id found, but last part was already rendered.")
 
@@ -89,9 +109,9 @@ class PartDirective(SphinxDirective):
                     text = self.render_file(part)
 
                 if len(tutorial.parts) <= index + 1:
-                    self.env.current_document[_NEXT_PART] = LAST_PART
+                    self.current_document[_NEXT_PART] = LAST_PART
                 else:
-                    self.env.current_document[_NEXT_PART] = tutorial.parts[index + 1].id
+                    self.current_document[_NEXT_PART] = tutorial.parts[index + 1].id
 
                 break  # no longer need to loop
 

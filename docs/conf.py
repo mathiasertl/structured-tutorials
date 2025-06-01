@@ -18,9 +18,11 @@ release = "0.1.0"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    "sphinxcontrib.autodoc_pydantic",
+    "sphinx_rtd_theme",
+    # "sphinxcontrib.autodoc_pydantic",
     "structured_tutorials.sphinx",
 ]
+html_theme = "sphinx_rtd_theme"
 
 DOC_ROOT = Path(__file__).parent
 PROJECT_ROOT = DOC_ROOT.parent
@@ -33,5 +35,5 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "alabaster"
+# html_theme = "alabaster"
 html_static_path = ["_static"]
