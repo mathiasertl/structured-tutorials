@@ -18,9 +18,10 @@ documentation for details.
 
 .. part::
 
-.. part::
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+
+   models
 

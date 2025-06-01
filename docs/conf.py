@@ -18,6 +18,7 @@ release = "0.1.0"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
+    "sphinxcontrib.autodoc_pydantic",
     "structured_tutorials.sphinx",
 ]
 
