@@ -48,7 +48,7 @@ class Command(CommandBase):
 
     id: str = ""
     exec_command: tuple[str, ...] | str | None = None
-    sphinx: CommandDocumentation = CommandDocumentation()
+    documentation: CommandDocumentation = CommandDocumentation()
     cleanup: tuple[CommandBase, ...] = tuple()
 
 
@@ -85,7 +85,7 @@ class Config(BaseModel):
 class Contexts(BaseModel):
     """A set of contexts for running or rendering tutorials."""
 
-    sphinx: Annotated[dict[str, Any], BeforeValidator(none_as_dict)] = Field(default_factory=dict)
+    documentation: Annotated[dict[str, Any], BeforeValidator(none_as_dict)] = Field(default_factory=dict)
     execution: Annotated[dict[str, Any], BeforeValidator(none_as_dict)] = Field(default_factory=dict)
 
 

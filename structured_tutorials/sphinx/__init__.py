@@ -1,9 +1,12 @@
 """Sphinx extension."""
 
+import copy
+import shlex
 from pathlib import Path
 
 from docutils.nodes import Body, Node, paragraph
 from docutils.statemachine import StringList
+from jinja2 import Environment
 from sphinx.application import Sphinx
 from sphinx.config import Config
 from sphinx.errors import ConfigError, ExtensionError, SphinxError
@@ -28,6 +31,14 @@ class CurrentDocumentMixin:
             return self.env.current_document
         else:
             return self.env.temp_data
+
+    @property
+    def context(self):
+        return self.current_document["tutorial-context"]
+
+    @property
+    def jinja(self) -> Environment:
+        return self.current_document["tutorial-env"]
 
 
 class TutorialDirective(CurrentDocumentMixin, SphinxDirective):
@@ -55,6 +66,12 @@ class TutorialDirective(CurrentDocumentMixin, SphinxDirective):
 
         self.current_document["tutorial"] = tutorial
         self.current_document["tutorial-next-part"] = tutorial.parts[0].id  # next part to be rendered
+        self.current_document["tutorial-env"] = Environment(keep_trailing_newline=True)
+        self.current_document["tutorial-context"] = {
+            **tutorial.context.documentation,
+            "execution": False,
+            "documentation": True,
+        }
 
         # NOTE: `highlighting` directive returns a custom Element for unknown reasons
         return []
@@ -66,13 +83,21 @@ class PartDirective(CurrentDocumentMixin, SphinxDirective):
     required_arguments = 0
     optional_arguments = 1  # Next part to display
 
+    def render_command(self, args: tuple[str, ...] | str) -> str:
+        if isinstance(args, str):
+            return self.jinja.from_string(args).render(self.context)
+        return shlex.join(tuple(self.jinja.from_string(arg).render(self.context) for arg in args))
+
     def render_commands(self, commands: Commands) -> str:
-        return f"""
+        # Render command strings
+        command_strings = [self.render_command(cmd.command) for cmd in commands.commands]
+
+        return self.jinja.from_string("""
 .. code-block:: console
 
-    user@host:~# ls
-    Command: {commands}
-"""
+    {% for cmd in commands %}user@host:~# {{ cmd }}
+    {% endfor %} 
+""").render({**self.context, "commands": command_strings})
 
     def render_file(self, file: File) -> str:
         return f"""

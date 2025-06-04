@@ -66,6 +66,8 @@ class RunnerBase(abc.ABC):
 
     def run(self) -> None:
         context = copy.deepcopy(self.tutorial.context.execution)
+        context["execution"] = True
+        context["documentation"] = False
         try:
             for part in self.tutorial.parts:
                 if isinstance(part, File):
