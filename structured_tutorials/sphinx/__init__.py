@@ -3,6 +3,7 @@
 import copy
 import shlex
 from pathlib import Path
+from typing import Any
 
 from docutils.nodes import Body, Node, paragraph
 from docutils.statemachine import StringList
@@ -14,7 +15,7 @@ from sphinx.util.docutils import SphinxDirective
 from sphinx.util.typing import ExtensionMetadata
 
 from structured_tutorials import version
-from structured_tutorials.models import Commands, File, Tutorial
+from structured_tutorials.models import Command, Commands, File, Tutorial
 from structured_tutorials.tutorial import load_tutorial
 
 _NEXT_PART = "tutorial-next-part"
@@ -83,21 +84,42 @@ class PartDirective(CurrentDocumentMixin, SphinxDirective):
     required_arguments = 0
     optional_arguments = 1  # Next part to display
 
-    def render_command(self, args: tuple[str, ...] | str) -> str:
-        if isinstance(args, str):
-            return self.jinja.from_string(args).render(self.context)
-        return shlex.join(tuple(self.jinja.from_string(arg).render(self.context) for arg in args))
+    def render(self, template: str, **extra_context: dict[str, Any]) -> str:
+        return self.jinja.from_string(template).render({**self.context, **extra_context})
+
+    def get_command(self, command: Command) -> dict:
+        if isinstance(command.command, str):
+            args = self.jinja.from_string(command.command).render(self.context)
+        else:
+            args = shlex.join(
+                tuple(self.jinja.from_string(arg).render(self.context) for arg in command.command)
+            )
+        prompt = self.jinja.from_string(
+            "{{ user }}@{{ host }}:{{ cwd }}{% if user == 'root' %}#{% else %}${% endif %}"
+        ).render(self.context)
+
+        data = {"args": args, "prompt": prompt, "output": self.render(command.documentation.output)}
+
+        self.context.update(
+            {key: self.render(value) for key, value in command.documentation.update_context.items()}
+        )
+
+        return data
 
     def render_commands(self, commands: Commands) -> str:
         # Render command strings
-        command_strings = [self.render_command(cmd.command) for cmd in commands.commands]
+        command_strings = [self.get_command(cmd) for cmd in commands.commands]
 
-        return self.jinja.from_string("""
+        return self.render(
+            """
 .. code-block:: console
 
-    {% for cmd in commands %}user@host:~# {{ cmd }}
+    {% for cmd in commands %}{{ cmd.prompt }} {{ cmd.args }}{% if cmd.output %}
+    {{ cmd.output }}{% endif %}
     {% endfor %} 
-""").render({**self.context, "commands": command_strings})
+""",
+            commands=command_strings,
+        )
 
     def render_file(self, file: File) -> str:
         return f"""

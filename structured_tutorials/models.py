@@ -25,7 +25,8 @@ def list_or_str_as_step(value: Any) -> Any:
 class CommandDocumentation(BaseModel):
     """Model for documentation configuration."""
 
-    show_stdout: str = ""
+    output: str = ""
+    update_context: dict[str, Any] = Field(default_factory=dict)
 
 
 class CommandBase(BaseModel):
@@ -85,7 +86,9 @@ class Config(BaseModel):
 class Contexts(BaseModel):
     """A set of contexts for running or rendering tutorials."""
 
-    documentation: Annotated[dict[str, Any], BeforeValidator(none_as_dict)] = Field(default_factory=dict)
+    documentation: Annotated[dict[str, Any], BeforeValidator(none_as_dict)] = Field(
+        default_factory=lambda: {"user": "user", "host": "host", "cwd": "~"}
+    )
     execution: Annotated[dict[str, Any], BeforeValidator(none_as_dict)] = Field(default_factory=dict)
 
 
@@ -106,6 +109,13 @@ class Tutorial(BaseModel):
             if isinstance(part, File) and not part.source.is_absolute():
                 part.source = self.config.working_directory / part.source
 
+        return self
+
+    @model_validator(mode="after")
+    def update_default_documentation_context(self) -> Self:
+        self.context.documentation.setdefault("user", "user")
+        self.context.documentation.setdefault("host", "host")
+        self.context.documentation.setdefault("cwd", "cwd")
         return self
 
     @model_validator(mode="after")
