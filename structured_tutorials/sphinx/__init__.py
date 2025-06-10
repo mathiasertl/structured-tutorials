@@ -4,7 +4,7 @@ import shlex
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from docutils.nodes import Body, Node, paragraph
+from docutils.nodes import Node, paragraph
 from docutils.parsers.rst.states import RSTState
 from docutils.statemachine import StringList
 from jinja2 import Environment

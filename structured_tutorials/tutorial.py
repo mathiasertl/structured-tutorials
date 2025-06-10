@@ -14,6 +14,7 @@ from structured_tutorials.runners.local import LocalRunner
 
 @contextmanager
 def chdir(path: Path) -> Iterator[None]:
+    """Context manager to switch the directory."""
     old_cwd = os.getcwd()
     try:
         os.chdir(path)
