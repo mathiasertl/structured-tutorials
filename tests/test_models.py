@@ -36,4 +36,4 @@ def test_context_default() -> None:
     """Test default values for context."""
     ctxs = Contexts(sphinx=None, execution={})
     assert ctxs.execution == {}
-    assert ctxs.sphinx == {}
+    assert ctxs.documentation == {"user": "user", "host": "host", "cwd": "~"}
