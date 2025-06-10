@@ -83,5 +83,6 @@ dev = [
     "pytest-subprocess>=1.5.3",
     "ruff>=0.11.10",
     "sphinx-rtd-theme>=3.0.2",
+    "types-docutils>=0.21.0.20250604",
     "types-pyyaml>=6.0.12.20250516",
 ]

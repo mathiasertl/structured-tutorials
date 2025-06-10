@@ -1,15 +1,16 @@
 """Sphinx extension."""
 
-import copy
 import shlex
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from docutils.nodes import Body, Node, paragraph
+from docutils.parsers.rst.states import RSTState
 from docutils.statemachine import StringList
 from jinja2 import Environment
 from sphinx.application import Sphinx
 from sphinx.config import Config
+from sphinx.environment import BuildEnvironment
 from sphinx.errors import ConfigError, ExtensionError, SphinxError
 from sphinx.util.docutils import SphinxDirective
 from sphinx.util.typing import ExtensionMetadata
@@ -22,24 +23,32 @@ _NEXT_PART = "tutorial-next-part"
 
 LAST_PART = "__end__"
 
+if TYPE_CHECKING:
+    from sphinx.environment import _CurrentDocument
+
 
 class CurrentDocumentMixin:
+    """Mixin adding the current document property and context."""
+
+    if TYPE_CHECKING:
+        env: BuildEnvironment
+
     # NOTE: sphinx 8.2.0 introduced "current_document", temp_data is deprecated and kept only for
     #   backwards compatability: https://github.com/sphinx-doc/sphinx/pull/13151
     @property
-    def current_document(self):
+    def current_document(self) -> "_CurrentDocument":
         if hasattr(self.env, "current_document"):
             return self.env.current_document
         else:
             return self.env.temp_data
 
     @property
-    def context(self):
-        return self.current_document["tutorial-context"]
+    def context(self) -> dict[str, Any]:
+        return self.current_document["tutorial-context"]  # type: ignore[no-any-return]
 
     @property
     def jinja(self) -> Environment:
-        return self.current_document["tutorial-env"]
+        return self.current_document["tutorial-env"]  # type: ignore[no-any-return]
 
 
 class TutorialDirective(CurrentDocumentMixin, SphinxDirective):
@@ -49,7 +58,7 @@ class TutorialDirective(CurrentDocumentMixin, SphinxDirective):
     required_arguments = 1
     optional_arguments = 0
 
-    def get_tutorial_path(self, tutorial: str) -> str:
+    def get_tutorial_path(self, tutorial: str) -> Path:
         root: Path = self.config.tutorial_root
         tutorial_path = Path(tutorial)
         if tutorial_path.is_absolute():
@@ -60,9 +69,9 @@ class TutorialDirective(CurrentDocumentMixin, SphinxDirective):
         return absolute_path
 
     def run(self) -> list[Node]:
-        tutorial = self.arguments[0].strip()
+        tutorial_arg = self.arguments[0].strip()
 
-        tutorial_path = self.get_tutorial_path(tutorial)
+        tutorial_path = self.get_tutorial_path(tutorial_arg)
         tutorial = load_tutorial(tutorial_path)
 
         self.current_document["tutorial"] = tutorial
@@ -84,10 +93,10 @@ class PartDirective(CurrentDocumentMixin, SphinxDirective):
     required_arguments = 0
     optional_arguments = 1  # Next part to display
 
-    def render(self, template: str, **extra_context: dict[str, Any]) -> str:
+    def render(self, template: str, **extra_context: Any) -> str:
         return self.jinja.from_string(template).render({**self.context, **extra_context})
 
-    def get_command(self, command: Command) -> dict:
+    def get_command(self, command: Command) -> dict[str, Any]:
         if isinstance(command.command, str):
             args = self.jinja.from_string(command.command).render(self.context)
         else:
@@ -128,13 +137,6 @@ class PartDirective(CurrentDocumentMixin, SphinxDirective):
     {file}
 """
 
-    @property
-    def current_document(self):
-        if hasattr(self.env, "current_document"):
-            return self.env.current_document
-        else:
-            return self.env.temp_data
-
     def run(self) -> list[paragraph]:
         node = paragraph()
 
@@ -166,7 +168,7 @@ class PartDirective(CurrentDocumentMixin, SphinxDirective):
             raise ExtensionError(f"{next_part_id}: Part not found.")
 
         lines = StringList(text.splitlines())
-        state: Body = self.state
+        state: RSTState = self.state
         state.nested_parse(lines, 0, node)
         return [node]
 

@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from pytest_subprocess.fake_process import FakeProcess
 
-from structured_tutorials.models import Command
+from structured_tutorials.models import Command, Commands
 from structured_tutorials.runners.base import TutorialError
 from structured_tutorials.tutorial import load_tutorial, run_tutorial
 from tests.conftest import DATA_DIR, ROOT_DIR
@@ -32,6 +32,7 @@ def test_minimal_with_expected_error(fp: FakeProcess) -> None:
     """Test the minimal tutorial that throws an expected error."""
     fp.register(["ls"], returncode=1)
     tutorial = load_tutorial(DATA_DIR / "minimal.yaml")
+    assert isinstance(tutorial.parts[0], Commands)
     step = tutorial.parts[0].commands[0]
     assert isinstance(step, Command)
     step.returncode = 1

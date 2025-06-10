@@ -72,12 +72,13 @@ class RunnerBase(abc.ABC):
             for part in self.tutorial.parts:
                 if isinstance(part, File):
                     self.handle_file_step(part, context)
+                    self._performed_steps.append(part)
                 elif isinstance(part, Commands):
                     for command in part.commands:
                         self.handle_command(command, context)
+                        self._performed_steps.append(command)
                 else:  # pragma: no cover
                     raise ValueError(f"{part}: Unknown step type.")
-                self._performed_steps.append(part)
         finally:
             for performed_step in reversed(self._performed_steps):
                 if isinstance(performed_step, Command):
