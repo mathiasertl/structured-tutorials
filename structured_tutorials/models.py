@@ -1,5 +1,6 @@
 """Basic tutorial structure."""
 
+import re
 from pathlib import Path
 from typing import Literal
 
@@ -7,10 +8,17 @@ from pydantic import BaseModel
 from yaml import safe_load
 
 
+class RunCommandSpecification(BaseModel):
+    """Model specifying expected behavior when actually running a command."""
+
+    status_code: int = 0
+
+
 class CommandModel(BaseModel):
     """Model representing a command in a tutorial."""
 
     command: str
+    run: RunCommandSpecification = RunCommandSpecification()
 
 
 class CommandsPartModel(BaseModel):
