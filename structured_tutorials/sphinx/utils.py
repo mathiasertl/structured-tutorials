@@ -37,11 +37,17 @@ class TutorialWrapper:
     This class exists mainly to wrap the main logic into a separate class that is more easily testable.
     """
 
-    def __init__(self, path: Path) -> None:
-        self.tutorial = TutorialModel.from_file(path)
+    def __init__(self, tutorial: TutorialModel) -> None:
+        self.tutorial = tutorial
         self.next_part = 0
         self.env = Environment(keep_trailing_newline=True)
         self.context = {"execution": False, "documentation": True}
+
+    @classmethod
+    def from_file(cls, path: Path) -> "TutorialWrapper":
+        """Factory method for creating a TutorialWrapper from a file."""
+        tutorial = TutorialModel.from_file(path)
+        return cls(tutorial)
 
     def render_code_block(self, part: CommandsPartModel) -> str:
         """Render a CommandsPartModel as a code-block."""

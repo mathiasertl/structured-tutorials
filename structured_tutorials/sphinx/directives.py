@@ -41,7 +41,7 @@ class TutorialDirective(CurrentDocumentMixin, SphinxDirective):
         tutorial_arg = self.arguments[0].strip()
 
         tutorial_path = get_tutorial_path(self.config.tutorial_root, tutorial_arg)
-        self.current_document["tutorial"] = TutorialWrapper(tutorial_path)
+        self.current_document["tutorial"] = TutorialWrapper.from_file(tutorial_path)
 
         # NOTE: `highlighting` directive returns a custom Element for unknown reasons
         return []
