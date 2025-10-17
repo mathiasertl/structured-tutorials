@@ -14,3 +14,21 @@ Test the status code
 
 .. literalinclude:: /tutorials/exit_code/tutorial.yaml
     :language: yaml
+
+********************
+Documenting commands
+********************
+
+Show output
+===========
+
+To show an output when rendering commands, specify the ``output`` key:
+
+.. literalinclude:: /tutorials/echo/tutorial.yaml
+    :language: yaml
+
+This will render as:
+
+.. structured-tutorial:: echo/tutorial.yaml
+
+.. structured-tutorial-part::

@@ -1,0 +1,5 @@
+parts:
+  - commands:
+      - command: echo "example output"
+        doc:
+          output: "example output"

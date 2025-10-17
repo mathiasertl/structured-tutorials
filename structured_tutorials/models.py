@@ -1,6 +1,5 @@
 """Basic tutorial structure."""
 
-import re
 from pathlib import Path
 from typing import Literal
 
@@ -14,11 +13,18 @@ class RunCommandSpecification(BaseModel):
     status_code: int = 0
 
 
+class CommandDocumentation(BaseModel):
+    """Model specifying details for documentation."""
+
+    output: str = ""
+
+
 class CommandModel(BaseModel):
     """Model representing a command in a tutorial."""
 
     command: str
     run: RunCommandSpecification = RunCommandSpecification()
+    doc: CommandDocumentation = CommandDocumentation()
 
 
 class CommandsPartModel(BaseModel):
