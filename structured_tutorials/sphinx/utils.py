@@ -52,11 +52,10 @@ class TutorialWrapper:
     def render_code_block(self, part: CommandsPartModel) -> str:
         """Render a CommandsPartModel as a code-block."""
         template = """.. code-block:: console
-    {% for cmd in part.commands %}
+{% for cmd in part.commands %}
     user@host:~# {{ cmd.command }}{% if cmd.doc.output %}
     {{ cmd.doc.output.rstrip('\n')|indent(4) }}{% endif %}
-    {%- endfor %} 
-        """
+    {%- endfor %}"""
         return self.env.from_string(template).render({"part": part})
 
     def render_part(self) -> str:
