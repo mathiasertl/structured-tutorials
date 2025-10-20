@@ -1,0 +1,19 @@
+configuration:
+  doc:
+    context:
+      user: example-user
+      host: example-host
+      cwd: /tmp
+parts:
+  - commands:
+      - command: sudo su
+        doc:
+          update_context:
+            user: root
+      - command: cd /etc
+        doc:
+          update_context:
+            cwd: /etc
+      - command: pwd
+        doc:
+          output: /etc

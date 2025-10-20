@@ -19,6 +19,9 @@ Test the status code
 Documenting commands
 ********************
 
+Specifying the command
+======================
+
 Show output
 ===========
 
@@ -30,5 +33,56 @@ To show an output when rendering commands, specify the ``output`` key:
 This will render as:
 
 .. structured-tutorial:: echo/tutorial.yaml
+
+.. structured-tutorial-part::
+
+Template context
+================
+
+Both command and output are rendered as template with the current context. The initial context is specified in
+the global context, and each command can update the context before and after being shown:
+
+.. literalinclude:: /tutorials/context/tutorial.yaml
+    :language: yaml
+
+This will render as:
+
+.. structured-tutorial:: context/tutorial.yaml
+
+.. structured-tutorial-part::
+
+
+Update the command prompt
+=========================
+
+To configure the initial command prompt, set below context variables in the initial context. You can update
+those variables at any time. The following variables influence the prompt:
+
+prompt
+    Default: ``"{{ user }}@{{ host }}:{{ cwd }}{% if user == 'root' %}#{% else %}${% endif %} "``
+
+    The template used to render the prompt, which includes the values below.
+
+user
+    Default: ``"user"``
+
+    The username rendered in the prompt.
+
+host
+    Default: ``"host"``
+
+    The hostname rendered in the prompt.
+
+cwd
+    Default: ``"~"``
+
+    The current working directory rendered in the prompt.
+
+.. literalinclude:: /tutorials/prompt/tutorial.yaml
+    :language: yaml
+
+This will render as:
+
+.. structured-tutorial:: prompt/tutorial.yaml
 
 .. structured-tutorial-part::

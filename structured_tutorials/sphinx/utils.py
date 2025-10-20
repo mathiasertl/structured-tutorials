@@ -1,5 +1,6 @@
 """Utility functions for the sphinx extension."""
 
+from copy import deepcopy
 from pathlib import Path
 
 from jinja2 import Environment
@@ -41,7 +42,7 @@ class TutorialWrapper:
         self.tutorial = tutorial
         self.next_part = 0
         self.env = Environment(keep_trailing_newline=True)
-        self.context = {"execution": False, "documentation": True}
+        self.context = deepcopy(tutorial.configuration.doc.context)
 
     @classmethod
     def from_file(cls, path: Path) -> "TutorialWrapper":
@@ -51,12 +52,33 @@ class TutorialWrapper:
 
     def render_code_block(self, part: CommandsPartModel) -> str:
         """Render a CommandsPartModel as a code-block."""
+        commands = []
+        for command_config in part.commands:
+            # Render the prompt
+            prompt = self.env.from_string(self.context["prompt_template"]).render(self.context)
+
+            # Render the command
+            command = self.env.from_string(command_config.command).render(self.context)
+
+            # Render output
+            output_template = command_config.doc.output.rstrip("\n")
+            output = self.env.from_string(output_template).render(self.context)
+
+            # Finally, render the command
+            command_template = """{{ prompt }}{{ command }}{% if output %}
+{{ output }}{% endif %}"""
+            command_context = {"prompt": prompt, "command": command, "output": output}
+            rendered_command = self.env.from_string(command_template).render(command_context)
+            commands.append(rendered_command)
+
+            # Update the context from update_context
+            self.context.update(command_config.doc.update_context)
+
         template = """.. code-block:: console
-{% for cmd in part.commands %}
-    user@host:~# {{ cmd.command }}{% if cmd.doc.output %}
-    {{ cmd.doc.output.rstrip('\n')|indent(4) }}{% endif %}
-    {%- endfor %}"""
-        return self.env.from_string(template).render({"part": part})
+
+{% for cmd in commands %}{{ cmd|indent(4, first=True) }}
+{% endfor %}"""
+        return self.env.from_string(template).render({"commands": commands})
 
     def render_part(self) -> str:
         """Render the given part of the tutorial."""

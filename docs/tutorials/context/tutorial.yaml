@@ -1,0 +1,15 @@
+configuration:
+  doc:
+    context:
+      user_id: 1000
+      path: test.txt
+parts:
+  - commands:
+      # For some reason, compute twice your own user id
+      - command: echo "{{ user_id }} * 2" | bc -l > test.txt
+        doc:
+          update_context:
+            contents: 2000
+      - command: cat {{ path }}
+        doc:
+          output: "{{ contents }}"
