@@ -1,0 +1,10 @@
+configuration:
+  run:
+    context:
+      key: run
+  doc:
+    context:
+      key: doc
+parts:
+  - commands:
+      - command: echo {{ key }} ({% if doc %}doc{% else %}run{% endif %})

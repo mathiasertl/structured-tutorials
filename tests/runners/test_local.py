@@ -5,7 +5,7 @@ from pytest_subprocess import FakeProcess
 
 from structured_tutorials.models import TutorialModel
 from structured_tutorials.runners.local import LocalTutorialRunner
-from tests.conftest import DOCS_TUTORIALS_DIR
+from tests.conftest import DOCS_TUTORIALS_DIR, TEST_TUTORIALS_DIR
 
 
 def test_simple_tutorial(simple_tutorial: TutorialModel) -> None:
@@ -32,3 +32,11 @@ def test_exit_code_tutorial_with_unexpected_exit_code(fp: FakeProcess) -> None:
     runner = LocalTutorialRunner(configuration)
     with pytest.raises(RuntimeError, match=r"true failed with return code 1 \(expected: 0\)\.$"):
         runner.run()
+
+
+def test_templates_tutorial(fp: FakeProcess) -> None:
+    """Test rendering of templates."""
+    fp.register("echo run (run)")
+    configuration = TutorialModel.from_file(TEST_TUTORIALS_DIR / "templates.yaml")
+    runner = LocalTutorialRunner(configuration)
+    runner.run()

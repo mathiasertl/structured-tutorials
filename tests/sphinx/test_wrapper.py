@@ -1,6 +1,7 @@
 """Test the TutorialWrapper."""
 
 import textwrap
+from pathlib import Path
 
 import pytest
 
@@ -38,6 +39,6 @@ from structured_tutorials.sphinx.utils import TutorialWrapper
 )
 def test_code_block_output(commands: tuple[str, ...], expected: str) -> None:
     """Test rendering the output of code-blocks thoroughly."""
-    tutorial = TutorialModel.model_validate({"parts": [{"commands": commands}]})
+    tutorial = TutorialModel.model_validate({"path": Path.cwd(), "parts": [{"commands": commands}]})
     wrapper = TutorialWrapper(tutorial)
     assert wrapper.render_part() == f".. code-block:: console\n\n{textwrap.indent(expected, '    ')}"

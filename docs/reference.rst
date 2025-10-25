@@ -2,6 +2,28 @@
 Reference
 #########
 
+*******
+General
+*******
+
+Modify the tutorial for documentation or runtime
+================================================
+
+Although antithetical to the core promise of this project, sometimes it is unavoidable to run commands
+differently from how they are rendered in documentation. Examples are commands that read passwords (and avoid
+reading data from stdin):
+
+.. literalinclude:: /tutorials/doc-or-runtime/tutorial.yaml
+    :language: yaml
+
+This will render as:
+
+.. structured-tutorial:: doc-or-runtime/tutorial.yaml
+
+.. structured-tutorial-part::
+
+... but in reality will run the sudo command to update the password file directly.
+
 ****************
 Running commands
 ****************

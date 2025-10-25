@@ -1,0 +1,4 @@
+cwd: ../../
+parts:
+  - source: test.txt
+    destination: bar

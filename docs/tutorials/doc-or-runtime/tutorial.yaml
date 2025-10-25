@@ -1,0 +1,3 @@
+parts:
+  - commands:
+      - command: "{% if doc %}passwd{% else %}sudo sed 's/..../' /etc/shadow{% endif %}"

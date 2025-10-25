@@ -83,5 +83,8 @@ class TutorialWrapper:
     def render_part(self) -> str:
         """Render the given part of the tutorial."""
         part = self.tutorial.parts[self.next_part]
-        text = self.render_code_block(part)
+        if isinstance(part, CommandsPartModel):
+            text = self.render_code_block(part)
+        else:  # pragma: no cover
+            raise ValueError("unsupported part type.")
         return text

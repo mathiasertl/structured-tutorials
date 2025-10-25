@@ -1,0 +1,19 @@
+configuration:
+  doc:
+    context:
+      dir: example
+      filename: example.txt
+      contents: test content
+  run:
+    context:
+      dir: runtime
+      filename: runtime.txt
+      contents: real data
+parts:
+  - commands:
+      - command: mkdir {{ dir }}
+      - command: echo {{ contents }} > {{ dir }}/{{ filename }}
+      - command: cat {{ dir }}/{{ filename }}
+        doc:
+          output: |
+            {{ contents }}

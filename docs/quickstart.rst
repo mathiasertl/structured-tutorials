@@ -52,3 +52,30 @@ Finally, you can render the tutorial in your Sphinx tutorial:
 In fact, above lines are included below, so this is how this tutorial will render in your documentation:
 
 .. include:: /include/quickstart.rst
+
+***********************
+Tutorials are templates
+***********************
+
+Commands as well as output are rendered using `Jinja <https://jinja.palletsprojects.com/en/stable/>`_
+templates. This allows you to reduce repitition of values or cases where a tutorial should behave differently
+from runtime when rendering documentation.
+
+The following example will create a directory, writes to a file in it and outputs the contents of said file:
+
+.. literalinclude:: /tutorials/templates/tutorial.yaml
+    :caption: docs/tutorials/templates/tutorial.yaml
+    :language: yaml
+
+This is how the documentation renders:
+
+.. structured-tutorial:: templates/tutorial.yaml
+
+.. structured-tutorial-part::
+
+However, when running, you will just get:
+
+.. code-block:: console
+
+    user@host:~$ structured-tutorial docs/tutorials/templates/tutorial.yaml
+    real data
