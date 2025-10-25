@@ -1,5 +1,7 @@
 """Test local runner."""
 
+from unittest import mock
+
 import pytest
 from pytest_subprocess import FakeProcess
 
@@ -72,3 +74,90 @@ def test_command_cleanup_from_docs_with_error(fp: FakeProcess) -> None:
     runner = LocalTutorialRunner(configuration)
     with pytest.raises(RuntimeError, match=r"cmd1 failed with return code 1 \(expected: 0\)\.$"):
         runner.run()
+
+
+def test_test_commands(fp: FakeProcess) -> None:
+    """Test the cleanup from docs."""
+    fp.register("touch test.txt")
+    fp.register("test -e test.txt")
+    fp.register("which ncat")
+    fp.register("sleep 3s && ncat -e /bin/cat -k -l 1234 &")
+    fp.register("pkill sleep")
+    fp.register("pkill ncat")
+    fp.register("rm test.txt")  # cleanup of part 1
+    configuration = TutorialModel.from_file(DOCS_TUTORIALS_DIR / "test-command" / "tutorial.yaml")
+    runner = LocalTutorialRunner(configuration)
+    with (
+        mock.patch("socket.socket", autospec=True) as mock_socket,
+        mock.patch("time.sleep", autospec=True) as mock_sleep,
+    ):
+        connect_mock = mock.MagicMock()
+        mock_socket.return_value.connect = connect_mock
+        runner.run()
+
+    mock_sleep.assert_called_once_with(2)
+    connect_mock.assert_called_once_with(("localhost", 1234))
+
+
+def test_test_commands_with_command_error(fp: FakeProcess) -> None:
+    """Test the cleanup from docs."""
+    fp.register("touch test.txt")
+    fp.register("test -e test.txt", returncode=1)
+    fp.register("rm test.txt")  # cleanup of part 1
+    configuration = TutorialModel.from_file(DOCS_TUTORIALS_DIR / "test-command" / "tutorial.yaml")
+    runner = LocalTutorialRunner(configuration)
+    with pytest.raises(RuntimeError, match=r"^Test did not pass$"):
+        runner.run()
+
+
+def test_test_commands_with_one_socket_error(fp: FakeProcess) -> None:
+    """Test the cleanup from docs."""
+    fp.register("touch test.txt")
+    fp.register("test -e test.txt")
+    fp.register("which ncat")
+    fp.register("sleep 3s && ncat -e /bin/cat -k -l 1234 &")
+    fp.register("pkill sleep")
+    fp.register("pkill ncat")
+    fp.register("rm test.txt")  # cleanup of part 1
+    configuration = TutorialModel.from_file(DOCS_TUTORIALS_DIR / "test-command" / "tutorial.yaml")
+    runner = LocalTutorialRunner(configuration)
+    with (
+        mock.patch("socket.socket", autospec=True) as mock_socket,
+        mock.patch("time.sleep", autospec=True) as mock_sleep,
+    ):
+        connect_mock = mock.MagicMock(side_effect=[Exception("error"), True])
+        mock_socket.return_value.connect = connect_mock
+        runner.run()
+
+    assert mock_sleep.mock_calls == [mock.call(2), mock.call(1.0)]
+    assert connect_mock.mock_calls == [mock.call(("localhost", 1234)), mock.call(("localhost", 1234))]
+
+
+def test_test_commands_with_socket_error(fp: FakeProcess) -> None:
+    """Test the cleanup from docs."""
+    fp.register("touch test.txt")
+    fp.register("test -e test.txt")
+    fp.register("which ncat")
+    fp.register("sleep 3s && ncat -e /bin/cat -k -l 1234 &")
+    fp.register("pkill sleep")
+    fp.register("pkill ncat")
+    fp.register("rm test.txt")  # cleanup of part 1
+    configuration = TutorialModel.from_file(DOCS_TUTORIALS_DIR / "test-command" / "tutorial.yaml")
+    runner = LocalTutorialRunner(configuration)
+    with (
+        mock.patch("socket.socket", autospec=True) as mock_socket,
+        mock.patch("time.sleep", autospec=True) as mock_sleep,
+    ):
+        connect_mock = mock.MagicMock(side_effect=Exception("error"))
+        mock_socket.return_value.connect = connect_mock
+        with pytest.raises(RuntimeError, match=r"^Test did not pass$"):
+            runner.run()
+
+    # 2 second sleep is the initial delay
+    assert mock_sleep.mock_calls == [mock.call(2), mock.call(1.0), mock.call(2.0), mock.call(4.0)]
+    assert connect_mock.mock_calls == [
+        mock.call(("localhost", 1234)),
+        mock.call(("localhost", 1234)),
+        mock.call(("localhost", 1234)),
+        mock.call(("localhost", 1234)),
+    ]

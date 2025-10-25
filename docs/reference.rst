@@ -61,6 +61,32 @@ Assuming ``cmd1`` and ``cmd2`` run successfully (or ``cmd2`` exits with a non-ze
 run, in order, ``clean3``, ``clean1`` and ``clean2``. Should ``cmd1`` return a non-zero status code, only
 ``clean1`` and ``clean2`` will be run.
 
+Test a command
+==============
+
+To test if a command is indeed running successfully, use the ``test`` specification. A common use case is a
+daemon that will *eventually* open a port, but subsequent commands want to connect to that daemon. For that
+reason, you can also simply specify a host and port instead of running a command.
+
+You can also specify a `retry` to run the test command multiple times before the main command is considered
+to have failed. A `delay` will delay the first run of the command and a `backoff_factor` will introduce an
+increasing delay between retries.
+
+With the following tutorial:
+
+.. literalinclude:: /tutorials/test-command/tutorial.yaml
+    :language: yaml
+
+The first part will just create a file (and error out if it wasn't created).
+
+.. structured-tutorial:: test-command/tutorial.yaml
+
+.. structured-tutorial-part::
+
+The second part will test if ``ncat`` is installed and invoke it in a subshell:
+
+.. structured-tutorial-part::
+
 ********************
 Documenting commands
 ********************

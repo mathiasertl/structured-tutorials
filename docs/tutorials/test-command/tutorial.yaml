@@ -1,0 +1,26 @@
+parts:
+  - commands:
+      - command: touch test.txt
+        run:
+          test:
+            # Verify that file was indeed created
+            - command: test -e test.txt
+          cleanup:
+            - command: rm test.txt
+  - commands:
+      # Verify that ncat is installed - apt install ncat
+      - command: which ncat
+      # TODO: retrieve pid from stdout
+      # Start an ncat echo server, but have a delay of three seconds
+      - command: "sleep 3s && ncat -e /bin/cat -k -l 1234 &"
+        run:
+          test:
+            # test if the command succeeded by connecting to that port.
+            - host: localhost
+              port: 1234
+              delay: 2  # wait for three seconds before even trying
+              retry: 3  # retry up to three times (command will be run up to four times)
+              backoff_factor: 1  # wait for 0, 5, 10 and 20 seconds between retries
+          cleanup:
+            - command: pkill sleep
+            - command: pkill ncat

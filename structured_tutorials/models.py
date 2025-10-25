@@ -18,11 +18,33 @@ class CleanupCommandSpecification(RunCommandSpecificationBase):
     command: str
 
 
+class TestSpecificationMixin:
+    """Mixin for specifying tests."""
+
+    delay: int = 0
+    retry: int = 0
+    backoff_factor: float = 0  # {backoff factor} * (2 ** ({number of previous retries}))
+
+
+class TestCommandSpecification(TestSpecificationMixin, RunCommandSpecificationBase):
+    """Specification for test commands."""
+
+    command: str
+
+
+class TestPortSpecification(TestSpecificationMixin, BaseModel):
+    """Model for testing connectivity after a command is run."""
+
+    host: str
+    port: int
+
+
 class RunCommandSpecification(RunCommandSpecificationBase):
     """Model specifying expected behavior when actually running a command."""
 
     update_context: dict[str, Any] = Field(default_factory=dict)
     cleanup: tuple[CleanupCommandSpecification, ...] = tuple()
+    test: tuple[TestCommandSpecification | TestPortSpecification, ...] = tuple()
 
 
 class CommandDocumentation(BaseModel):
