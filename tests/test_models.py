@@ -63,6 +63,12 @@ def test_file_part_with_no_source_and_no_contents() -> None:
         FilePartModel.model_validate({"destination": "foo.txt"})
 
 
+def test_file_part_with_both_source_and_contents() -> None:
+    """Test that file parts have either contents or a source."""
+    with pytest.raises(ValueError, match=r"Only one of contents or source is allowed\."):
+        FilePartModel.model_validate({"source": "test.txt", "contents": "foo", "destination": "foo.txt"})
+
+
 @pytest.mark.parametrize(
     ("model", "data", "error"),
     (

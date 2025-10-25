@@ -1,5 +1,6 @@
 """Runner that runs a tutorial on the local machine."""
 
+import shutil
 import socket
 import subprocess
 import time
@@ -10,6 +11,7 @@ from jinja2 import Environment
 from structured_tutorials.models import (
     CleanupCommandModel,
     CommandsPartModel,
+    FilePartModel,
     TestCommandModel,
     TestPortModel,
     TutorialModel,
@@ -58,7 +60,7 @@ class LocalTutorialRunner:
 
         raise RuntimeError("Test did not pass")
 
-    def run_command(self, part: CommandsPartModel) -> None:
+    def run_commands(self, part: CommandsPartModel) -> None:
         for command_config in part.commands:
             # Render the command
             command = self.render(command_config.command)
@@ -83,13 +85,46 @@ class LocalTutorialRunner:
             for test_command_config in command_config.run.test:
                 self.run_test(test_command_config)
 
+    def write_file(self, part: FilePartModel) -> None:
+        """Write a file."""
+        if part.destination.is_dir() and not part.source:
+            raise RuntimeError("Destination is directory, but no source given to derive filename.")
+
+        if part.destination.is_dir():
+            destination = part.destination / part.source.name
+        else:
+            part.destination.parent.mkdir(parents=True, exist_ok=True)
+            destination = part.destination
+
+        destination = part.destination
+        if destination.is_dir():
+            destination = destination / part.source.name
+
+        # If template=False and source is set, we just copy the file as is, without ever reading it
+        if not part.template and part.source:
+            shutil.copy(part.source, destination)
+            return
+
+        if part.source:
+            with open(part.source) as source_stream:
+                template = source_stream.read()
+        else:
+            template = part.contents
+
+        if part.template:
+            contents = self.render(template)
+        else:
+            contents = template
+
+        with open(destination, "w") as destination_stream:
+            destination_stream.write(contents)
+
     def run_parts(self) -> None:
         for part in self.tutorial.parts:
             if isinstance(part, CommandsPartModel):
-                self.run_command(part)
-            # elif isinstance(part, FilePartModel):  # pragma: no cover
-            #     source = self.tutorial.path.parent / part.source
-            #     print(source)
+                self.run_commands(part)
+            elif isinstance(part, FilePartModel):  # pragma: no cover
+                self.write_file(part)
             else:  # pragma: no cover
                 raise RuntimeError(f"{part} is not a tutorial part")
 

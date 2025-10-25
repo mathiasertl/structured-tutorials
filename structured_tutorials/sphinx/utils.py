@@ -8,7 +8,7 @@ from sphinx.application import Sphinx
 from sphinx.config import Config
 from sphinx.errors import ConfigError, ExtensionError
 
-from structured_tutorials.models import CommandsPartModel, TutorialModel
+from structured_tutorials.models import CommandsPartModel, FilePartModel, TutorialModel
 
 
 def validate_configuration(app: Sphinx, config: Config) -> None:
@@ -50,6 +50,9 @@ class TutorialWrapper:
         tutorial = TutorialModel.from_file(path)
         return cls(tutorial)
 
+    def render(self, template: str) -> str:
+        return self.env.from_string(template).render(self.context)
+
     def render_code_block(self, part: CommandsPartModel) -> str:
         """Render a CommandsPartModel as a code-block."""
         commands = []
@@ -80,11 +83,43 @@ class TutorialWrapper:
 {% endfor %}"""
         return self.env.from_string(template).render({"commands": commands})
 
+    def render_file(self, part: FilePartModel) -> str:
+        if part.template is False:
+            return ""
+
+        template = part.contents
+        if template is None:
+            with open(part.path) as stream:
+                template = stream.read()
+
+        content = self.render(template)
+
+        # get options
+        if part.doc.caption:
+            caption = self.render(part.doc.caption)
+        elif part.doc.caption is not False:
+            caption = self.render(str(part.destination))
+        else:
+            caption = ""
+
+        directive = """.. code-block:: {{ part.doc.language }}{% if caption %}
+    :caption: {{ caption }}{% endif %}{% if part.doc.linenos or part.doc.lineno_start %}
+    :linenos:{% endif %}{% if part.doc.lineno_start %}
+    :lineno-start: {{ part.doc.lineno_start }}{% endif %}{% if part.doc.emphasize_lines %}
+    :emphasize-lines: {{ part.doc.emphasize_lines }}{% endif %}{% if part.doc.name %}
+    :name: {{ part.doc.name }}{% endif %}
+
+    {{ content }}
+"""
+        return self.env.from_string(directive).render({"part": part, "content": content, "caption": caption})
+
     def render_part(self) -> str:
         """Render the given part of the tutorial."""
         part = self.tutorial.parts[self.next_part]
         if isinstance(part, CommandsPartModel):
             text = self.render_code_block(part)
+        elif isinstance(part, FilePartModel):
+            text = self.render_file(part)
         else:  # pragma: no cover
             raise ValueError("unsupported part type.")
         self.next_part += 1

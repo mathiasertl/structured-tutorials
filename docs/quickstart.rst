@@ -79,3 +79,30 @@ However, when running, you will just get:
 
     user@host:~$ structured-tutorial docs/tutorials/templates/tutorial.yaml
     real data
+
+***************************
+Tutorials can contain files
+***************************
+
+Tutorials can contain files that are also rendered as templates.
+
+The following example tutorial could be used to instruct the user to create a JSON file in
+``/tmp/example.json`` and then call ``python`` to verify the syntax.
+
+Using this YAML file:
+
+.. literalinclude:: /tutorials/simple-file/tutorial.yaml
+    :caption: docs/tutorials/simple-file/tutorial.yaml
+    :language: yaml
+
+you could render a Tutorial like this:
+
+.. structured-tutorial:: simple-file/tutorial.yaml
+
+Create a configuration file with the following contents:
+
+.. structured-tutorial-part::
+
+and make sure it is valid JSON:
+
+.. structured-tutorial-part::
