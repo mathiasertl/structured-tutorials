@@ -87,4 +87,5 @@ class TutorialWrapper:
             text = self.render_code_block(part)
         else:  # pragma: no cover
             raise ValueError("unsupported part type.")
+        self.next_part += 1
         return text

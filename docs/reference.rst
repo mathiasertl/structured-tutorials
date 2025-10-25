@@ -83,7 +83,7 @@ The first part will just create a file (and error out if it wasn't created).
 
 .. structured-tutorial-part::
 
-The second part will test if ``ncat`` is installed and invoke it in a subshell:
+The second part will test if ``ncat`` is installed and call it after a three-second delay:
 
 .. structured-tutorial-part::
 
