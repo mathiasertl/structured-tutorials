@@ -8,10 +8,10 @@ from copy import deepcopy
 from jinja2 import Environment
 
 from structured_tutorials.models import (
-    CleanupCommandSpecification,
+    CleanupCommandModel,
     CommandsPartModel,
-    TestCommandSpecification,
-    TestPortSpecification,
+    TestCommandModel,
+    TestPortModel,
     TutorialModel,
 )
 
@@ -23,12 +23,12 @@ class LocalTutorialRunner:
         self.tutorial = tutorial
         self.context = deepcopy(tutorial.configuration.run.context)
         self.env = Environment(keep_trailing_newline=True)
-        self.cleanup: list[CleanupCommandSpecification] = []
+        self.cleanup: list[CleanupCommandModel] = []
 
     def render(self, value: str) -> str:
         return self.env.from_string(value).render(self.context)
 
-    def run_test(self, test: TestCommandSpecification | TestPortSpecification) -> None:
+    def run_test(self, test: TestCommandModel | TestPortModel) -> None:
         # If an initial delay is configured, wait that long
         if test.delay > 0:
             time.sleep(test.delay)
@@ -37,7 +37,7 @@ class LocalTutorialRunner:
         while tries <= test.retry:
             tries += 1
 
-            if isinstance(test, TestCommandSpecification):
+            if isinstance(test, TestCommandModel):
                 test_command = self.render(test.command)
                 test_proc = subprocess.run(test_command, shell=True)
 

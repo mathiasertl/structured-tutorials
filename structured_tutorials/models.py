@@ -8,14 +8,15 @@ from pydantic_core.core_schema import ValidationInfo
 from yaml import safe_load
 
 
-class RunCommandSpecificationBase(BaseModel):
+def default_cwd_factory(data: dict[str, Any]) -> Path:
+    """Default factory for the path variable."""
+    return data["path"].parent  # type: ignore[no-any-return]
+
+
+class CommandBaseModel(BaseModel):
+    """Base model for commands."""
+
     status_code: int = 0
-
-
-class CleanupCommandSpecification(RunCommandSpecificationBase):
-    """Specification for cleanup commands."""
-
-    command: str
 
 
 class TestSpecificationMixin:
@@ -26,51 +27,57 @@ class TestSpecificationMixin:
     backoff_factor: float = 0  # {backoff factor} * (2 ** ({number of previous retries}))
 
 
-class TestCommandSpecification(TestSpecificationMixin, RunCommandSpecificationBase):
-    """Specification for test commands."""
+class CleanupCommandModel(CommandBaseModel):
+    """Model for cleanup commands."""
 
     command: str
 
 
-class TestPortSpecification(TestSpecificationMixin, BaseModel):
+class TestCommandModel(TestSpecificationMixin, CommandBaseModel):
+    """Model for a test command for a normal command.."""
+
+    command: str
+
+
+class TestPortModel(TestSpecificationMixin, BaseModel):
     """Model for testing connectivity after a command is run."""
 
     host: str
     port: int
 
 
-class RunCommandSpecification(RunCommandSpecificationBase):
-    """Model specifying expected behavior when actually running a command."""
+class CommandRuntimeConfigurationModel(CommandBaseModel):
+    """Model for runtime configuration when running a single command."""
 
     update_context: dict[str, Any] = Field(default_factory=dict)
-    cleanup: tuple[CleanupCommandSpecification, ...] = tuple()
-    test: tuple[TestCommandSpecification | TestPortSpecification, ...] = tuple()
+    cleanup: tuple[CleanupCommandModel, ...] = tuple()
+    test: tuple[TestCommandModel | TestPortModel, ...] = tuple()
 
 
-class CommandDocumentation(BaseModel):
-    """Model specifying details for documentation."""
+class CommandDocumentationConfigurationModel(BaseModel):
+    """Model for documenting a single command."""
 
     output: str = ""
     update_context: dict[str, Any] = Field(default_factory=dict)
 
 
 class CommandModel(BaseModel):
-    """Model representing a command in a tutorial."""
+    """Model for a single command."""
 
     command: str
-    run: RunCommandSpecification = RunCommandSpecification()
-    doc: CommandDocumentation = CommandDocumentation()
+    run: CommandRuntimeConfigurationModel = CommandRuntimeConfigurationModel()
+    doc: CommandDocumentationConfigurationModel = CommandDocumentationConfigurationModel()
 
 
 class CommandsPartModel(BaseModel):
-    """Model representing a part of the tutorial."""
+    """Model for a set of commands."""
 
     type: Literal["commands"] = "commands"
     commands: tuple[CommandModel, ...]
 
 
 class FilePartModel(BaseModel):
-    """Model representing a part of the tutorial."""
+    """Model for a file to be copied."""
 
     type: Literal["file"] = "file"
     contents: str | None = None
@@ -85,8 +92,8 @@ class FilePartModel(BaseModel):
         return self
 
 
-class RunConfiguration(BaseModel):
-    """Model representing a tutorial configuration."""
+class RuntimeConfigurationModel(BaseModel):
+    """Model for configuration at runtime."""
 
     context: dict[str, Any] = Field(default_factory=dict)
 
@@ -97,8 +104,8 @@ class RunConfiguration(BaseModel):
         return self
 
 
-class DocumentationConfiguration(BaseModel):
-    """Model representing a tutorial configuration."""
+class DocumentationConfigurationModel(BaseModel):
+    """Model for configuration of the documentation."""
 
     context: dict[str, Any] = Field(default_factory=dict)
 
@@ -117,22 +124,17 @@ class DocumentationConfiguration(BaseModel):
 
 
 class ConfigurationModel(BaseModel):
-    """Model representing a configuration model."""
+    """Model for the initial configuration of a tutorial."""
 
-    run: RunConfiguration = RunConfiguration()
-    doc: DocumentationConfiguration = DocumentationConfiguration()
-
-
-def default_cwd(data: dict[str, Any]) -> Path:
-    """Default factory for the path variable."""
-    return data["path"].parent  # type: ignore[no-any-return]
+    run: RuntimeConfigurationModel = RuntimeConfigurationModel()
+    doc: DocumentationConfigurationModel = DocumentationConfigurationModel()
 
 
 class TutorialModel(BaseModel):
-    """Model representing a tutorial."""
+    """Model representing the entire tutorial."""
 
     path: Path  # absolute path
-    cwd: Path = Field(default_factory=default_cwd)  # absolute path (input: relative to path)
+    cwd: Path = Field(default_factory=default_cwd_factory)  # absolute path (input: relative to path)
     parts: tuple[CommandsPartModel | FilePartModel, ...]
     configuration: ConfigurationModel = ConfigurationModel()
 
