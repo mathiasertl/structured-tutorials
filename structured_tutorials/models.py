@@ -1,11 +1,14 @@
 """Basic tutorial structure."""
 
 from pathlib import Path
-from typing import Any, Literal, Self
+from typing import Annotated, Any, Literal, Self
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
 from yaml import safe_load
+
+PositiveInt = Annotated[int, Field(ge=0)]
+PositiveFloat = Annotated[float, Field(ge=0)]
 
 
 def default_cwd_factory(data: dict[str, Any]) -> Path:
@@ -16,15 +19,15 @@ def default_cwd_factory(data: dict[str, Any]) -> Path:
 class CommandBaseModel(BaseModel):
     """Base model for commands."""
 
-    status_code: int = 0
+    status_code: Annotated[int, Field(ge=0, le=255)] = 0
 
 
 class TestSpecificationMixin:
     """Mixin for specifying tests."""
 
-    delay: int = 0
-    retry: int = 0
-    backoff_factor: float = 0  # {backoff factor} * (2 ** ({number of previous retries}))
+    delay: Annotated[float, Field(ge=0)] = 0
+    retry: PositiveInt = 0
+    backoff_factor: PositiveFloat = 0  # {backoff factor} * (2 ** ({number of previous retries}))
 
 
 class CleanupCommandModel(CommandBaseModel):
@@ -43,7 +46,7 @@ class TestPortModel(TestSpecificationMixin, BaseModel):
     """Model for testing connectivity after a command is run."""
 
     host: str
-    port: int
+    port: Annotated[int, Field(ge=0, le=65535)]
 
 
 class CommandRuntimeConfigurationModel(CommandBaseModel):
@@ -84,6 +87,13 @@ class FilePartModel(BaseModel):
     source: Path | None = None
     destination: Path
     template: bool = True
+
+    @field_validator("source", mode="after")
+    @classmethod
+    def validate_source(cls, value: Path) -> Path:
+        if value.is_absolute():
+            raise ValueError(f"{value}: Must be a relative path (relative to the current cwd).")
+        return value
 
     @model_validator(mode="after")
     def validate_contents_or_source(self) -> Self:
@@ -140,7 +150,7 @@ class TutorialModel(BaseModel):
 
     @field_validator("path", mode="after")
     @classmethod
-    def resolve_path(cls, value: Path, info: ValidationInfo) -> Path:
+    def validate_path(cls, value: Path, info: ValidationInfo) -> Path:
         if not value.is_absolute():
             raise ValueError(f"{value}: Must be an absolute path.")
         return value

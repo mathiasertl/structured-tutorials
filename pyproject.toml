@@ -35,6 +35,7 @@ show_error_codes = true
 plugins = ["pydantic.mypy"]
 
 [tool.pytest.ini_options]
+collect_imported_tests = false
 addopts = [
     "--cov",
     "--cov-report=html",
