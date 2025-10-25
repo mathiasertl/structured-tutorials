@@ -1,3 +1,7 @@
 quickstart
 yaml
 rst
+stdin
+sudo
+hostname
+cwd

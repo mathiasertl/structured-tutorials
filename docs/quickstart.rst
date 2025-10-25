@@ -58,7 +58,7 @@ Tutorials are templates
 ***********************
 
 Commands as well as output are rendered using `Jinja <https://jinja.palletsprojects.com/en/stable/>`_
-templates. This allows you to reduce repitition of values or cases where a tutorial should behave differently
+templates. This allows you to reduce repetition of values or cases where a tutorial should behave differently
 from runtime when rendering documentation.
 
 The following example will create a directory, writes to a file in it and outputs the contents of said file:
