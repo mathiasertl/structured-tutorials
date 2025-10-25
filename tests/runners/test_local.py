@@ -40,3 +40,35 @@ def test_templates_tutorial(fp: FakeProcess) -> None:
     configuration = TutorialModel.from_file(TEST_TUTORIALS_DIR / "templates.yaml")
     runner = LocalTutorialRunner(configuration)
     runner.run()
+
+
+def test_command_cleanup_from_docs(fp: FakeProcess) -> None:
+    """Test the cleanup from docs."""
+    fp.register("mkdir -p /tmp/new-directory")
+    fp.register("rm -r /tmp/new-directory")
+    configuration = TutorialModel.from_file(DOCS_TUTORIALS_DIR / "cleanup" / "tutorial.yaml")
+    runner = LocalTutorialRunner(configuration)
+    runner.run()
+
+
+def test_command_cleanup_from_docs_with_no_errors(fp: FakeProcess) -> None:
+    """Test the cleanup from docs."""
+    fp.register("cmd1")
+    fp.register("cmd2")
+    fp.register("clean3")
+    fp.register("clean1")
+    fp.register("clean2")
+    configuration = TutorialModel.from_file(DOCS_TUTORIALS_DIR / "cleanup-multiple" / "tutorial.yaml")
+    runner = LocalTutorialRunner(configuration)
+    runner.run()
+
+
+def test_command_cleanup_from_docs_with_error(fp: FakeProcess) -> None:
+    """Test the cleanup from docs."""
+    fp.register("cmd1", returncode=1)
+    fp.register("clean1")
+    fp.register("clean2")
+    configuration = TutorialModel.from_file(DOCS_TUTORIALS_DIR / "cleanup-multiple" / "tutorial.yaml")
+    runner = LocalTutorialRunner(configuration)
+    with pytest.raises(RuntimeError, match=r"cmd1 failed with return code 1 \(expected: 0\)\.$"):
+        runner.run()

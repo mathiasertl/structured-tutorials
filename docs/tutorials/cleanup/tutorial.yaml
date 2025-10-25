@@ -1,0 +1,6 @@
+parts:
+  - commands:
+      - command: mkdir -p /tmp/new-directory
+        run:
+          cleanup:
+            - command: rm -r /tmp/new-directory

@@ -37,12 +37,33 @@ Test the status code
 .. literalinclude:: /tutorials/exit_code/tutorial.yaml
     :language: yaml
 
+Cleanup after running a tutorial
+================================
+
+To cleanup after after running a tutorial, specify a set of cleanup commands:
+
+.. literalinclude:: /tutorials/cleanup/tutorial.yaml
+    :language: yaml
+
+Cleanup commands are not rendered in documentation, so this will simply render as:
+
+.. structured-tutorial:: cleanup/tutorial.yaml
+
+.. structured-tutorial-part::
+
+If multiple cleanup commands are specified, they will run in-order. In case of an error, only cleanup commands
+for commands that where actually run will be executed. Consider this example:
+
+.. literalinclude:: /tutorials/cleanup-multiple/tutorial.yaml
+    :language: yaml
+
+Assuming ``cmd1`` and ``cmd2`` run successfully (or ``cmd2`` exits with a non-zero status code), this will
+run, in order, ``clean3``, ``clean1`` and ``clean2``. Should ``cmd1`` return a non-zero status code, only
+``clean1`` and ``clean2`` will be run.
+
 ********************
 Documenting commands
 ********************
-
-Specifying the command
-======================
 
 Show output
 ===========

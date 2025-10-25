@@ -8,11 +8,21 @@ from pydantic_core.core_schema import ValidationInfo
 from yaml import safe_load
 
 
-class RunCommandSpecification(BaseModel):
+class RunCommandSpecificationBase(BaseModel):
+    status_code: int = 0
+
+
+class CleanupCommandSpecification(RunCommandSpecificationBase):
+    """Specification for cleanup commands."""
+
+    command: str
+
+
+class RunCommandSpecification(RunCommandSpecificationBase):
     """Model specifying expected behavior when actually running a command."""
 
-    status_code: int = 0
     update_context: dict[str, Any] = Field(default_factory=dict)
+    cleanup: tuple[CleanupCommandSpecification, ...] = tuple()
 
 
 class CommandDocumentation(BaseModel):

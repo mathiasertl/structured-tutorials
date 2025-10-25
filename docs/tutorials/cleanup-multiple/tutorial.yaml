@@ -1,0 +1,11 @@
+parts:
+  - commands:
+      - command: cmd1
+        run:
+          cleanup:
+            - command: clean1
+            - command: clean2
+      - command: cmd2
+        run:
+          cleanup:
+            - command: clean3
