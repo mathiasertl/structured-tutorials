@@ -77,7 +77,7 @@ With the following tutorial:
 .. literalinclude:: /tutorials/test-command/tutorial.yaml
     :language: yaml
 
-The first part will just create a file (and error out if it wasn't created).
+The first part will just create a file (and error out if it was not created).
 
 .. structured-tutorial:: test-command/tutorial.yaml
 

@@ -37,7 +37,7 @@ class CleanupCommandModel(CommandBaseModel):
 
 
 class TestCommandModel(TestSpecificationMixin, CommandBaseModel):
-    """Model for a test command for a normal command.."""
+    """Model for a test command for a normal command."""
 
     command: str
 
