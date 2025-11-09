@@ -69,6 +69,14 @@ def test_file_part_with_both_source_and_contents() -> None:
         FilePartModel.model_validate({"source": "test.txt", "contents": "foo", "destination": "foo.txt"})
 
 
+def test_file_part_with_no_source_and_destination_dir() -> None:
+    """Test error when content is given but destination is a directory."""
+    with pytest.raises(
+        ValueError, match=r"test/: Destination must not be a directory if contents is given\."
+    ):
+        FilePartModel.model_validate({"contents": "foo", "destination": "test/"})
+
+
 @pytest.mark.parametrize(
     ("model", "data", "error"),
     (

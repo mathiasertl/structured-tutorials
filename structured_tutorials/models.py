@@ -1,5 +1,6 @@
 """Basic tutorial structure."""
 
+import os
 from pathlib import Path
 from typing import Annotated, Any, Literal, Self
 
@@ -34,6 +35,12 @@ class TestSpecificationMixin:
     backoff_factor: PositiveFloat = 0  # {backoff factor} * (2 ** ({number of previous retries}))
 
 
+class ConfigurationMixin:
+    """Mixin for configuration models."""
+
+    skip: bool = False
+
+
 class CleanupCommandModel(CommandBaseModel):
     """Model for cleanup commands."""
 
@@ -59,7 +66,7 @@ class TestPortModel(TestSpecificationMixin, BaseModel):
     port: Annotated[int, Field(ge=0, le=65535)]
 
 
-class CommandRuntimeConfigurationModel(CommandBaseModel):
+class CommandRuntimeConfigurationModel(ConfigurationMixin, CommandBaseModel):
     """Model for runtime configuration when running a single command."""
 
     model_config = ConfigDict(extra="forbid")
@@ -69,7 +76,7 @@ class CommandRuntimeConfigurationModel(CommandBaseModel):
     test: tuple[TestCommandModel | TestPortModel, ...] = tuple()
 
 
-class CommandDocumentationConfigurationModel(BaseModel):
+class CommandDocumentationConfigurationModel(ConfigurationMixin, BaseModel):
     """Model for documenting a single command."""
 
     model_config = ConfigDict(extra="forbid")
@@ -88,6 +95,18 @@ class CommandModel(BaseModel):
     doc: CommandDocumentationConfigurationModel = CommandDocumentationConfigurationModel()
 
 
+class CommandsRuntimeConfigurationModel(ConfigurationMixin, BaseModel):
+    """Runtime configuration for an entire commands part."""
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class CommandsDocumentationConfigurationModel(ConfigurationMixin, BaseModel):
+    """Documentation configuration for an entire commands part."""
+
+    model_config = ConfigDict(extra="forbid")
+
+
 class CommandsPartModel(BaseModel):
     """Model for a set of commands."""
 
@@ -96,11 +115,24 @@ class CommandsPartModel(BaseModel):
     type: Literal["commands"] = "commands"
     commands: tuple[CommandModel, ...]
 
+    run: CommandsRuntimeConfigurationModel = CommandsRuntimeConfigurationModel()
+    doc: CommandsDocumentationConfigurationModel = CommandsDocumentationConfigurationModel()
 
-class FileDocumentationConfigurationModel(BaseModel):
+
+class FileRuntimeConfigurationModel(ConfigurationMixin, BaseModel):
+    """Runtime configuration for a file part."""
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class FileDocumentationConfigurationModel(ConfigurationMixin, BaseModel):
+    """Documentation configuration for a file part."""
+
+    model_config = ConfigDict(extra="forbid")
+
     # sphinx options:
     language: str = ""
-    caption: str | Literal[False] = ""
+    caption: str | Literal[False] = ""  # template
     linenos: bool = False
     lineno_start: PositiveInt | Literal[False] = False
     emphasize_lines: str = ""
@@ -113,12 +145,13 @@ class FilePartModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     type: Literal["file"] = "file"
-    contents: str | None = None
-    source: Path | None = None
-    destination: Path
+    contents: str | None = None  # template if property is set
+    source: Path | None = None  # template if property is set
+    destination: str  # template
     template: bool = True
 
     doc: FileDocumentationConfigurationModel = FileDocumentationConfigurationModel()
+    run: FileRuntimeConfigurationModel = FileRuntimeConfigurationModel()
 
     @field_validator("source", mode="after")
     @classmethod
@@ -133,6 +166,12 @@ class FilePartModel(BaseModel):
             raise ValueError("Either contents or source is required.")
         if self.contents is not None and self.source is not None:
             raise ValueError("Only one of contents or source is allowed.")
+        return self
+
+    @model_validator(mode="after")
+    def validate_destination(self) -> Self:
+        if not self.source and self.destination.endswith(os.sep):
+            raise ValueError(f"{self.destination}: Destination must not be a directory if contents is given.")
         return self
 
 

@@ -1,0 +1,8 @@
+.. code-block::{% if part.doc.language %} {{ part.doc.language }}{% endif %}{% if caption %}
+    :caption: {{ caption }}{% endif %}{% if part.doc.linenos or part.doc.lineno_start %}
+    :linenos:{% endif %}{% if part.doc.lineno_start %}
+    :lineno-start: {{ part.doc.lineno_start }}{% endif %}{% if part.doc.emphasize_lines %}
+    :emphasize-lines: {{ part.doc.emphasize_lines }}{% endif %}{% if part.doc.name %}
+    :name: {{ part.doc.name }}{% endif %}
+
+    {{ content }}

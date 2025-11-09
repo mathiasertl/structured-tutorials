@@ -5,9 +5,11 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from sphinx.errors import ExtensionError
 
 from structured_tutorials.models import TutorialModel
 from structured_tutorials.sphinx.utils import TutorialWrapper
+from tests.conftest import TEST_TUTORIALS_DIR
 
 
 @pytest.mark.parametrize(
@@ -46,29 +48,29 @@ def test_code_block_output(commands: tuple[str, ...], expected: str) -> None:
 
 
 @pytest.mark.parametrize(
-    ("file", "expected"),
+    ("file_config", "expected"),
     (
         # file0: Minimal example:
-        ({"contents": "foo", "destination": "/ex"}, ":caption: /ex\n\nfoo\n"),
+        ({"contents": "foo", "destination": "/ex"}, ":caption: /ex\n\nfoo"),
         # file1: Add language
-        ({"contents": "foo", "doc": {"language": "yaml"}, "destination": "/ex"}, ":caption: /ex\n\nfoo\n"),
+        ({"contents": "foo", "doc": {"language": "yaml"}, "destination": "/ex"}, ":caption: /ex\n\nfoo"),
         # file2: Override caption
         (
             {"contents": "foo", "doc": {"caption": "my-caption"}, "destination": "/ex"},
-            ":caption: my-caption\n\nfoo\n",
+            ":caption: my-caption\n\nfoo",
         ),
         # file3: Set caption to False (= no caption)
         #   NOTE: newline in test after {language} is the second newline at the start of expected
-        ({"contents": "foo", "doc": {"caption": False}, "destination": "/ex"}, "\nfoo\n"),
+        ({"contents": "foo", "doc": {"caption": False}, "destination": "/ex"}, "\nfoo"),
         # file4: Add a single option
         (
             {"contents": "foo", "doc": {"linenos": True}, "destination": "/ex"},
-            ":caption: /ex\n:linenos:\n\nfoo\n",
+            ":caption: /ex\n:linenos:\n\nfoo",
         ),
         # file5: Add two options
         (
             {"contents": "foo", "doc": {"linenos": True, "lineno_start": 2}, "destination": "/ex"},
-            ":caption: /ex\n:linenos:\n:lineno-start: 2\n\nfoo\n",
+            ":caption: /ex\n:linenos:\n:lineno-start: 2\n\nfoo",
         ),
         # file6: Add all options
         (
@@ -83,13 +85,104 @@ def test_code_block_output(commands: tuple[str, ...], expected: str) -> None:
                     "name": "my-name",
                 },
             },
-            ":caption: /ex\n:linenos:\n:lineno-start: 2\n:emphasize-lines: 2\n:name: my-name\n\nfoo\n",
+            ":caption: /ex\n:linenos:\n:lineno-start: 2\n:emphasize-lines: 2\n:name: my-name\n\nfoo",
         ),
     ),
 )
-def test_block_output(file: dict[str, Any], expected: str) -> None:
-    """Test rendering the output of code-blocks thoroughly."""
-    tutorial = TutorialModel.model_validate({"path": Path.cwd(), "parts": [file]})
+def test_file_part_options(file_config: dict[str, Any], expected: str) -> None:
+    """Test options for files."""
+    tutorial = TutorialModel.model_validate({"path": Path.cwd(), "parts": [file_config]})
     wrapper = TutorialWrapper(tutorial)
-    language = file.get("doc", {}).get("language", "")
-    assert wrapper.render_part() == f".. code-block:: {language}\n{textwrap.indent(expected, '    ')}"
+    language = file_config.get("doc", {}).get("language", "")
+    if language:
+        language = f" {language}"
+    assert wrapper.render_part() == f".. code-block::{language}\n{textwrap.indent(expected, '    ')}"
+
+
+def test_file_part_with_source() -> None:
+    """Test part of a file with source."""
+    destination = "foo.txt"
+    variable = "foo"
+    contents = f"test: {variable}"
+    tutorial = TutorialModel.model_validate(
+        {
+            "path": TEST_TUTORIALS_DIR / "fake.yaml",
+            "configuration": {"doc": {"context": {"variable": variable}}},
+            "parts": [{"source": "file_contents.txt", "destination": destination}],
+        }
+    )
+    wrapper = TutorialWrapper(tutorial)
+    assert wrapper.render_part() == f".. code-block::\n    :caption: {destination}\n\n    {contents}"
+
+
+def test_file_part_with_source_without_template() -> None:
+    """Test part of a file with source with disabled template rendering."""
+    destination = "foo.txt"
+    variable = "other"
+    contents = "test: {{ variable }}"  # NOT expanded, b/c template is false
+    tutorial = TutorialModel.model_validate(
+        {
+            "path": TEST_TUTORIALS_DIR / "fake.yaml",
+            "configuration": {"doc": {"context": {"variable": variable}}},
+            "parts": [{"source": "file_contents.txt", "destination": destination, "template": False}],
+        }
+    )
+    wrapper = TutorialWrapper(tutorial)
+    assert wrapper.render_part() == f".. code-block::\n    :caption: {destination}\n\n    {contents}"
+
+
+def test_multiple_parts() -> None:
+    """Test rendering multiple parts."""
+    tutorial = TutorialModel.model_validate(
+        {
+            "path": TEST_TUTORIALS_DIR / "fake.yaml",
+            "parts": [
+                {"commands": [{"command": "ls foo"}, {"command": "ls bar"}]},
+                {"commands": [{"command": "ls bla"}, {"command": "ls baz"}]},
+            ],
+        }
+    )
+    wrapper = TutorialWrapper(tutorial)
+
+    expected = ".. code-block:: console\n\n    user@host:~$ ls foo\n    user@host:~$ ls bar\n"
+    assert wrapper.render_part() == expected
+    expected = ".. code-block:: console\n\n    user@host:~$ ls bla\n    user@host:~$ ls baz\n"
+    assert wrapper.render_part() == expected
+
+
+def test_multiple_parts_with_skip() -> None:
+    """Test rendering multiple parts with a skipped part in the middle."""
+    tutorial = TutorialModel.model_validate(
+        {
+            "path": TEST_TUTORIALS_DIR / "fake.yaml",
+            "parts": [
+                {"commands": [{"command": "ls foo"}, {"command": "ls bar"}]},
+                {"commands": [{"command": "ls not-rendered"}], "doc": {"skip": True}},
+                {"commands": [{"command": "ls bla"}, {"command": "ls baz"}]},
+            ],
+        }
+    )
+    wrapper = TutorialWrapper(tutorial)
+
+    expected = ".. code-block:: console\n\n    user@host:~$ ls foo\n    user@host:~$ ls bar\n"
+    assert wrapper.render_part() == expected
+    expected = ".. code-block:: console\n\n    user@host:~$ ls bla\n    user@host:~$ ls baz\n"
+    assert wrapper.render_part() == expected
+
+
+def test_multiple_parts_with_index_error() -> None:
+    """Test rendering multiple parts with a skipped part in the middle."""
+    tutorial = TutorialModel.model_validate(
+        {
+            "path": TEST_TUTORIALS_DIR / "fake.yaml",
+            "parts": [
+                {"commands": [{"command": "ls foo"}, {"command": "ls bar"}]},
+            ],
+        }
+    )
+    wrapper = TutorialWrapper(tutorial)
+
+    expected = ".. code-block:: console\n\n    user@host:~$ ls foo\n    user@host:~$ ls bar\n"
+    assert wrapper.render_part() == expected
+    with pytest.raises(ExtensionError, match=r"No more parts left in tutorial\."):
+        wrapper.render_part()

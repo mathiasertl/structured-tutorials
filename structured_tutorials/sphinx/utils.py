@@ -1,6 +1,7 @@
 """Utility functions for the sphinx extension."""
 
 from copy import deepcopy
+from importlib import resources
 from pathlib import Path
 
 from jinja2 import Environment
@@ -8,7 +9,10 @@ from sphinx.application import Sphinx
 from sphinx.config import Config
 from sphinx.errors import ConfigError, ExtensionError
 
+from structured_tutorials import templates
 from structured_tutorials.models import CommandsPartModel, FilePartModel, TutorialModel
+
+TEMPLATE_DIR = resources.files(templates)
 
 
 def validate_configuration(app: Sphinx, config: Config) -> None:
@@ -84,17 +88,16 @@ class TutorialWrapper:
         return self.env.from_string(template).render({"commands": commands})
 
     def render_file(self, part: FilePartModel) -> str:
-        if part.template is False:
-            return ""
+        content = part.contents
+        if content is None:
+            with open(self.tutorial.cwd / part.source) as stream:
+                content = stream.read()
 
-        template = part.contents
-        if template is None:
-            with open(part.path) as stream:
-                template = stream.read()
+        # Only render template if it is configured to be a template.
+        if part.template:
+            content = self.render(content)
 
-        content = self.render(template)
-
-        # get options
+        # Render the caption (default is the filename)
         if part.doc.caption:
             caption = self.render(part.doc.caption)
         elif part.doc.caption is not False:
@@ -102,25 +105,27 @@ class TutorialWrapper:
         else:
             caption = ""
 
-        directive = """.. code-block:: {{ part.doc.language }}{% if caption %}
-    :caption: {{ caption }}{% endif %}{% if part.doc.linenos or part.doc.lineno_start %}
-    :linenos:{% endif %}{% if part.doc.lineno_start %}
-    :lineno-start: {{ part.doc.lineno_start }}{% endif %}{% if part.doc.emphasize_lines %}
-    :emphasize-lines: {{ part.doc.emphasize_lines }}{% endif %}{% if part.doc.name %}
-    :name: {{ part.doc.name }}{% endif %}
+        # Read template from resources
+        template_str = TEMPLATE_DIR.joinpath("file_part.rst.template").read_text("utf-8")
 
-    {{ content }}
-"""
-        return self.env.from_string(directive).render({"part": part, "content": content, "caption": caption})
+        # Render template
+        template = self.env.from_string(template_str)
+        return template.render({"part": part, "content": content, "caption": caption})
 
     def render_part(self) -> str:
         """Render the given part of the tutorial."""
-        part = self.tutorial.parts[self.next_part]
+        # Find the next part that is not skipped
+        for i, part in enumerate(self.tutorial.parts[self.next_part :], start=1):
+            self.next_part += 1
+            if not part.doc.skip:
+                break
+        else:
+            raise ExtensionError("No more parts left in tutorial.")
+
         if isinstance(part, CommandsPartModel):
             text = self.render_code_block(part)
         elif isinstance(part, FilePartModel):
             text = self.render_file(part)
         else:  # pragma: no cover
-            raise ValueError("unsupported part type.")
-        self.next_part += 1
+            raise ExtensionError(f"{part}: Unsupported part type.")
         return text

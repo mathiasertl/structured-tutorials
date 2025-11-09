@@ -1,0 +1,20 @@
+parts:
+  - commands:
+      - command: ls /tmp
+        doc:
+          output: ...
+    run:
+      skip: true
+    # We could also skip part in documentation instead:
+    #doc:
+    #  skip: true
+  - commands:
+      - command: ls /etc
+        doc:
+          output: ...
+      # Or we could skip just a command, not the entire part, at runtime:
+      - command: ls /tmp
+        run:
+          skip: true
+        doc:
+          output: ...

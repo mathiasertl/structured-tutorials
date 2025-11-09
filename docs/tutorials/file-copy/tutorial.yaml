@@ -1,0 +1,29 @@
+cwd: ../../
+configuration:
+  doc:
+    context:
+      variable: at docs
+  run:
+    context:
+      variable: at runtime
+parts:
+  # Create a file with contents specified inline
+  - contents: "inline contents: {{ variable }}"
+    destination: build/inline_contents.txt
+  # You can also disable rendering of contents as template
+  - contents: "inline contents: {{ variable }}"
+    destination: build/inline_contents.txt.template
+    template: false
+  # Create a file based on contents from another file.
+  # NOTE: source path is relative to "this file" / "cwd from top-level configuration"
+  - source: tests/data/tutorials/file_contents.txt
+    destination: build/file_contents.txt
+  # Create a file based on contents from another file, but do not render it
+  # as a template (e.g. b/c you want to show the template, it's very large, a binary file, ...)
+  - source: tests/data/tutorials/file_contents.txt
+    destination: build/file_contents.txt.template
+    template: false
+  # You can also name a destination directory
+  - source: tests/data/tutorials/file_contents.txt
+    destination: build/subdir/
+    template: false

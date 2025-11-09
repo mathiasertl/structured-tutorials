@@ -10,6 +10,8 @@ parts:
   - commands:
       # Verify that ncat is installed - apt install ncat
       - command: which ncat
+        doc:
+          output: /usr/bin/ncat
       # TODO: retrieve pid from stdout
       # Start an ncat echo server, but have a delay of three seconds
       - command: "sleep 3s && ncat -e /bin/cat -k -l 1234 &"

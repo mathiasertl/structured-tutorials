@@ -87,6 +87,32 @@ The second part will test if ``ncat`` is installed and call it after a three-sec
 
 .. structured-tutorial-part::
 
+Skip a part at runtime
+======================
+
+To skip an entire part at runtime, but still show it in documentation, you can use the ``skip`` configuration:
+
+.. literalinclude:: /tutorials/skip-part-run/tutorial.yaml
+    :language: yaml
+
+When running the tutorial, only the first part will run:
+
+.. code-block:: console
+
+    user@host:~$ structured-tutorial docs/tutorials/skip-part-run/tutorial.yam
+    + ls /etc
+    ...
+
+But when generating documentation, both parts will show, for example, this is part one:
+
+.. structured-tutorial:: skip-part-run/tutorial.yaml
+
+.. structured-tutorial-part::
+
+... and this is part two:
+
+.. structured-tutorial-part::
+
 ********************
 Documenting commands
 ********************
@@ -155,3 +181,30 @@ This will render as:
 .. structured-tutorial:: prompt/tutorial.yaml
 
 .. structured-tutorial-part::
+
+Skip a part in documentation
+============================
+
+To skip an entire part for documentation purposes, but still use it at runtime, you can use the ``skip``
+configuration:
+
+.. literalinclude:: /tutorials/skip-part-doc/tutorial.yaml
+    :language: yaml
+
+When running the tutorial, only the first part will run:
+
+.. code-block:: console
+
+    user@host:~$ structured-tutorial docs/tutorials/skip-part-run/tutorial.yaml
+    + ls /tmp
+    ...
+    + ls /etc
+    ...
+
+But when generating documentation, only the first part can be used. Calling ``structured-tutorial-part`` a
+second time will lead to an error (as there are no parts left).
+
+.. structured-tutorial:: skip-part-doc/tutorial.yaml
+
+.. structured-tutorial-part::
+

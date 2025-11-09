@@ -1,10 +1,12 @@
 """Runner that runs a tutorial on the local machine."""
 
+import os
 import shutil
 import socket
 import subprocess
 import time
 from copy import deepcopy
+from pathlib import Path
 
 from jinja2 import Environment
 
@@ -62,6 +64,9 @@ class LocalTutorialRunner:
 
     def run_commands(self, part: CommandsPartModel) -> None:
         for command_config in part.commands:
+            if command_config.run.skip:
+                continue
+
             # Render the command
             command = self.render(command_config.command)
 
@@ -87,18 +92,20 @@ class LocalTutorialRunner:
 
     def write_file(self, part: FilePartModel) -> None:
         """Write a file."""
-        if part.destination.is_dir() and not part.source:
-            raise RuntimeError("Destination is directory, but no source given to derive filename.")
+        destination = Path(part.destination)
 
-        if part.destination.is_dir():
-            destination = part.destination / part.source.name
-        else:
-            part.destination.parent.mkdir(parents=True, exist_ok=True)
-            destination = part.destination
+        if part.destination.endswith(os.path.sep):
+            # TODO: could happen if destination is a template
+            # if not part.source:
+            #     raise RuntimeError("Destination is directory, but no source given to derive filename.")
 
-        destination = part.destination
-        if destination.is_dir():
+            destination.mkdir(parents=True, exist_ok=True)
             destination = destination / part.source.name
+        elif destination.exists():
+            raise RuntimeError(f"{destination}: Destination already exists.")
+
+        # Create any parent directories
+        destination.parent.mkdir(parents=True, exist_ok=True)
 
         # If template=False and source is set, we just copy the file as is, without ever reading it
         if not part.template and part.source:
@@ -121,9 +128,12 @@ class LocalTutorialRunner:
 
     def run_parts(self) -> None:
         for part in self.tutorial.parts:
+            if part.run.skip:
+                continue
+
             if isinstance(part, CommandsPartModel):
                 self.run_commands(part)
-            elif isinstance(part, FilePartModel):  # pragma: no cover
+            elif isinstance(part, FilePartModel):
                 self.write_file(part)
             else:  # pragma: no cover
                 raise RuntimeError(f"{part} is not a tutorial part")

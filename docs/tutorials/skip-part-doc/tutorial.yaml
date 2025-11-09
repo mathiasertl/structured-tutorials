@@ -1,0 +1,14 @@
+parts:
+  - commands:
+      - command: ls /tmp
+        doc:
+          output: ...
+    # We could also skip part at runtime instead:
+    #run:
+    #  skip: true
+    doc:
+      skip: true
+  - commands:
+      - command: ls /etc
+        doc:
+          output: ...
