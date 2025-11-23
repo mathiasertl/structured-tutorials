@@ -94,11 +94,16 @@ class LocalTutorialRunner:
 
     def write_file(self, part: FilePartModel) -> None:
         """Write a file."""
-        destination = Path(part.destination)
+        raw_destination = self.render(part.destination)
+        destination = Path(raw_destination)
 
-        if part.destination.endswith(os.path.sep):
+        if raw_destination.endswith(os.path.sep):
+            # Model validation already validates that the destination does not look like a directory, if no
+            # source is set, but this could be tricked if the destination is a template.
             if not part.source:
-                raise RuntimeError("Destination is directory, but no source given to derive filename.")
+                raise RuntimeError(
+                    f"{raw_destination}: Destination is directory, but no source given to derive filename."
+                )
 
             destination.mkdir(parents=True, exist_ok=True)
             destination = destination / part.source.name

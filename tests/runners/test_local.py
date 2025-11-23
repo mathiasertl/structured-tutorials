@@ -234,6 +234,24 @@ def test_file_part_with_destination_exists(tmp_path: Path) -> None:
         assert stream.read() == "foo"
 
 
+def test_file_part_with_contents_with_destination_template(tmp_path: Path) -> None:
+    """Test that file parts have a destination that already exists."""
+    configuration = TutorialModel.model_validate(
+        {
+            "path": "/dummy.yaml",
+            "configuration": {"run": {"context": {"example": "dest/"}}},
+            "parts": [
+                {"contents": "foo", "destination": "{{ example }}"},
+            ],
+        }
+    )
+    runner = LocalTutorialRunner(configuration)
+    with pytest.raises(
+        RuntimeError, match=r"^dest/: Destination is directory, but no source given to derive filename\.$"
+    ):
+        runner.run()
+
+
 def test_temporary_directory(tmp_path: Path, fp: FakeProcess) -> None:
     """Test running in temporary directory."""
     fp.register("pwd")
