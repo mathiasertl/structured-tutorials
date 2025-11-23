@@ -28,8 +28,6 @@ class CommandBaseModel(BaseModel):
 class TestSpecificationMixin:
     """Mixin for specifying tests."""
 
-    model_config = ConfigDict(extra="forbid")
-
     delay: Annotated[float, Field(ge=0)] = 0
     retry: PositiveInt = 0
     backoff_factor: PositiveFloat = 0  # {backoff factor} * (2 ** ({number of previous retries}))
@@ -181,11 +179,14 @@ class RuntimeConfigurationModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     context: dict[str, Any] = Field(default_factory=dict)
+    temporary_directory: bool = False
+    git_export: bool = False  # overwrites git_export
 
     @model_validator(mode="after")
     def set_default_context(self) -> Self:
         self.context["doc"] = False
         self.context["run"] = True
+        self.context["cwd"] = Path.cwd()
         return self
 
 
@@ -224,7 +225,7 @@ class TutorialModel(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    path: Path  # absolute path
+    path: Path  # absolute path to YAML file
     cwd: Path = Field(default_factory=default_cwd_factory)  # absolute path (input: relative to path)
     parts: tuple[CommandsPartModel | FilePartModel, ...]
     configuration: ConfigurationModel = ConfigurationModel()
@@ -244,6 +245,14 @@ class TutorialModel(BaseModel):
         path: Path = info.data["path"]
 
         return (path.parent / value).resolve()
+
+    @model_validator(mode="after")
+    def update_context(self) -> Self:
+        self.configuration.run.context["tutorial_path"] = self.path
+        self.configuration.run.context["tutorial_dir"] = self.path.parent
+        self.configuration.doc.context["tutorial_path"] = self.path
+        self.configuration.doc.context["tutorial_dir"] = self.path.parent
+        return self
 
     @classmethod
     def from_file(cls, path: Path) -> "TutorialModel":

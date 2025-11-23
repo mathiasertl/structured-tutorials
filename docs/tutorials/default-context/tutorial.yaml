@@ -1,0 +1,8 @@
+# This tutorial shows the default context variables that are always available:
+parts:
+  - commands:
+    - command: echo tutorial_path={{ tutorial_path }}
+    - command: echo tutorial_dir={{ tutorial_dir }}
+    - command: echo doc={{ doc }}
+    - command: echo run={{ run }}
+    - command: echo cwd={{ cwd }}

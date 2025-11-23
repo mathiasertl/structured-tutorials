@@ -4,6 +4,7 @@ import os
 import shutil
 import socket
 import subprocess
+import tempfile
 import time
 from copy import deepcopy
 from pathlib import Path
@@ -18,6 +19,7 @@ from structured_tutorials.models import (
     TestPortModel,
     TutorialModel,
 )
+from structured_tutorials.utils import chdir, git_export
 
 
 class LocalTutorialRunner:
@@ -95,9 +97,8 @@ class LocalTutorialRunner:
         destination = Path(part.destination)
 
         if part.destination.endswith(os.path.sep):
-            # TODO: could happen if destination is a template
-            # if not part.source:
-            #     raise RuntimeError("Destination is directory, but no source given to derive filename.")
+            if not part.source:
+                raise RuntimeError("Destination is directory, but no source given to derive filename.")
 
             destination.mkdir(parents=True, exist_ok=True)
             destination = destination / part.source.name
@@ -116,6 +117,7 @@ class LocalTutorialRunner:
             with open(part.source) as source_stream:
                 template = source_stream.read()
         else:
+            assert isinstance(part.contents, str)  # assured by model validation
             template = part.contents
 
         if part.template:
@@ -140,7 +142,23 @@ class LocalTutorialRunner:
 
     def run(self) -> None:
         try:
-            self.run_parts()
+            if self.tutorial.configuration.run.temporary_directory:
+                with tempfile.TemporaryDirectory() as tmpdir_name:
+                    self.context["tmpdir"] = Path(tmpdir_name)
+                    self.context["orig_cwd"] = Path.cwd()
+
+                    with chdir(tmpdir_name):
+                        self.run_parts()
+            elif self.tutorial.configuration.run.git_export:
+                with tempfile.TemporaryDirectory() as tmpdir_name:
+                    work_dir = git_export(tmpdir_name)
+                    self.context["cwd"] = work_dir
+                    self.context["orig_cwd"] = Path.cwd()
+
+                    with chdir(work_dir):
+                        self.run_parts()
+            else:
+                self.run_parts()
         finally:
             for command_config in self.cleanup:
                 command = self.env.from_string(command_config.command).render(self.context)

@@ -1,0 +1,9 @@
+# Tutorial will export the current HEAD
+configuration:
+  run:
+    git_export: true
+parts:
+  - commands:
+      - command: echo "Running in {{ cwd }}"
+      - command: test -e README.md
+      - command: test ! -e .git

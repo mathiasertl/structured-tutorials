@@ -1,0 +1,9 @@
+# Tutorial will switch to an empty, temporary directory before running.
+configuration:
+  run:
+    temporary_directory: true
+parts:
+  - commands:
+      - command: pwd
+        doc:
+          output: "/tmp/tmp..."

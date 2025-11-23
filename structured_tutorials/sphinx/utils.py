@@ -90,6 +90,7 @@ class TutorialWrapper:
     def render_file(self, part: FilePartModel) -> str:
         content = part.contents
         if content is None:
+            assert part.source is not None  # assured by model validation
             with open(self.tutorial.cwd / part.source) as stream:
                 content = stream.read()
 
@@ -115,7 +116,7 @@ class TutorialWrapper:
     def render_part(self) -> str:
         """Render the given part of the tutorial."""
         # Find the next part that is not skipped
-        for i, part in enumerate(self.tutorial.parts[self.next_part :], start=1):
+        for part in self.tutorial.parts[self.next_part :]:
             self.next_part += 1
             if not part.doc.skip:
                 break

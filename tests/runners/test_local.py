@@ -6,7 +6,7 @@ from unittest import mock
 import pytest
 from pytest_subprocess import FakeProcess
 
-from structured_tutorials.models import TutorialModel
+from structured_tutorials.models import FilePartModel, TutorialModel
 from structured_tutorials.runners.local import LocalTutorialRunner
 from tests.conftest import DOCS_TUTORIALS_DIR, TEST_TUTORIALS_DIR
 
@@ -177,27 +177,38 @@ def test_file_copy(tmp_path: Path) -> None:
     configuration = TutorialModel.from_file(DOCS_TUTORIALS_DIR / "file-copy" / "tutorial.yaml")
     # Update destination to copy to tmp_path
     for part in configuration.parts:
+        assert isinstance(part, FilePartModel)
         part.destination = str(tmp_path) + part.destination
     runner = LocalTutorialRunner(configuration)
     runner.run()
 
-    assert Path(configuration.parts[0].destination).exists()
-    with open(configuration.parts[0].destination) as stream:
+    part = configuration.parts[0]
+    assert isinstance(part, FilePartModel)
+    assert Path(part.destination).exists()
+    with open(part.destination) as stream:
         assert stream.read() == "inline contents: at runtime"
 
-    assert Path(configuration.parts[1].destination).exists()
-    with open(configuration.parts[1].destination) as stream:
+    part = configuration.parts[1]
+    assert isinstance(part, FilePartModel)
+    assert Path(part.destination).exists()
+    with open(part.destination) as stream:
         assert stream.read() == "inline contents: {{ variable }}"
 
-    assert Path(configuration.parts[2].destination).exists()
-    with open(configuration.parts[2].destination) as stream:
+    part = configuration.parts[2]
+    assert isinstance(part, FilePartModel)
+    assert Path(part.destination).exists()
+    with open(part.destination) as stream:
         assert stream.read() == "test: at runtime"
 
-    assert Path(configuration.parts[3].destination).exists()
-    with open(configuration.parts[3].destination) as stream:
+    part = configuration.parts[3]
+    assert isinstance(part, FilePartModel)
+    assert Path(part.destination).exists()
+    with open(part.destination) as stream:
         assert stream.read() == "test: {{ variable }}"
 
-    destination = Path(configuration.parts[4].destination) / "file_contents.txt"
+    part = configuration.parts[4]
+    assert isinstance(part, FilePartModel)
+    destination = Path(part.destination) / "file_contents.txt"
     assert destination.exists()
     with open(destination) as stream:
         assert stream.read() == "test: {{ variable }}"
@@ -221,3 +232,37 @@ def test_file_part_with_destination_exists(tmp_path: Path) -> None:
 
     with open(dest) as stream:
         assert stream.read() == "foo"
+
+
+def test_temporary_directory(tmp_path: Path, fp: FakeProcess) -> None:
+    """Test running in temporary directory."""
+    fp.register("pwd")
+    configuration = TutorialModel.from_file(DOCS_TUTORIALS_DIR / "temporary-directory" / "tutorial.yaml")
+    runner = LocalTutorialRunner(configuration)
+    with (
+        mock.patch(
+            "structured_tutorials.runners.local.tempfile.TemporaryDirectory.__enter__",
+            return_value=str(tmp_path),
+        ),
+    ):
+        runner.run()
+
+
+def test_git_export(tmp_path: Path, fp: FakeProcess) -> None:
+    """Test running git-export."""
+    export_path = tmp_path / "git-export-HEAD-xxxxxxxxxxxx"
+    fp.register(["git", "archive", "HEAD"])
+    fp.register(["tar", "-x", "-C", str(export_path)])
+    fp.register(f'echo "Running in {export_path}"')
+    fp.register(["test", "-e", "README.md"])
+    fp.register(["test", "!", "-e", ".git"])
+    configuration = TutorialModel.from_file(DOCS_TUTORIALS_DIR / "git-export" / "tutorial.yaml")
+    runner = LocalTutorialRunner(configuration)
+    with (
+        mock.patch("structured_tutorials.utils.random.choice", return_value="x"),
+        mock.patch(
+            "structured_tutorials.runners.local.tempfile.TemporaryDirectory.__enter__",
+            return_value=str(tmp_path),
+        ),
+    ):
+        runner.run()

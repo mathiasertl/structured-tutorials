@@ -20,6 +20,27 @@ def test_from_file(tutorial_paths: Path) -> None:
     assert isinstance(TutorialModel.from_file(tutorial_paths), TutorialModel)
 
 
+def test_default_context(simple_tutorial: TutorialModel) -> None:
+    """Test the context that is always present."""
+    assert simple_tutorial.configuration.run.context == {
+        "cwd": Path.cwd(),
+        "doc": False,
+        "run": True,
+        "tutorial_dir": simple_tutorial.cwd,
+        "tutorial_path": simple_tutorial.path,
+    }
+    assert simple_tutorial.configuration.doc.context == {
+        "cwd": "~",
+        "doc": True,
+        "run": False,
+        "host": "host",
+        "user": "user",
+        "prompt_template": "{{ user }}@{{ host }}:{{ cwd }}{% if user == 'root' %}#{% else %}${% endif %} ",
+        "tutorial_dir": simple_tutorial.cwd,
+        "tutorial_path": simple_tutorial.path,
+    }
+
+
 @pytest.mark.parametrize(
     ("data", "expected_path", "expected_cwd"),
     (
