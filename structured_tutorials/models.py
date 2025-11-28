@@ -135,6 +135,7 @@ class FileDocumentationConfigurationModel(ConfigurationMixin, BaseModel):
     lineno_start: PositiveInt | Literal[False] = False
     emphasize_lines: str = ""
     name: str = ""
+    ignore_spelling: bool = False
 
 
 class FilePartModel(BaseModel):

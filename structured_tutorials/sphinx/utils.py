@@ -106,6 +106,9 @@ class TutorialWrapper:
         else:
             caption = ""
 
+        if part.doc.ignore_spelling:
+            caption = f":spelling:ignore:`{caption}`"
+
         # Read template from resources
         template_str = TEMPLATE_DIR.joinpath("file_part.rst.template").read_text("utf-8")
 

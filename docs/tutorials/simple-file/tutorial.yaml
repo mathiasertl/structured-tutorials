@@ -10,6 +10,7 @@ parts:
     destination: "{{ file_path }}"
     doc:
       language: json
+      ignore_spelling: true
   # Part two: make sure the contents are right (as a demo)
   - commands:
       - command: python -m json.tool --compact {{ file_path }}
