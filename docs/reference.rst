@@ -2,209 +2,124 @@
 Reference
 #########
 
-*******
-General
-*******
+Each tutorial file can contain two elements:
 
-Modify the tutorial for documentation or runtime
-================================================
+parts (required, type: :ref:`Parts <reference_parts>`)
+    The individual parts of the tutorial. See :ref:`Parts <reference_parts>` for more information.
+configuration (optional, type: :ref:`Parts <reference_configuration>`)
+    Global/initial configuration for the tutorial. See :ref:`Configuration <reference_configuration>` for
+    more information.
 
-Although antithetical to the core promise of this project, sometimes it is unavoidable to run commands
-differently from how they are rendered in documentation. Examples are commands that read passwords (and avoid
-reading data from stdin):
+.. _reference_parts:
 
-.. literalinclude:: /tutorials/doc-or-runtime/tutorial.yaml
+*****
+parts
+*****
+
+Parts is a list of individual "chapters" of your tutorial. For example, a chapter might be a set of commands
+to install a software, or a configuration file that the user is instructed to create.
+
+
+file parts
+==========
+
+File parts are intended to create a file when running a tutorial, and to e.g. instruct the user to create that
+file when rendering the tutorial in documentation. A full example:
+
+.. literalinclude:: /tutorials/file-full-example/tutorial.yaml
     :language: yaml
 
-This will render as:
+The above tutorial will render a file block when rendered:
 
-.. structured-tutorial:: doc-or-runtime/tutorial.yaml
+.. structured-tutorial:: file-full-example/tutorial.yaml
 
 .. structured-tutorial-part::
 
-... but in reality will run the sudo command to update the password file directly.
+The configuration options are:
 
-****************
-Running commands
-****************
+parts[n].contents (optional, str)
+    The contents of the file. Mutually exclusive to ``source``.
+parts[n].source (optional, str)
+    Path of the original file. Mutually exclusive to ``contents``.
+parts[n].destination (optional, str)
+    Where to create the new file.
+parts[n].template (optional, bool)
+    Default: ``True``
 
-Test the status code
-====================
+    Set to ``False`` if this file should not be rendered as a template. This can be used to copy binary
+    files and cannot be read as text files, or if you want the destination file to be a template.
+parts[n].doc (optional, type: :ref:`parts[n]doc <reference_parts_n_doc>`)
+    See :ref:`parts[n]doc <reference_parts_n_doc>` for details.
+parts[n].run
+    No options are supported thus far.
 
-``structured-tutorials`` will abort a tutorial if  a specified command does not exit with a status code of
-``0``. To check for a different status code, simply specify ``status_code``:
+.. _reference_parts_n_doc:
 
-.. literalinclude:: /tutorials/exit_code/tutorial.yaml
-    :language: yaml
+parts[n].doc
+------------
 
-Cleanup after running a tutorial
-================================
+language (optional, str)
+    Language used for syntax highlighting.
+ignore_spelling (optional, bool)
+    Default: ``False``
 
-To cleanup after after running a tutorial, specify a set of cleanup commands:
+    Set to ``True`` to wrap the `caption` option in a ``:spelling:ignore:`` directive for
+    `sphinxcontrib-spelling <https://github.com/sphinx-contrib/spelling>`_.
 
-.. literalinclude:: /tutorials/cleanup/tutorial.yaml
-    :language: yaml
+In addition, any option of the `code-block
+<https://www.sphinx-doc.org/en/master/usage/restructuredtext/directives.html#directive-code-block>`_ directive
+are also supported.
 
-Cleanup commands are not rendered in documentation, so this will simply render as:
-
-.. structured-tutorial:: cleanup/tutorial.yaml
-
-.. structured-tutorial-part::
-
-If multiple cleanup commands are specified, they will run in-order. In case of an error, only cleanup commands
-for commands that where actually run will be executed. Consider this example:
-
-.. literalinclude:: /tutorials/cleanup-multiple/tutorial.yaml
-    :language: yaml
-
-Assuming ``cmd1`` and ``cmd2`` run successfully (or ``cmd2`` exits with a non-zero status code), this will
-run, in order, ``clean3``, ``clean1`` and ``clean2``. Should ``cmd1`` return a non-zero status code, only
-``clean1`` and ``clean2`` will be run.
-
-Test a command
+commands parts
 ==============
 
-To test if a command is indeed running successfully, use the ``test`` specification. A common use case is a
-daemon that will *eventually* open a port, but subsequent commands want to connect to that daemon. For that
-reason, you can also simply specify a host and port instead of running a command.
+.. _reference_configuration:
 
-You can also specify a `retry` to run the test command multiple times before the main command is considered
-to have failed. A `delay` will delay the first run of the command and a `backoff_factor` will introduce an
-increasing delay between retries.
+*************
+configuration
+*************
 
-With the following tutorial:
+configuration.doc
+=================
 
-.. literalinclude:: /tutorials/test-command/tutorial.yaml
-    :language: yaml
+configuration.doc.context (dict)
+    Default: ``{"doc": True, "run": False, "cwd": "~", ...}``
 
-The first part will just create a file (and error out if it was not created).
+    The initial context for rendering template strings. Additional variables in the context are used to
+    influence the appearance of the prompt in console blocks:
 
-.. structured-tutorial:: test-command/tutorial.yaml
+    user
+        Default: ``"user"``
+    host
+        Default: ``"host"``
+    cwd
+        Default: ``"~"``
+    prompt_template
+        Default: ``"{{ user }}@{{ host }}:{{ cwd }}{% if user == 'root' %}#{% else %}${% endif %} "``
 
-.. structured-tutorial-part::
+configuration.run
+=================
 
-The second part will test if ``ncat`` is installed and call it after a three-second delay:
+configuration.run.context (dict)
+    Default: ``{"doc": True, "run": False, "cwd": Path.cwd()}``
 
-.. structured-tutorial-part::
+    The initial context for rendering template strings.
 
-Skip a part at runtime
-======================
+configuration.run.git_export (optional, bool)
+    Default: ``False``
 
-To skip an entire part at runtime, but still show it in documentation, you can use the ``skip`` configuration:
+    If set to ``True``, perform a git export before running the tutorial. The current working directory will
+    change to the git export. After the tutorial, the export directory will be removed. This setting
+    overrides ``temporary_directory``.
 
-.. literalinclude:: /tutorials/skip-part-run/tutorial.yaml
-    :language: yaml
+    If set, the ``cwd`` context variable will point to the temporary directory where the git repository was
+    exported to. The original/initial working directory is available as ``orig_cwd``.
 
-When running the tutorial, only the first part will run:
+configuration.run.temporary_directory (optional, bool)
+    Default: ``False``
 
-.. code-block:: console
+    If set to ``True``, switch to an empty, temporary directory before running the tutorial. The empty
+    directory will be removed once the tutorial is completed.
 
-    user@host:~$ structured-tutorial docs/tutorials/skip-part-run/tutorial.yam
-    + ls /etc
-    ...
-
-But when generating documentation, both parts will show, for example, this is part one:
-
-.. structured-tutorial:: skip-part-run/tutorial.yaml
-
-.. structured-tutorial-part::
-
-... and this is part two:
-
-.. structured-tutorial-part::
-
-********************
-Documenting commands
-********************
-
-Show output
-===========
-
-To show an output when rendering commands, specify the ``output`` key:
-
-.. literalinclude:: /tutorials/echo/tutorial.yaml
-    :language: yaml
-
-This will render as:
-
-.. structured-tutorial:: echo/tutorial.yaml
-
-.. structured-tutorial-part::
-
-Template context
-================
-
-Both command and output are rendered as template with the current context. The initial context is specified in
-the global context, and each command can update the context before and after being shown:
-
-.. literalinclude:: /tutorials/context/tutorial.yaml
-    :language: yaml
-
-This will render as:
-
-.. structured-tutorial:: context/tutorial.yaml
-
-.. structured-tutorial-part::
-
-
-Update the command prompt
-=========================
-
-To configure the initial command prompt, set below context variables in the initial context. You can update
-those variables at any time. The following variables influence the prompt:
-
-prompt
-    Default: ``"{{ user }}@{{ host }}:{{ cwd }}{% if user == 'root' %}#{% else %}${% endif %} "``
-
-    The template used to render the prompt, which includes the values below.
-
-user
-    Default: ``"user"``
-
-    The username rendered in the prompt.
-
-host
-    Default: ``"host"``
-
-    The hostname rendered in the prompt.
-
-cwd
-    Default: ``"~"``
-
-    The current working directory rendered in the prompt.
-
-.. literalinclude:: /tutorials/prompt/tutorial.yaml
-    :language: yaml
-
-This will render as:
-
-.. structured-tutorial:: prompt/tutorial.yaml
-
-.. structured-tutorial-part::
-
-Skip a part in documentation
-============================
-
-To skip an entire part for documentation purposes, but still use it at runtime, you can use the ``skip``
-configuration:
-
-.. literalinclude:: /tutorials/skip-part-doc/tutorial.yaml
-    :language: yaml
-
-When running the tutorial, only the first part will run:
-
-.. code-block:: console
-
-    user@host:~$ structured-tutorial docs/tutorials/skip-part-run/tutorial.yaml
-    + ls /tmp
-    ...
-    + ls /etc
-    ...
-
-But when generating documentation, only the first part can be used. Calling ``structured-tutorial-part`` a
-second time will lead to an error (as there are no parts left).
-
-.. structured-tutorial:: skip-part-doc/tutorial.yaml
-
-.. structured-tutorial-part::
-
+    If set, the ``cwd`` context variable will point to the temporary directory. The original/initial working
+    directory is available as ``orig_cwd``.

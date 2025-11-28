@@ -149,7 +149,7 @@ class LocalTutorialRunner:
         try:
             if self.tutorial.configuration.run.temporary_directory:
                 with tempfile.TemporaryDirectory() as tmpdir_name:
-                    self.context["tmpdir"] = Path(tmpdir_name)
+                    self.context["cwd"] = Path(tmpdir_name)
                     self.context["orig_cwd"] = Path.cwd()
 
                     with chdir(tmpdir_name):

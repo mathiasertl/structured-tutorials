@@ -16,5 +16,6 @@ documentation for details.
    :caption: Contents:
 
    /quickstart
+   /how-tos
    /reference
 

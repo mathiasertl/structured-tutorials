@@ -114,7 +114,8 @@ class TutorialWrapper:
 
         # Render template
         template = self.env.from_string(template_str)
-        return template.render({"part": part, "content": content, "caption": caption})
+        value = template.render({"part": part, "content": content, "caption": caption})
+        return value
 
     def render_part(self) -> str:
         """Render the given part of the tutorial."""

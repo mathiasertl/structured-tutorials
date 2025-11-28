@@ -1,0 +1,19 @@
+configuration:
+  run:
+    context:
+      value: written when running
+  doc:
+    context:
+      value: seen in documentation
+parts:
+  - contents: |
+      value = "{{ value }}"
+      print(value)
+    destination: example.txt
+    doc:
+      language: python
+      linenos: true
+      lineno_start: 3
+      emphasize_lines: "1"
+      caption: filename.txt
+      ignore_spelling: true

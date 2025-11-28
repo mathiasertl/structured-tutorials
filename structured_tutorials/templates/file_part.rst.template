@@ -5,4 +5,4 @@
     :emphasize-lines: {{ part.doc.emphasize_lines }}{% endif %}{% if part.doc.name %}
     :name: {{ part.doc.name }}{% endif %}
 
-    {{ content }}
+    {{ content|indent() }}
