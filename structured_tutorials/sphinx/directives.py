@@ -58,8 +58,11 @@ class PartDirective(CurrentDocumentMixin, SphinxDirective):
         tutorial_wrapper: TutorialWrapper = self.current_document["tutorial"]
         text = tutorial_wrapper.render_part()
 
+        source, _lineno = self.get_source_info()
+
         # Create sphinx node
         node = paragraph()
+        paragraph.source = source
         state: RSTState = self.state
-        state.nested_parse(StringList(text.splitlines()), 0, node)
+        state.nested_parse(StringList(text.splitlines(), source=source), 0, node)
         return [node]
