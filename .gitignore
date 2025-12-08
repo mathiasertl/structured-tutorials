@@ -12,6 +12,8 @@ tests/data/docs/_build/
 
 # Documentation
 /docs/_build/
+/docs/_static/swagger-ui/
+/*.tar.gz
 
 # Coverage
 /.coverage

@@ -6,6 +6,7 @@ on:
 env:
   UV_PYTHON_PREFERENCE: only-system
   UV_NO_SYNC: 1
+  SWAGGER_UI_RELEASE: "5.30.3"
 
 jobs:
   run:
@@ -28,7 +29,17 @@ jobs:
         run: uv sync
       - name: doc8 style checks
         run: uv run doc8 docs/
-      - name: Generate documentation
-        run: uv run make -C docs html
+
+      # Generate Swagger UI docs
+      - name: Fetch Swagger UI
+        run: wget https://github.com/swagger-api/swagger-ui/archive/refs/tags/v${SWAGGER_UI_RELEASE}.tar.gz
+      - name: Extract Swagger UI
+        run: tar xf v${SWAGGER_UI_RELEASE}.tar.gz -C docs/_static/ --strip=1 swagger-ui-${SWAGGER_UI_RELEASE}/dist/ --transform s/dist/swagger-ui/
+      - name: Generate schema
+        run: uv run generate-schema.py
+
+      # Finally, generate Sphinx docs
       - name: Spelling
         run: uv run make -C docs spelling
+      - name: Generate documentation
+        run: uv run make -C docs html

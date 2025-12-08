@@ -5,16 +5,24 @@ from pathlib import Path
 from typing import Annotated, Any, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic.fields import FieldInfo
 from pydantic_core.core_schema import ValidationInfo
 from yaml import safe_load
 
 PositiveInt = Annotated[int, Field(ge=0)]
 PositiveFloat = Annotated[float, Field(ge=0)]
 
+TEMPLATE_DESCRIPTION = "This value is rendered as a template with the current context."
+
 
 def default_cwd_factory(data: dict[str, Any]) -> Path:
     """Default factory for the path variable."""
     return data["path"].parent  # type: ignore[no-any-return]
+
+
+def template_field_title_generator(field_name: str, field_info: FieldInfo) -> str:
+    """Field title generator for template fields."""
+    return f"{field_name.title()} (template)"
 
 
 class CommandBaseModel(BaseModel):
@@ -36,7 +44,7 @@ class TestSpecificationMixin:
 class ConfigurationMixin:
     """Mixin for configuration models."""
 
-    skip: bool = False
+    skip: bool = Field(default=False, description="Skip this part.")
 
 
 class CleanupCommandModel(CommandBaseModel):
@@ -106,9 +114,9 @@ class CommandsDocumentationConfigurationModel(ConfigurationMixin, BaseModel):
 
 
 class CommandsPartModel(BaseModel):
-    """Model for a set of commands."""
+    """A tutorial part consisting of one or more commands."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", title="Command part")
 
     type: Literal["commands"] = "commands"
     commands: tuple[CommandModel, ...]
@@ -118,36 +126,64 @@ class CommandsPartModel(BaseModel):
 
 
 class FileRuntimeConfigurationModel(ConfigurationMixin, BaseModel):
-    """Runtime configuration for a file part."""
+    """Configure a file part when running the tutorial."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", title="File part runtime configuration")
 
 
 class FileDocumentationConfigurationModel(ConfigurationMixin, BaseModel):
-    """Documentation configuration for a file part."""
+    """Configure a file part when rendering it as documentation.
 
-    model_config = ConfigDict(extra="forbid")
+    For the `language`, `caption`, `linenos`, `lineno_start`, `emphasize_lines` and `name` options, please
+    consult the [sphinx documentation](https://www.sphinx-doc.org/en/master/usage/restructuredtext/directives.html#directive-code-block).
+    """
+
+    model_config = ConfigDict(extra="forbid", title="File part documentation configuration")
 
     # sphinx options:
-    language: str = ""
-    caption: str | Literal[False] = ""  # template
+    language: str = Field(default="", description="The language used for the code block directive.")
+    caption: str | Literal[False] = Field(
+        default="",
+        description=f"The caption. Defaults to the `destination` of this part. {TEMPLATE_DESCRIPTION}",
+    )
     linenos: bool = False
     lineno_start: PositiveInt | Literal[False] = False
     emphasize_lines: str = ""
     name: str = ""
-    ignore_spelling: bool = False
+    ignore_spelling: bool = Field(
+        default=False,
+        description="If true, wrap the caption in `:spelling:ignore:` (see"
+        " [sphinxcontrib.spelling](https://sphinxcontrib-spelling.readthedocs.io/en/latest/)).",
+    )
 
 
 class FilePartModel(BaseModel):
-    """Model for a file to be copied."""
+    """A tutorial part for creating a file.
 
-    model_config = ConfigDict(extra="forbid")
+    Note that exactly one of `contents` or `source` is required.
+    """
+
+    model_config = ConfigDict(extra="forbid", title="File part")
 
     type: Literal["file"] = "file"
-    contents: str | None = None  # template if property is set
-    source: Path | None = None  # template if property is set
-    destination: str  # template
-    template: bool = True
+    contents: str | None = Field(
+        default=None,
+        field_title_generator=template_field_title_generator,
+        description=f"Contents of the file. {TEMPLATE_DESCRIPTION}",
+    )
+    source: Path | None = Field(
+        default=None,
+        field_title_generator=template_field_title_generator,
+        description="The source path of the file to create. Unless `template` is `False`, the file is loaded "
+        "into memory and rendered as template.",
+    )
+    destination: str = Field(
+        field_title_generator=template_field_title_generator,
+        description=f"The destination path of the file. {TEMPLATE_DESCRIPTION}",
+    )
+    template: bool = Field(
+        default=True, description="Whether the file contents should be rendered in a template."
+    )
 
     doc: FileDocumentationConfigurationModel = FileDocumentationConfigurationModel()
     run: FileRuntimeConfigurationModel = FileRuntimeConfigurationModel()
@@ -175,13 +211,20 @@ class FilePartModel(BaseModel):
 
 
 class RuntimeConfigurationModel(BaseModel):
-    """Model for configuration at runtime."""
+    """Initital configuration for running the tutorial."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", title="Runtime Configuration")
 
-    context: dict[str, Any] = Field(default_factory=dict)
-    temporary_directory: bool = False
-    git_export: bool = False  # overwrites git_export
+    context: dict[str, Any] = Field(
+        default_factory=dict, description="Key/value pairs for the initial context when rendering templates."
+    )
+    temporary_directory: bool = Field(
+        default=False, description="Switch to an empty temporary directory before running the tutorial."
+    )
+    git_export: bool = Field(
+        default=False,
+        description="Export a git archive to a temporary directory before running the tutorial.",
+    )
 
     @model_validator(mode="after")
     def set_default_context(self) -> Self:
@@ -192,11 +235,13 @@ class RuntimeConfigurationModel(BaseModel):
 
 
 class DocumentationConfigurationModel(BaseModel):
-    """Model for configuration of the documentation."""
+    """Initial configuration for rendering the tutorial as documentation."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", title="Documentation Configuration")
 
-    context: dict[str, Any] = Field(default_factory=dict)
+    context: dict[str, Any] = Field(
+        default_factory=dict, description="Key/value pairs for the initial context when rendering templates."
+    )
 
     @model_validator(mode="after")
     def set_default_context(self) -> Self:
@@ -213,23 +258,28 @@ class DocumentationConfigurationModel(BaseModel):
 
 
 class ConfigurationModel(BaseModel):
-    """Model for the initial configuration of a tutorial."""
+    """Initial configuration of a tutorial."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", title="Tutorial Configuration")
 
     run: RuntimeConfigurationModel = RuntimeConfigurationModel()
     doc: DocumentationConfigurationModel = DocumentationConfigurationModel()
 
 
 class TutorialModel(BaseModel):
-    """Model representing the entire tutorial."""
+    """Root structure for the entire tutorial."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", title="Tutorial")
 
-    path: Path  # absolute path to YAML file
+    # absolute path to YAML file
+    path: Path = Field(
+        description="Absolute path to the tutorial file. This field is populated automatically while loading the tutorial.",  # noqa: E501
+    )
     cwd: Path = Field(default_factory=default_cwd_factory)  # absolute path (input: relative to path)
-    parts: tuple[CommandsPartModel | FilePartModel, ...]
-    configuration: ConfigurationModel = ConfigurationModel()
+    parts: tuple[CommandsPartModel | FilePartModel, ...] = Field(
+        description="The individual parts of this tutorial."
+    )
+    configuration: ConfigurationModel = Field(default=ConfigurationModel())
 
     @field_validator("path", mode="after")
     @classmethod

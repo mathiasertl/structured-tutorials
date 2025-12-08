@@ -83,9 +83,15 @@ def test_code_block_output(commands: tuple[str, ...], expected: str) -> None:
                     "lineno_start": 2,
                     "emphasize_lines": "2",
                     "name": "my-name",
+                    "ignore_spelling": True,
                 },
             },
-            ":caption: /ex\n:linenos:\n:lineno-start: 2\n:emphasize-lines: 2\n:name: my-name\n\nfoo",
+            ":caption: :spelling:ignore:`/ex`\n"
+            ":linenos:\n"
+            ":lineno-start: 2\n"
+            ":emphasize-lines: 2\n"
+            ":name: my-name\n"
+            "\nfoo",
         ),
     ),
 )

@@ -18,4 +18,5 @@ documentation for details.
    /quickstart
    /how-tos
    /reference
+   /dev
 
