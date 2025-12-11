@@ -14,6 +14,7 @@ from sphinx.errors import ConfigError, ExtensionError
 
 from structured_tutorials import templates
 from structured_tutorials.models import CommandsPartModel, FilePartModel, TutorialModel
+from structured_tutorials.textwrap import wrap_command_filter
 
 TEMPLATE_DIR = resources.files(templates)
 
@@ -45,18 +46,18 @@ class TutorialWrapper:
     This class exists mainly to wrap the main logic into a separate class that is more easily testable.
     """
 
-    def __init__(self, tutorial: TutorialModel) -> None:
+    def __init__(self, tutorial: TutorialModel, command_text_width: int = 75) -> None:
         self.tutorial = tutorial
         self.next_part = 0
         self.env = Environment(keep_trailing_newline=True)
-        self.env.filters["command"] = self.command_renderer
+        self.env.filters["wrap_command"] = wrap_command_filter
         self.context = deepcopy(tutorial.configuration.doc.context)
 
-    def command_renderer(self, value: str) -> str:
-        return value
+        # settings from sphinx:
+        self.command_text_width = command_text_width
 
     @classmethod
-    def from_file(cls, path: Path) -> "TutorialWrapper":
+    def from_file(cls, path: Path, command_text_width: int = 75) -> "TutorialWrapper":
         """Factory method for creating a TutorialWrapper from a file."""
         tutorial = TutorialModel.from_file(path)
         return cls(tutorial)
@@ -79,9 +80,14 @@ class TutorialWrapper:
             output = self.env.from_string(output_template).render(self.context)
 
             # Finally, render the command
-            command_template = """{{ prompt }}{{ command }}{% if output %}
+            command_template = """{{ command|wrap_command(prompt, text_width) }}{% if output %}
 {{ output }}{% endif %}"""
-            command_context = {"prompt": prompt, "command": command, "output": output}
+            command_context = {
+                "prompt": prompt,
+                "command": command,
+                "output": output,
+                "text_width": self.command_text_width,
+            }
             rendered_command = self.env.from_string(command_template).render(command_context)
             commands.append(rendered_command)
 
@@ -90,7 +96,7 @@ class TutorialWrapper:
 
         template = """.. code-block:: console
 
-{% for cmd in commands %}{{ cmd|command|indent(4, first=True) }}
+{% for cmd in commands %}{{ cmd|indent(4, first=True) }}
 {% endfor %}"""
         return self.env.from_string(template).render({"commands": commands})
 

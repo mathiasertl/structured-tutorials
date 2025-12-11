@@ -106,3 +106,26 @@ Create a configuration file with the following contents:
 and make sure it is valid JSON:
 
 .. structured-tutorial-part::
+
+********************************
+Long commands wrap automatically
+********************************
+
+When rendering a tutorial, long commands wrap automatically. With the following YAML file:
+
+.. literalinclude:: /tutorials/long-commands/tutorial.yaml
+    :caption: docs/tutorials/long-commands/tutorial.yaml
+    :language: yaml
+
+you will get:
+
+.. structured-tutorial:: long-commands/tutorial.yaml
+
+.. structured-tutorial-part::
+
+Note that single-value-options and respective values do not split by default, so `-e DEMO=value` will never
+split between option argument and value.
+
+Single-character options will not be split from their respective value:
+
+.. structured-tutorial-part::

@@ -1,0 +1,23 @@
+parts:
+  - commands:
+      # This command is very short
+      - command: docker run --rm -it ubuntu:24.04
+      # But a longer command will wrap automatically
+      - command: docker run --rm -it -v `pwd`:/very/long/path -e DEMO=value ubuntu:24.04
+      # Use '>' to break multiline strings in your YAML file, but still wrap commands
+      # automatically. Any newlines in your YAML will be treated as a single space
+      # instead:
+      - command: >
+          docker run --rm -it -v `pwd`:/very/long/path -e DEMO=value
+              ubuntu:24.04
+              echo "Run a very long command"
+      # You can also use a "\" to force line breaks when rendering:
+      - command: >
+          docker run --rm -it \
+              -v `pwd`:/example \
+              -e DEMO=value \
+              ubuntu:24.04 \
+              echo "Run a command"
+    # show how single options will never split, see how "-e DEMO=..." is in one line.
+  - commands:
+      - command: docker run --rm -it -v `pwd`:/very/long/path -e DEMO=very-long-value ubuntu:24.04
