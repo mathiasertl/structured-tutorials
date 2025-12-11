@@ -1,3 +1,6 @@
+# Copyright (c) 2025 Mathias Ertl
+# Licensed under the MIT License. See LICENSE file for details.
+
 """Utility functions for the sphinx extension."""
 
 from copy import deepcopy

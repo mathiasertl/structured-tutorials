@@ -1,3 +1,6 @@
+# Copyright (c) 2025 Mathias Ertl
+# Licensed under the MIT License. See LICENSE file for details.
+
 """Test the cli entry point function."""
 
 from structured_tutorials.cli import main

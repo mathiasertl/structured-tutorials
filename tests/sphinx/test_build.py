@@ -1,3 +1,6 @@
+# Copyright (c) 2025 Mathias Ertl
+# Licensed under the MIT License. See LICENSE file for details.
+
 """Test building a minimal Sphinx application."""
 
 from sphinx.application import Sphinx

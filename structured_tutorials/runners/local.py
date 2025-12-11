@@ -1,3 +1,6 @@
+# Copyright (c) 2025 Mathias Ertl
+# Licensed under the MIT License. See LICENSE file for details.
+
 """Runner that runs a tutorial on the local machine."""
 
 import os

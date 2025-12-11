@@ -1,3 +1,6 @@
+# Copyright (c) 2025 Mathias Ertl
+# Licensed under the MIT License. See LICENSE file for details.
+
 """Directives for Sphinx."""
 
 from typing import TYPE_CHECKING

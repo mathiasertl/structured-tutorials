@@ -1,5 +1,7 @@
 # structured-tutorials
 
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+
 `structured-tutorials` allows you to write tutorials that can be rendered as Sphinx documentation and also be
 run on your local system to verify correctness.
 
