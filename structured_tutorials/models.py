@@ -15,9 +15,11 @@ PositiveFloat = Annotated[float, Field(ge=0)]
 TEMPLATE_DESCRIPTION = "This value is rendered as a template with the current context."
 
 
-def default_cwd_factory(data: dict[str, Any]) -> Path:
-    """Default factory for the path variable."""
-    return data["path"].parent  # type: ignore[no-any-return]
+def default_tutorial_root_factory(data: dict[str, Any]) -> Path:
+    """Default factory for the tutorial_root variable."""
+    tutorial_root = data["path"].parent
+    assert isinstance(tutorial_root, Path)
+    return tutorial_root
 
 
 def template_field_title_generator(field_name: str, field_info: FieldInfo) -> str:
@@ -275,7 +277,11 @@ class TutorialModel(BaseModel):
     path: Path = Field(
         description="Absolute path to the tutorial file. This field is populated automatically while loading the tutorial.",  # noqa: E501
     )
-    cwd: Path = Field(default_factory=default_cwd_factory)  # absolute path (input: relative to path)
+    tutorial_root: Path = Field(
+        default_factory=default_tutorial_root_factory,
+        description="Directory from which relative file paths are resolved. Defaults to the path of the "
+        "tutorial file.",
+    )  # absolute path (input: relative to path)
     parts: tuple[CommandsPartModel | FilePartModel, ...] = Field(
         description="The individual parts of this tutorial."
     )
@@ -288,9 +294,9 @@ class TutorialModel(BaseModel):
             raise ValueError(f"{value}: Must be an absolute path.")
         return value
 
-    @field_validator("cwd", mode="after")
+    @field_validator("tutorial_root", mode="after")
     @classmethod
-    def resolve_cwd(cls, value: Path, info: ValidationInfo) -> Path:
+    def resolve_tutorial_root(cls, value: Path, info: ValidationInfo) -> Path:
         if value.is_absolute():
             raise ValueError(f"{value}: Must be a relative path (relative to the tutorial file).")
         path: Path = info.data["path"]

@@ -46,7 +46,11 @@ class TutorialWrapper:
         self.tutorial = tutorial
         self.next_part = 0
         self.env = Environment(keep_trailing_newline=True)
+        self.env.filters["command"] = self.command_renderer
         self.context = deepcopy(tutorial.configuration.doc.context)
+
+    def command_renderer(self, value: str) -> str:
+        return value
 
     @classmethod
     def from_file(cls, path: Path) -> "TutorialWrapper":
@@ -83,7 +87,7 @@ class TutorialWrapper:
 
         template = """.. code-block:: console
 
-{% for cmd in commands %}{{ cmd|indent(4, first=True) }}
+{% for cmd in commands %}{{ cmd|command|indent(4, first=True) }}
 {% endfor %}"""
         return self.env.from_string(template).render({"commands": commands})
 
@@ -91,7 +95,7 @@ class TutorialWrapper:
         content = part.contents
         if content is None:
             assert part.source is not None  # assured by model validation
-            with open(self.tutorial.cwd / part.source) as stream:
+            with open(self.tutorial.tutorial_root / part.source) as stream:
                 content = stream.read()
 
         # Only render template if it is configured to be a template.

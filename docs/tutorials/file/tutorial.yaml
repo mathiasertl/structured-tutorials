@@ -1,4 +1,4 @@
-cwd: ../../
+tutorial_root: ../../
 parts:
   - source: test.txt
     destination: bar

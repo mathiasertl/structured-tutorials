@@ -1,4 +1,4 @@
-cwd: ../../
+tutorial_root: ../../
 configuration:
   doc:
     context:
