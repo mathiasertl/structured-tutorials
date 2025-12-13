@@ -129,3 +129,30 @@ split between option argument and value.
 Single-character options will not be split from their respective value:
 
 .. structured-tutorial-part::
+
+*************************
+Ask the user for feedback
+*************************
+
+When running a tutorial, you can prompt the user to inspect the current state. You can ask the user to just
+press "enter" or even to confirm that the current state looks okay (with answering "yes" or "now").
+
+When rendering a tutorial, prompt parts are simply skipped.
+
+As an example:
+
+.. literalinclude:: /tutorials/interactive-prompt/tutorial.yaml
+    :caption: docs/tutorials/interactive-prompt/tutorial.yaml
+    :language: yaml
+
+.. structured-tutorial:: interactive-prompt/tutorial.yaml
+
+In Sphinx, you can call ``structured-tutorial-part`` only twice, as prompts are simply skipped. The first
+part just creates a file. Since ``temporary_directory: true`` in the configuration, this will run in
+a temporary directory that is removed after running the tutorial:
+
+.. structured-tutorial-part::
+
+When running the tutorial, the user will now be prompted to confirm the current state. The prompt would
+contain the current working directory. Presumably, the user would check the contents of ``test.txt`` in that
+directory.

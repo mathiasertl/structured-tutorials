@@ -195,3 +195,26 @@ def test_multiple_parts_with_index_error() -> None:
     assert wrapper.render_part() == expected
     with pytest.raises(ExtensionError, match=r"No more parts left in tutorial\."):
         wrapper.render_part()
+
+
+@pytest.mark.parametrize(
+    ("parts", "expected"),
+    (
+        (
+            [
+                {"commands": [{"command": "true 1"}]},
+                {"prompt": "test"},
+                {"commands": [{"command": "true 2"}]},
+                {"commands": [{"command": "true 3"}]},
+            ],
+            ["user@host:~$ true 1\n", "user@host:~$ true 2\n", "user@host:~$ true 3\n"],
+        ),
+    ),
+)
+def test_prompt(parts: tuple[str, ...], expected: list[str]) -> None:
+    """Test rendering a code block that is preceded by a prompt. First rendered part is code block."""
+    tutorial = TutorialModel.model_validate({"path": Path.cwd(), "parts": parts})
+    wrapper = TutorialWrapper(tutorial)
+    assert wrapper.render_part() == f".. code-block:: console\n\n{textwrap.indent(expected[0], '    ')}"
+    assert wrapper.render_part() == f".. code-block:: console\n\n{textwrap.indent(expected[1], '    ')}"
+    assert wrapper.render_part() == f".. code-block:: console\n\n{textwrap.indent(expected[2], '    ')}"

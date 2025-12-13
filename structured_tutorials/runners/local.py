@@ -11,6 +11,7 @@ import tempfile
 import time
 from copy import deepcopy
 from pathlib import Path
+from typing import Any
 
 from jinja2 import Environment
 
@@ -18,6 +19,7 @@ from structured_tutorials.models import (
     CleanupCommandModel,
     CommandsPartModel,
     FilePartModel,
+    PromptModel,
     TestCommandModel,
     TestPortModel,
     TutorialModel,
@@ -34,8 +36,8 @@ class LocalTutorialRunner:
         self.env = Environment(keep_trailing_newline=True)
         self.cleanup: list[CleanupCommandModel] = []
 
-    def render(self, value: str) -> str:
-        return self.env.from_string(value).render(self.context)
+    def render(self, value: str, **context: Any) -> str:
+        return self.env.from_string(value).render({**self.context, **context})
 
     def run_test(self, test: TestCommandModel | TestPortModel) -> None:
         # If an initial delay is configured, wait that long
@@ -136,8 +138,26 @@ class LocalTutorialRunner:
         with open(destination, "w") as destination_stream:
             destination_stream.write(contents)
 
+    def run_prompt(self, part: PromptModel) -> None:
+        prompt = self.render(part.prompt).strip() + " "
+
+        if part.type == "enter":
+            input(prompt)
+        else:  # type == confirm
+            valid_inputs = ("n", "no", "yes", "y", "")
+            while (response := input(prompt).strip().lower()) not in valid_inputs:
+                print(f"Please enter a valid value ({'/'.join(valid_inputs)}).")
+
+            if response in ("n", "no") or (response == "" and not part.default):
+                error = self.render(part.error, response=response)
+                raise RuntimeError(error)
+
     def run_parts(self) -> None:
         for part in self.tutorial.parts:
+            if isinstance(part, PromptModel):
+                self.run_prompt(part)
+                continue
+
             if part.run.skip:
                 continue
 

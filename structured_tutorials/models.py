@@ -262,6 +262,23 @@ class DocumentationConfigurationModel(BaseModel):
         return self
 
 
+class PromptModel(BaseModel):
+    """Allows you to inspect the current state of the tutorial manually."""
+
+    model_config = ConfigDict(extra="forbid", title="Prompt Configuration")
+    prompt: str = Field(description=f"The prompt text. {TEMPLATE_DESCRIPTION}")
+    type: Literal["enter", "confirm"] = "enter"
+    default: bool = Field(
+        default=True, description="For type=`confirm`, the default if the user just presses enter."
+    )
+    error: str = Field(
+        default="State was not confirmed.",
+        description="For `type=confirm`, the error message if the user does not confirm the current state. "
+        "{TEMPLATE_DESCRIPTION} The context will also include the `response` variable, representing the user "
+        "response.",
+    )
+
+
 class ConfigurationModel(BaseModel):
     """Initial configuration of a tutorial."""
 
@@ -285,7 +302,7 @@ class TutorialModel(BaseModel):
         description="Directory from which relative file paths are resolved. Defaults to the path of the "
         "tutorial file.",
     )  # absolute path (input: relative to path)
-    parts: tuple[CommandsPartModel | FilePartModel, ...] = Field(
+    parts: tuple[CommandsPartModel | FilePartModel | PromptModel, ...] = Field(
         description="The individual parts of this tutorial."
     )
     configuration: ConfigurationModel = Field(default=ConfigurationModel())

@@ -13,7 +13,7 @@ from sphinx.config import Config
 from sphinx.errors import ConfigError, ExtensionError
 
 from structured_tutorials import templates
-from structured_tutorials.models import CommandsPartModel, FilePartModel, TutorialModel
+from structured_tutorials.models import CommandsPartModel, FilePartModel, PromptModel, TutorialModel
 from structured_tutorials.textwrap import wrap_command_filter
 
 TEMPLATE_DIR = resources.files(templates)
@@ -135,6 +135,12 @@ class TutorialWrapper:
         # Find the next part that is not skipped
         for part in self.tutorial.parts[self.next_part :]:
             self.next_part += 1
+
+            # Ignore prompt models when rendering tutorials.
+            if isinstance(part, PromptModel):
+                continue
+
+            # If the part is not configured to be skipped for docs, use it.
             if not part.doc.skip:
                 break
         else:

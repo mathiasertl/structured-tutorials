@@ -81,7 +81,6 @@ def wrap_command_filter(command: str, prompt: str, text_width: int) -> str:
         command_line = re.sub(r"\s*\n\s*", " ", command_line).strip()
         if not command_line:
             continue
-        print(0, line_no, command_line)
 
         wrapper = CommandLineTextWrapper(width=text_width)
         if line_no == 1:

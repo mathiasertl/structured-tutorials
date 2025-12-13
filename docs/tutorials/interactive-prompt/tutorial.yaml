@@ -1,0 +1,20 @@
+configuration:
+  run:
+    # Switch to temporary directory before running the tutorial
+    temporary_directory: true
+parts:
+  - commands:
+      - command: echo "some content" > test.txt
+      - command: echo "About to give you two prompts..."
+  # Just prompt the user to hit 'enter' at this point:
+  - prompt: "Hit enter to continue... "
+  # Ask the user to confirm the current state - if they answer "no", the tutorial will abort.
+  # In this case, we output the current working directory and ask the user to confirm:
+  - prompt: |-
+      Current working directory is {{ cwd }} ...
+      Is the current state satisfactory (y/n)?
+    type: confirm
+    # Set to false to also raise an error if the user just presses enter:
+    #default: true
+    # You can also overwrite the error message the user will get:
+    #error: Custom error encountered.
