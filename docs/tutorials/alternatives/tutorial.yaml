@@ -1,0 +1,28 @@
+configuration:
+  doc:
+    # Optional: Specify names that show up in tabs instead of the keys used below:
+    alternative_names:
+      mariadb: MariaDB
+      postgresql: PostgreSQL
+parts:
+  # part 1: install database backend
+  - alternatives:
+      mariadb:
+        commands:
+          - command: echo sudo apt install mariadb-server
+      postgresql:
+        commands:
+          - command: echo sudo apt install postgresql
+
+  # part 2: configure some application for that database
+  - alternatives:
+      mariadb:
+        contents: "dbtype: mariadb"
+        destination: "configuration.yaml"
+        doc:
+          language: yaml
+      postgresql:
+        contents: "dbtype: postgresql"
+        destination: "configuration.yaml"
+        doc:
+          language: yaml

@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from sphinx.application import Sphinx
+from sphinx.errors import ExtensionError
 from sphinx.util.typing import ExtensionMetadata
 
 from structured_tutorials import __version__
@@ -20,6 +21,11 @@ def setup(app: Sphinx) -> ExtensionMetadata:
 
     app.add_directive("structured-tutorial", TutorialDirective)
     app.add_directive("structured-tutorial-part", PartDirective)
+
+    try:
+        app.setup_extension("sphinx_inline_tabs")
+    except Exception as exc:  # pragma: no cover
+        raise ExtensionError("structured_tutorials requires sphinx_inline_tabs") from exc
 
     # return metadata
     return {

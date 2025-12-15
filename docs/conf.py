@@ -21,6 +21,7 @@ extensions = [
     "sphinx_rtd_theme",
     "sphinxcontrib.spelling",
     "structured_tutorials.sphinx",
+    "sphinx_inline_tabs",
 ]
 html_theme = "sphinx_rtd_theme"
 
@@ -30,7 +31,7 @@ tutorial_root = DOC_ROOT / "tutorials"
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
-# Nitpicky mode warns about references wher the target cannot be found.
+# Nitpicky mode warns about references where the target cannot be found.
 nitpicky = True
 
 # -- Options for HTML output -------------------------------------------------

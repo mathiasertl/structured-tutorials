@@ -15,8 +15,10 @@ def main(argv: Sequence[str] | None = None) -> None:
     """Main entry function for the command-line."""
     parser = argparse.ArgumentParser()
     parser.add_argument("path", type=Path)
+    parser.add_argument("-a", "--alternative", dest="alternatives", action="append", default=[])
     args = parser.parse_args(argv)
 
     tutorial = TutorialModel.from_file(args.path)
-    runner = LocalTutorialRunner(tutorial)
+    runner = LocalTutorialRunner(tutorial, alternatives=tuple(args.alternatives))
+    runner.validate_alternatives()
     runner.run()

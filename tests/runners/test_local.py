@@ -256,6 +256,73 @@ def test_file_part_with_contents_with_destination_template(tmp_path: Path) -> No
         runner.run()
 
 
+def test_alternatives_with_command(fp: FakeProcess) -> None:
+    """Test enter function."""
+    configuration = TutorialModel.model_validate(
+        {
+            "path": "/dummy.yaml",
+            "parts": [
+                {
+                    "alternatives": {
+                        "foo": {"commands": [{"command": "ls foo"}]},
+                        "bar": {"commands": [{"command": "ls bar"}]},
+                    }
+                },
+            ],
+        }
+    )
+    fp.register("ls foo")
+    runner = LocalTutorialRunner(configuration, alternatives=("foo",))
+    runner.run()
+
+    fp.register("ls bar")
+    runner = LocalTutorialRunner(configuration, alternatives=("bar",))
+    runner.run()
+
+
+def test_alternatives_with_file_part(tmp_path: Path) -> None:
+    """Test enter function."""
+    configuration = TutorialModel.model_validate(
+        {
+            "path": tmp_path / "dummy.yaml",
+            "parts": [
+                {
+                    "alternatives": {
+                        "foo": {"contents": "foo", "destination": str(tmp_path / "foo.txt")},
+                        "bar": {"contents": "bar", "destination": str(tmp_path / "bar.txt")},
+                    }
+                },
+            ],
+        }
+    )
+    runner = LocalTutorialRunner(configuration, alternatives=("foo",))
+    runner.run()
+    assert (tmp_path / "foo.txt").exists()
+
+    runner = LocalTutorialRunner(configuration, alternatives=("bar",))
+    runner.run()
+    assert (tmp_path / "bar.txt").exists()
+
+
+def test_alternatives_with_no_selected_part(tmp_path: Path) -> None:
+    """Test enter function."""
+    configuration = TutorialModel.model_validate(
+        {
+            "path": tmp_path / "dummy.yaml",
+            "parts": [
+                {
+                    "alternatives": {
+                        "foo": {"commands": [{"command": "ls foo"}]},
+                        "bar": {"commands": [{"command": "ls bar"}]},
+                    }
+                },
+            ],
+        }
+    )
+    runner = LocalTutorialRunner(configuration, alternatives=("bla",))
+    runner.run()
+
+
 @pytest.mark.parametrize("prompt", ("test", "test    "))
 @pytest.mark.parametrize("answer", ("", "yes", "y", "no", "n", "foobar"))
 def test_enter_prompt(prompt: str, answer: str) -> None:

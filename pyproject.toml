@@ -11,6 +11,7 @@ dependencies = [
     "pydantic>=2.11.4",
     "pyyaml>=6.0.2",
     "sphinx>=7.3.7",
+    "sphinx-inline-tabs>=2023.4.21",
 ]
 
 [project.scripts]

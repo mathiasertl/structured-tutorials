@@ -218,3 +218,58 @@ def test_prompt(parts: tuple[str, ...], expected: list[str]) -> None:
     assert wrapper.render_part() == f".. code-block:: console\n\n{textwrap.indent(expected[0], '    ')}"
     assert wrapper.render_part() == f".. code-block:: console\n\n{textwrap.indent(expected[1], '    ')}"
     assert wrapper.render_part() == f".. code-block:: console\n\n{textwrap.indent(expected[2], '    ')}"
+
+
+@pytest.mark.parametrize(
+    ("aliases", "alternatives", "expected"),
+    (
+        (
+            {},
+            {
+                "foo": {"commands": [{"command": "ls foo"}]},
+                "bar": {"commands": [{"command": "ls bar"}]},
+            },
+            ".. tab:: foo\n"
+            "\n"
+            "    .. code-block:: console\n"
+            "\n"
+            "        user@host:~$ ls foo\n"
+            "\n"
+            ".. tab:: bar\n"
+            "\n"
+            "    .. code-block:: console\n"
+            "\n"
+            "        user@host:~$ ls bar",
+        ),
+        (
+            {"foo": "FOO", "bar": "BAR"},
+            {
+                "foo": {"contents": "foo", "destination": "foo.yaml"},
+                "bar": {"contents": "bar", "destination": "bar.yaml"},
+            },
+            ".. tab:: FOO\n"
+            "\n"
+            "    .. code-block::\n"
+            "        :caption: foo.yaml\n"
+            "\n"
+            "        foo\n"
+            "\n"
+            ".. tab:: BAR\n"
+            "\n"
+            "    .. code-block::\n"
+            "        :caption: bar.yaml\n"
+            "\n"
+            "        bar",
+        ),
+    ),
+)
+def test_alternatives(aliases: dict[str, str], alternatives: dict[str, Any], expected: str) -> None:
+    """Test alternative parts."""
+    data = {
+        "path": "/dummy.yaml",
+        "configuration": {"doc": {"alternative_names": aliases}},
+        "parts": [{"alternatives": alternatives}],
+    }
+    tutorial = TutorialModel.model_validate(data)
+    wrapper = TutorialWrapper(tutorial)
+    assert wrapper.render_part() == expected

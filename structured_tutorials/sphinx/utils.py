@@ -13,7 +13,13 @@ from sphinx.config import Config
 from sphinx.errors import ConfigError, ExtensionError
 
 from structured_tutorials import templates
-from structured_tutorials.models import CommandsPartModel, FilePartModel, PromptModel, TutorialModel
+from structured_tutorials.models import (
+    AlternativeModel,
+    CommandsPartModel,
+    FilePartModel,
+    PromptModel,
+    TutorialModel,
+)
 from structured_tutorials.textwrap import wrap_command_filter
 
 TEMPLATE_DIR = resources.files(templates)
@@ -130,6 +136,26 @@ class TutorialWrapper:
         value = template.render({"part": part, "content": content, "caption": caption})
         return value
 
+    def render_alternatives(self, part: AlternativeModel) -> str:
+        tabs = []
+        for key, alternate_part in part.alternatives.items():
+            key = self.tutorial.configuration.doc.alternative_names.get(key, key)
+
+            if isinstance(alternate_part, CommandsPartModel):
+                tabs.append((key, self.render_code_block(alternate_part).strip()))
+            elif isinstance(alternate_part, FilePartModel):
+                tabs.append((key, self.render_file(alternate_part).strip()))
+            else:  # pragma: no cover
+                raise ExtensionError("Alternative found unknown part type.")
+
+        # Read template from resources
+        template_str = TEMPLATE_DIR.joinpath("alternative_part.rst.template").read_text("utf-8")
+
+        # Render template
+        template = self.env.from_string(template_str)
+        value = template.render({"part": part, "tabs": tabs})
+        return value.strip()
+
     def render_part(self) -> str:
         """Render the given part of the tutorial."""
         # Find the next part that is not skipped
@@ -150,6 +176,8 @@ class TutorialWrapper:
             text = self.render_code_block(part)
         elif isinstance(part, FilePartModel):
             text = self.render_file(part)
+        elif isinstance(part, AlternativeModel):
+            text = self.render_alternatives(part)
         else:  # pragma: no cover
             raise ExtensionError(f"{part}: Unsupported part type.")
         return text

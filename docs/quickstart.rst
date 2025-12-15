@@ -156,3 +156,30 @@ a temporary directory that is removed after running the tutorial:
 When running the tutorial, the user will now be prompted to confirm the current state. The prompt would
 contain the current working directory. Presumably, the user would check the contents of ``test.txt`` in that
 directory.
+
+****************************************
+Tutorials can show the user alternatives
+****************************************
+
+Sometimes you want to present the user with different options when following a tutorial. For example, you
+might want to show a user how to set up your web application using either PostgreSQL or MySQL.
+
+`structured-tutorials` supports `alternatives`. They render as tabs in documentation, but when running a
+tutorial, the user has to specify an alternative. Alternatives can contain either commands or files (and you
+could even mix them):
+
+.. literalinclude:: /tutorials/alternatives/tutorial.yaml
+    :caption: docs/tutorials/alternatives/tutorial.yaml
+    :language: yaml
+
+.. structured-tutorial:: alternatives/tutorial.yaml
+
+The first part will show the user how to install the respective database backend:
+
+.. structured-tutorial-part::
+
+The second part will show the user how to configure your application for the respective database backend.
+
+.. structured-tutorial-part::
+
+Note that this example of course omits configuring the database itself or any other details.

@@ -216,7 +216,7 @@ class FilePartModel(BaseModel):
 
 
 class RuntimeConfigurationModel(BaseModel):
-    """Initital configuration for running the tutorial."""
+    """Initial configuration for running the tutorial."""
 
     model_config = ConfigDict(extra="forbid", title="Runtime Configuration")
 
@@ -246,6 +246,10 @@ class DocumentationConfigurationModel(BaseModel):
 
     context: dict[str, Any] = Field(
         default_factory=dict, description="Key/value pairs for the initial context when rendering templates."
+    )
+    alternative_names: dict[str, str] = Field(
+        default_factory=dict,
+        description="Names for alternative keys, used in tab titles. By default, the key itself is used.",
     )
 
     @model_validator(mode="after")
@@ -279,6 +283,38 @@ class PromptModel(BaseModel):
     )
 
 
+PartModels = CommandsPartModel | FilePartModel
+
+
+class AlternativeRuntimeConfigurationModel(ConfigurationMixin, BaseModel):
+    """Configure an alternative part when running the tutorial."""
+
+    model_config = ConfigDict(extra="forbid", title="File part runtime configuration")
+
+
+class AlternativeDocumentationConfigurationModel(ConfigurationMixin, BaseModel):
+    """Configure an alternative part when documenting the tutorial."""
+
+    model_config = ConfigDict(extra="forbid", title="File part runtime configuration")
+
+
+class AlternativeModel(BaseModel):
+    """A tutorial part that has several different alternatives.
+
+    When rendering documentation, alternatives are rendered in tabs. When running a tutorial, the runner has
+    to specify exactly one (or at most one, if `required=False`) of the alternatives that should be run.
+
+    An alternative can contain parts for files or commands.
+    """
+
+    model_config = ConfigDict(extra="forbid", title="Alternatives")
+
+    alternatives: dict[str, PartModels]
+    required: bool = Field(default=True, description="Whether one of the alternatives is required.")
+    doc: AlternativeDocumentationConfigurationModel = AlternativeDocumentationConfigurationModel()
+    run: AlternativeRuntimeConfigurationModel = AlternativeRuntimeConfigurationModel()
+
+
 class ConfigurationModel(BaseModel):
     """Initial configuration of a tutorial."""
 
@@ -302,7 +338,7 @@ class TutorialModel(BaseModel):
         description="Directory from which relative file paths are resolved. Defaults to the path of the "
         "tutorial file.",
     )  # absolute path (input: relative to path)
-    parts: tuple[CommandsPartModel | FilePartModel | PromptModel, ...] = Field(
+    parts: tuple[PartModels | PromptModel | AlternativeModel, ...] = Field(
         description="The individual parts of this tutorial."
     )
     configuration: ConfigurationModel = Field(default=ConfigurationModel())

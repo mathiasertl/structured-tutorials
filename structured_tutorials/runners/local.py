@@ -9,35 +9,22 @@ import socket
 import subprocess
 import tempfile
 import time
-from copy import deepcopy
 from pathlib import Path
-from typing import Any
-
-from jinja2 import Environment
 
 from structured_tutorials.models import (
-    CleanupCommandModel,
+    AlternativeModel,
     CommandsPartModel,
     FilePartModel,
     PromptModel,
     TestCommandModel,
     TestPortModel,
-    TutorialModel,
 )
+from structured_tutorials.runners.base import RunnerBase
 from structured_tutorials.utils import chdir, git_export
 
 
-class LocalTutorialRunner:
+class LocalTutorialRunner(RunnerBase):
     """Runner implementation that runs a tutorial on the local machine."""
-
-    def __init__(self, tutorial: TutorialModel):
-        self.tutorial = tutorial
-        self.context = deepcopy(tutorial.configuration.run.context)
-        self.env = Environment(keep_trailing_newline=True)
-        self.cleanup: list[CleanupCommandModel] = []
-
-    def render(self, value: str, **context: Any) -> str:
-        return self.env.from_string(value).render({**self.context, **context})
 
     def run_test(self, test: TestCommandModel | TestPortModel) -> None:
         # If an initial delay is configured, wait that long
@@ -152,6 +139,21 @@ class LocalTutorialRunner:
                 error = self.render(part.error, response=response)
                 raise RuntimeError(error)
 
+    def run_alternative(self, part: AlternativeModel) -> None:
+        selected = set(self.alternatives) & set(part.alternatives)
+
+        # Note: The CLI agent already verifies this - just assert this to be sure.
+        assert len(selected) <= 1, "More then one part selected."
+
+        if selected:
+            selected_part = part.alternatives[tuple(selected)[0]]
+            if isinstance(selected_part, CommandsPartModel):
+                self.run_commands(selected_part)
+            elif isinstance(selected_part, FilePartModel):
+                self.write_file(selected_part)
+            else:  # pragma: no cover
+                raise RuntimeError(f"{selected_part} is not supported as alternative.")
+
     def run_parts(self) -> None:
         for part in self.tutorial.parts:
             if isinstance(part, PromptModel):
@@ -165,6 +167,8 @@ class LocalTutorialRunner:
                 self.run_commands(part)
             elif isinstance(part, FilePartModel):
                 self.write_file(part)
+            elif isinstance(part, AlternativeModel):
+                self.run_alternative(part)
             else:  # pragma: no cover
                 raise RuntimeError(f"{part} is not a tutorial part")
 

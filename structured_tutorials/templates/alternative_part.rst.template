@@ -1,0 +1,5 @@
+{% for title, contents in tabs %}
+.. tab:: {{ title }}
+
+    {{ contents|indent() }}
+{% endfor %}
