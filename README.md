@@ -16,11 +16,9 @@ run it on your local system.
   * For both commands and config files
 * Execute commands locally
   * test output
-  * test status code
-  * add cleanup actions
-  * define tests for successful start
-  * define waits (e.g. until port is open, ...)
-* Render documentation
-  * Show demo output
-* Run locally on command line
+  * define wait time after run
 * Run in vagrant
+
+# License
+
+This project is licensed under the MIT License. See LICENSE file for details.
