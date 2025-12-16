@@ -3,10 +3,10 @@
 
 """Runner that runs a tutorial on the local machine."""
 
+import logging
 import os
 import shutil
 import socket
-import subprocess
 import tempfile
 import time
 from pathlib import Path
@@ -21,6 +21,8 @@ from structured_tutorials.models import (
 )
 from structured_tutorials.runners.base import RunnerBase
 from structured_tutorials.utils import chdir, git_export
+
+part_log = logging.getLogger("part")
 
 
 class LocalTutorialRunner(RunnerBase):
@@ -37,7 +39,7 @@ class LocalTutorialRunner(RunnerBase):
 
             if isinstance(test, TestCommandModel):
                 test_command = self.render(test.command)
-                test_proc = subprocess.run(test_command, shell=True)
+                test_proc = self.run_shell_command(test_command, show_output=test.show_output)
 
                 if test.status_code == test_proc.returncode:
                     return
@@ -65,7 +67,7 @@ class LocalTutorialRunner(RunnerBase):
             command = self.render(command_config.command)
 
             # Run the command and check status code
-            proc = subprocess.run(command, shell=True)
+            proc = self.run_shell_command(command, show_output=command_config.run.show_output)
 
             # Update list of cleanup commands
             self.cleanup = list(command_config.run.cleanup) + self.cleanup
@@ -146,7 +148,7 @@ class LocalTutorialRunner(RunnerBase):
         assert len(selected) <= 1, "More then one part selected."
 
         if selected:
-            selected_part = part.alternatives[tuple(selected)[0]]
+            selected_part = part.alternatives[next(iter(selected))]
             if isinstance(selected_part, CommandsPartModel):
                 self.run_commands(selected_part)
             elif isinstance(selected_part, FilePartModel):
@@ -155,7 +157,8 @@ class LocalTutorialRunner(RunnerBase):
                 raise RuntimeError(f"{selected_part} is not supported as alternative.")
 
     def run_parts(self) -> None:
-        for part in self.tutorial.parts:
+        for part_no, part in enumerate(self.tutorial.parts, start=1):
+            part_log.info(f"Running part {part_no}...")
             if isinstance(part, PromptModel):
                 self.run_prompt(part)
                 continue
@@ -193,5 +196,5 @@ class LocalTutorialRunner(RunnerBase):
                 self.run_parts()
         finally:
             for command_config in self.cleanup:
-                command = self.env.from_string(command_config.command).render(self.context)
-                subprocess.run(command, shell=True)
+                command = self.render(command_config.command)
+                self.run_shell_command(command, command_config.show_output)

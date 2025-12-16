@@ -7,6 +7,7 @@ license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.11"
 dependencies = [
+    "colorama>=0.4.6",
     "jinja2>=3.1.6",
     "pydantic>=2.11.4",
     "pyyaml>=6.0.2",
@@ -103,6 +104,7 @@ dev = [
     "ruff>=0.11.10",
     "sphinx-rtd-theme>=3.0.2",
     "sphinxcontrib-spelling>=8.0.1",
+    "types-colorama>=0.4.15.20250801",
     "types-docutils>=0.21.0.20250604",
     "types-pyyaml>=6.0.12.20250516",
 ]

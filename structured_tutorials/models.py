@@ -4,10 +4,11 @@
 """Basic tutorial structure."""
 
 import os
+import re
 from pathlib import Path
 from typing import Annotated, Any, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, field_validator, model_validator
 from pydantic.fields import FieldInfo
 from pydantic_core.core_schema import ValidationInfo
 from yaml import safe_load
@@ -30,12 +31,22 @@ def template_field_title_generator(field_name: str, field_info: FieldInfo) -> st
     return f"{field_name.title()} (template)"
 
 
+def validate_regex(value: Any) -> Any:
+    """Validate and compile a regular expression."""
+    if isinstance(value, str):
+        return re.compile(str)
+    return value
+
+
 class CommandBaseModel(BaseModel):
     """Base model for commands."""
 
     model_config = ConfigDict(extra="forbid")
 
     status_code: Annotated[int, Field(ge=0, le=255)] = 0
+    show_output: bool = Field(
+        default=True, description="Set to `False` to always hide the output of this command."
+    )
 
 
 class TestSpecificationMixin:
@@ -77,6 +88,14 @@ class TestPortModel(TestSpecificationMixin, BaseModel):
     port: Annotated[int, Field(ge=0, le=65535)]
 
 
+class TestOutputModel(TestSpecificationMixin, BaseModel):
+    """Test the output of the command."""
+
+    model_config = ConfigDict(extra="forbid")
+    stream: Literal["stdout", "stderr"] = "stdout"
+    test: Annotated[re.Pattern[str], BeforeValidator(validate_regex)] = Field(description="A regular expression to test.")
+
+
 class CommandRuntimeConfigurationModel(ConfigurationMixin, CommandBaseModel):
     """Model for runtime configuration when running a single command."""
 
@@ -84,7 +103,7 @@ class CommandRuntimeConfigurationModel(ConfigurationMixin, CommandBaseModel):
 
     update_context: dict[str, Any] = Field(default_factory=dict)
     cleanup: tuple[CleanupCommandModel, ...] = tuple()
-    test: tuple[TestCommandModel | TestPortModel, ...] = tuple()
+    test: tuple[TestCommandModel | TestPortModel | TestOutputModel, ...] = tuple()
 
 
 class CommandDocumentationConfigurationModel(ConfigurationMixin, BaseModel):
