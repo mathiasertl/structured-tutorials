@@ -8,7 +8,7 @@ from typing import Any
 import jinja2
 from pydantic import BaseModel
 
-from structured_tutorials.models import TutorialModel
+from structured_tutorials.models.tutorial import TutorialModel
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--swagger-path", type=Path, default=Path.cwd() / "docs" / "_static" / "swagger-ui")

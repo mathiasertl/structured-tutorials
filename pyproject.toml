@@ -63,6 +63,11 @@ addopts = [
     "--cov-fail-under=100",
     "--random-order",
 ]
+filterwarnings = [
+    "always",
+    "error:::structured_tutorials",
+    "ignore:::sphinx_inline_tabs",
+]
 
 [tool.ruff]
 extend-exclude = ["migrations", "stubs"]

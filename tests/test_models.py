@@ -9,13 +9,10 @@ from typing import Any
 import pytest
 from pydantic import BaseModel
 
-from structured_tutorials.models import (
-    CommandBaseModel,
-    FilePartModel,
-    TestCommandModel,
-    TestPortModel,
-    TutorialModel,
-)
+from structured_tutorials.models import TutorialModel
+from structured_tutorials.models.base import CommandBaseModel
+from structured_tutorials.models.parts import FilePartModel
+from structured_tutorials.models.tests import TestCommandModel, TestPortModel
 
 
 def test_from_file(tutorial_paths: Path) -> None:

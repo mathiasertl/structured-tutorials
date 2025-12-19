@@ -13,7 +13,8 @@ from typing import Any
 
 from jinja2 import Environment
 
-from structured_tutorials.models import AlternativeModel, CleanupCommandModel, TutorialModel
+from structured_tutorials.models import AlternativeModel, TutorialModel
+from structured_tutorials.models.parts import CleanupCommandModel
 
 command_logger = logging.getLogger("command")
 

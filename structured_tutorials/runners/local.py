@@ -12,15 +12,8 @@ import tempfile
 import time
 from pathlib import Path
 
-from structured_tutorials.models import (
-    AlternativeModel,
-    CommandsPartModel,
-    FilePartModel,
-    PromptModel,
-    TestCommandModel,
-    TestOutputModel,
-    TestPortModel,
-)
+from structured_tutorials.models.parts import AlternativeModel, CommandsPartModel, FilePartModel, PromptModel
+from structured_tutorials.models.tests import TestCommandModel, TestOutputModel, TestPortModel
 from structured_tutorials.runners.base import RunnerBase
 from structured_tutorials.utils import chdir, git_export
 
