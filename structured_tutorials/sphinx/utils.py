@@ -3,6 +3,7 @@
 
 """Utility functions for the sphinx extension."""
 
+import shlex
 from copy import deepcopy
 from importlib import resources
 from pathlib import Path
@@ -79,7 +80,10 @@ class TutorialWrapper:
             prompt = self.env.from_string(self.context["prompt_template"]).render(self.context)
 
             # Render the command
-            command = self.env.from_string(command_config.command).render(self.context)
+            if isinstance(command_config.command, str):
+                command = self.render(command_config.command)
+            else:
+                command = shlex.join(self.render(token) for token in command_config.command)
 
             # Render output
             output_template = command_config.doc.output.rstrip("\n")

@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field, NonNegativeInt, field_validat
 
 from structured_tutorials.models.base import (
     CommandBaseModel,
+    CommandType,
     ConfigurationMixin,
     template_field_title_generator,
 )
@@ -20,11 +21,11 @@ TEMPLATE_DESCRIPTION = "This value is rendered as a template with the current co
 
 
 class CleanupCommandModel(CommandBaseModel):
-    """Model for cleanup commands."""
+    """Command to clean up artifacts created by the current part."""
 
     model_config = ConfigDict(extra="forbid")
 
-    command: str
+    command: CommandType = Field(description="Command that cleans up artifacts created by the main command.")
 
 
 class CommandRuntimeConfigurationModel(ConfigurationMixin, CommandBaseModel):
@@ -47,13 +48,17 @@ class CommandDocumentationConfigurationModel(ConfigurationMixin, BaseModel):
 
 
 class CommandModel(BaseModel):
-    """Model for a single command."""
+    """A single command to run in this part."""
 
     model_config = ConfigDict(extra="forbid")
 
-    command: str
-    run: CommandRuntimeConfigurationModel = CommandRuntimeConfigurationModel()
-    doc: CommandDocumentationConfigurationModel = CommandDocumentationConfigurationModel()
+    command: CommandType = Field(description="The command to run.")
+    run: CommandRuntimeConfigurationModel = Field(
+        default=CommandRuntimeConfigurationModel(), description="The runtime configuration."
+    )
+    doc: CommandDocumentationConfigurationModel = Field(
+        default=CommandDocumentationConfigurationModel(), description="The documentation configuration."
+    )
 
 
 class CommandsRuntimeConfigurationModel(ConfigurationMixin, BaseModel):

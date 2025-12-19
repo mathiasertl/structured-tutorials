@@ -14,6 +14,7 @@ from typing import Any
 from jinja2 import Environment
 
 from structured_tutorials.models import AlternativeModel, TutorialModel
+from structured_tutorials.models.base import CommandType
 from structured_tutorials.models.parts import CleanupCommandModel
 
 command_logger = logging.getLogger("command")
@@ -34,6 +35,12 @@ class RunnerBase(abc.ABC):
 
     def render(self, value: str, **context: Any) -> str:
         return self.env.from_string(value).render({**self.context, **context})
+
+    def render_command(self, command: CommandType, **context: Any) -> str:
+        if isinstance(command, str):
+            return self.render(command)
+
+        return shlex.join(self.render(token) for token in command)
 
     def validate_alternatives(self) -> None:
         """Validate that for each alternative part, an alternative was selected."""

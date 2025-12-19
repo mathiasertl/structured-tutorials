@@ -1,0 +1,8 @@
+configuration:
+  doc:
+    context:
+      value: example
+parts:
+  - commands:
+    - command: [echo, "value with spaces"]
+    - command: [echo, "tokens are also templates: {{ value }}"]

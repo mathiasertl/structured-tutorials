@@ -258,3 +258,21 @@ a temporary directory that is removed after running the tutorial:
 When running the tutorial, the user will now be prompted to confirm the current state. The prompt would
 contain the current working directory. Presumably, the user would check the contents of ``test.txt`` in that
 directory.
+
+Prevent shell injection
+=======================
+
+You may also specify commands as lists to prevent shell injection. Note that every word of your command is
+still rendered as template:
+
+.. tab:: Configuration
+
+    .. literalinclude:: /tutorials/command-as-list/tutorial.yaml
+        :caption: docs/tutorials/command-as-list/tutorial.yaml
+        :language: yaml
+
+.. tab:: Documentation
+
+    .. structured-tutorial:: command-as-list/tutorial.yaml
+
+    .. structured-tutorial-part::

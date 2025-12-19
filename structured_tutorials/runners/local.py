@@ -26,7 +26,7 @@ class LocalTutorialRunner(RunnerBase):
     def run_test(
         self, test: TestCommandModel | TestPortModel | TestOutputModel, proc: subprocess.CompletedProcess[str]
     ) -> None:
-        # If an initial delay is configured, wait that long
+        # If the test is for an output stream, we can run it right away (the process has already finished).
         if isinstance(test, TestOutputModel):
             if test.stream == "stderr":
                 value = proc.stderr
@@ -39,6 +39,7 @@ class LocalTutorialRunner(RunnerBase):
             else:
                 raise RuntimeError("Process did not have the expected output.")
 
+        # If an initial delay is configured, wait that long
         if test.delay > 0:
             time.sleep(test.delay)
 
@@ -47,7 +48,7 @@ class LocalTutorialRunner(RunnerBase):
             tries += 1
 
             if isinstance(test, TestCommandModel):
-                test_command = self.render(test.command)
+                test_command = self.render_command(test.command)
                 test_proc = self.run_shell_command(test_command, show_output=test.show_output)
 
                 if test.status_code == test_proc.returncode:
@@ -73,7 +74,7 @@ class LocalTutorialRunner(RunnerBase):
                 continue
 
             # Render the command
-            command = self.render(command_config.command)
+            command = self.render_command(command_config.command)
 
             # Capture output if any test is for the output.
             capture_output = any(isinstance(test, TestOutputModel) for test in command_config.run.test)
@@ -210,5 +211,5 @@ class LocalTutorialRunner(RunnerBase):
                 self.run_parts()
         finally:
             for command_config in self.cleanup:
-                command = self.render(command_config.command)
+                command = self.render_command(command_config.command)
                 self.run_shell_command(command, command_config.show_output)

@@ -9,6 +9,9 @@ from typing import Annotated, Any
 from pydantic import BaseModel, ConfigDict, Field, NonNegativeFloat, NonNegativeInt
 from pydantic.fields import FieldInfo
 
+# Type for commands to execute
+CommandType = str | tuple[str, ...]
+
 
 class CommandBaseModel(BaseModel):
     """Base model for commands."""
