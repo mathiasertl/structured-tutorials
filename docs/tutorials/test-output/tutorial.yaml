@@ -1,0 +1,21 @@
+configuration:
+  doc:
+    context:
+      timestamp: "<timestamp>"
+parts:
+  - commands:
+    - command: date +%s
+      doc:
+        output: "{{ timestamp }}"
+      run:
+        show_output: false
+        test:
+          # Test that stdout matches the given regular expression.
+          - regex: ^(?P<timestamp>\d*)$
+            # Optional: test stderr instead
+            #stream: stderr
+
+    # If named patterns are tested, you can use matches in subsequent commands
+    - command: "echo \"It is now: {{ timestamp }}\""
+      doc:
+        output: "It is now: {{ timestamp }}"

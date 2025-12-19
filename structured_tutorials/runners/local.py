@@ -7,6 +7,7 @@ import logging
 import os
 import shutil
 import socket
+import subprocess
 import tempfile
 import time
 from pathlib import Path
@@ -17,6 +18,7 @@ from structured_tutorials.models import (
     FilePartModel,
     PromptModel,
     TestCommandModel,
+    TestOutputModel,
     TestPortModel,
 )
 from structured_tutorials.runners.base import RunnerBase
@@ -28,8 +30,22 @@ part_log = logging.getLogger("part")
 class LocalTutorialRunner(RunnerBase):
     """Runner implementation that runs a tutorial on the local machine."""
 
-    def run_test(self, test: TestCommandModel | TestPortModel) -> None:
+    def run_test(
+        self, test: TestCommandModel | TestPortModel | TestOutputModel, proc: subprocess.CompletedProcess[str]
+    ) -> None:
         # If an initial delay is configured, wait that long
+        if isinstance(test, TestOutputModel):
+            if test.stream == "stderr":
+                value = proc.stderr
+            else:
+                value = proc.stdout
+
+            if (match := test.regex.match(value)) is not None:
+                self.context.update(match.groupdict())
+                return
+            else:
+                raise RuntimeError("Process did not have the expected output.")
+
         if test.delay > 0:
             time.sleep(test.delay)
 
@@ -66,8 +82,13 @@ class LocalTutorialRunner(RunnerBase):
             # Render the command
             command = self.render(command_config.command)
 
+            # Capture output if any test is for the output.
+            capture_output = any(isinstance(test, TestOutputModel) for test in command_config.run.test)
+
             # Run the command and check status code
-            proc = self.run_shell_command(command, show_output=command_config.run.show_output)
+            proc = self.run_shell_command(
+                command, show_output=command_config.run.show_output, capture_output=capture_output
+            )
 
             # Update list of cleanup commands
             self.cleanup = list(command_config.run.cleanup) + self.cleanup
@@ -84,7 +105,7 @@ class LocalTutorialRunner(RunnerBase):
 
             # Run test commands
             for test_command_config in command_config.run.test:
-                self.run_test(test_command_config)
+                self.run_test(test_command_config, proc)
 
     def write_file(self, part: FilePartModel) -> None:
         """Write a file."""

@@ -23,8 +23,6 @@ def test_simple_tutorial(simple_tutorial: TutorialModel) -> None:
 
 def test_exit_code_tutorial(fp: FakeProcess) -> None:
     """Test status code specification."""
-    fp.register(["true"])
-    fp.register(["true"])
     fp.register(["false"], returncode=1)
     configuration = TutorialModel.from_file(DOCS_TUTORIALS_DIR / "exit_code" / "tutorial.yaml")
     runner = LocalTutorialRunner(configuration)
@@ -33,11 +31,10 @@ def test_exit_code_tutorial(fp: FakeProcess) -> None:
 
 def test_exit_code_tutorial_with_unexpected_exit_code(fp: FakeProcess) -> None:
     """Test behavior if a command has the wrong status code."""
-    fp.register(["true"])
-    fp.register(["true"], returncode=1)
+    fp.register(["false"], returncode=2)
     configuration = TutorialModel.from_file(DOCS_TUTORIALS_DIR / "exit_code" / "tutorial.yaml")
     runner = LocalTutorialRunner(configuration)
-    with pytest.raises(RuntimeError, match=r"true failed with return code 1 \(expected: 0\)\.$"):
+    with pytest.raises(RuntimeError, match=r"false failed with return code 2 \(expected: 1\)\.$"):
         runner.run()
 
 
@@ -85,23 +82,10 @@ def test_test_commands(fp: FakeProcess) -> None:
     """Test the cleanup from docs."""
     fp.register("touch test.txt")
     fp.register("test -e test.txt")
-    fp.register("which ncat")
-    fp.register("sleep 3s && ncat -e /bin/cat -k -l 1234 &")
-    fp.register("pkill sleep")
-    fp.register("pkill ncat")
     fp.register("rm test.txt")  # cleanup of part 1
     configuration = TutorialModel.from_file(DOCS_TUTORIALS_DIR / "test-command" / "tutorial.yaml")
     runner = LocalTutorialRunner(configuration)
-    with (
-        mock.patch("socket.socket", autospec=True) as mock_socket,
-        mock.patch("time.sleep", autospec=True) as mock_sleep,
-    ):
-        connect_mock = mock.MagicMock()
-        mock_socket.return_value.connect = connect_mock
-        runner.run()
-
-    mock_sleep.assert_called_once_with(2)
-    connect_mock.assert_called_once_with(("localhost", 1234))
+    runner.run()
 
 
 def test_test_commands_with_command_error(fp: FakeProcess) -> None:
@@ -117,14 +101,10 @@ def test_test_commands_with_command_error(fp: FakeProcess) -> None:
 
 def test_test_commands_with_one_socket_error(fp: FakeProcess) -> None:
     """Test the cleanup from docs."""
-    fp.register("touch test.txt")
-    fp.register("test -e test.txt")
-    fp.register("which ncat")
     fp.register("sleep 3s && ncat -e /bin/cat -k -l 1234 &")
     fp.register("pkill sleep")
     fp.register("pkill ncat")
-    fp.register("rm test.txt")  # cleanup of part 1
-    configuration = TutorialModel.from_file(DOCS_TUTORIALS_DIR / "test-command" / "tutorial.yaml")
+    configuration = TutorialModel.from_file(DOCS_TUTORIALS_DIR / "test-port" / "tutorial.yaml")
     runner = LocalTutorialRunner(configuration)
     with (
         mock.patch("socket.socket", autospec=True) as mock_socket,
@@ -140,14 +120,10 @@ def test_test_commands_with_one_socket_error(fp: FakeProcess) -> None:
 
 def test_test_commands_with_socket_error(fp: FakeProcess) -> None:
     """Test the cleanup from docs."""
-    fp.register("touch test.txt")
-    fp.register("test -e test.txt")
-    fp.register("which ncat")
     fp.register("sleep 3s && ncat -e /bin/cat -k -l 1234 &")
     fp.register("pkill sleep")
     fp.register("pkill ncat")
-    fp.register("rm test.txt")  # cleanup of part 1
-    configuration = TutorialModel.from_file(DOCS_TUTORIALS_DIR / "test-command" / "tutorial.yaml")
+    configuration = TutorialModel.from_file(DOCS_TUTORIALS_DIR / "test-port" / "tutorial.yaml")
     runner = LocalTutorialRunner(configuration)
     with (
         mock.patch("socket.socket", autospec=True) as mock_socket,

@@ -107,9 +107,12 @@ and make sure it is valid JSON:
 
 .. structured-tutorial-part::
 
-********************************
+********************************************
+Generating documentation out of the tutorial
+********************************************
+
 Long commands wrap automatically
-********************************
+================================
 
 When rendering a tutorial, long commands wrap automatically. With the following YAML file:
 
@@ -130,36 +133,10 @@ Single-character options will not be split from their respective value:
 
 .. structured-tutorial-part::
 
-*************************
-Ask the user for feedback
-*************************
+.. _quickstart_alternatives:
 
-When running a tutorial, you can prompt the user to inspect the current state. You can ask the user to just
-press "enter" or even to confirm that the current state looks okay (with answering "yes" or "now").
-
-When rendering a tutorial, prompt parts are simply skipped.
-
-As an example:
-
-.. literalinclude:: /tutorials/interactive-prompt/tutorial.yaml
-    :caption: docs/tutorials/interactive-prompt/tutorial.yaml
-    :language: yaml
-
-.. structured-tutorial:: interactive-prompt/tutorial.yaml
-
-In Sphinx, you can call ``structured-tutorial-part`` only twice, as prompts are simply skipped. The first
-part just creates a file. Since ``temporary_directory: true`` in the configuration, this will run in
-a temporary directory that is removed after running the tutorial:
-
-.. structured-tutorial-part::
-
-When running the tutorial, the user will now be prompted to confirm the current state. The prompt would
-contain the current working directory. Presumably, the user would check the contents of ``test.txt`` in that
-directory.
-
-****************************************
-Tutorials can show the user alternatives
-****************************************
+Show the user alternatives
+==========================
 
 Sometimes you want to present the user with different options when following a tutorial. For example, you
 might want to show a user how to set up your web application using either PostgreSQL or MySQL.
@@ -183,3 +160,101 @@ The second part will show the user how to configure your application for the res
 .. structured-tutorial-part::
 
 Note that this example of course omits configuring the database itself or any other details.
+
+********************
+Running the tutorial
+********************
+
+Verify success of commands
+==========================
+
+You can verify the success of commands by checking the status code, the output or even test if a port is
+opened properly. You can add multiple tests, and when testing the output, update the context for successive
+commands.
+
+For ports and commands, you can also specify a `retry` to run the test command multiple times before the main
+command is considered to have failed. A `delay` will delay the first run of the command and a
+`backoff_factor` will introduce an increasing delay between retries. A common use case is a daemon that
+will *eventually* open a port, but subsequent commands want to connect to that daemon.
+
+Test status code
+----------------
+
+By default, a non-zero status code is considered an error, but you can also require a non-zero status
+code:
+
+.. literalinclude:: /tutorials/exit_code/tutorial.yaml
+    :caption: docs/tutorials/exit_code/tutorial.yaml
+    :language: yaml
+
+Test output
+-----------
+
+You can test either the standard output or standard error stream of a command with a regular expression. You
+can also use named patterns to update the context for later commands:
+
+.. tab:: Configuration
+
+    .. literalinclude:: /tutorials/test-output/tutorial.yaml
+        :caption: docs/tutorials/test-output/tutorial.yaml
+        :language: yaml
+
+.. tab:: Documentation
+
+    .. structured-tutorial:: test-output/tutorial.yaml
+
+    .. structured-tutorial-part::
+
+Run a test command
+------------------
+
+You can run a test command to verify that the command actually ran successfully:
+
+.. literalinclude:: /tutorials/test-command/tutorial.yaml
+    :caption: docs/tutorials/test-command/tutorial.yaml
+    :language: yaml
+
+Test port
+---------
+
+You can test that a port is opened by the command:
+
+.. literalinclude:: /tutorials/test-port/tutorial.yaml
+    :caption: docs/tutorials/test-port/tutorial.yaml
+    :language: yaml
+
+Select alternatives
+===================
+
+If your tutorial contains alternatives (see :ref:`quickstart_alternatives`), you must select one of them when
+running your tutorial. You wouldn't normally install both PostgreSQL and MariaDB, for example:
+
+.. code-block:: console
+
+    user@host:~$ structured-tutorials -a postgresql ...
+
+Ask the user for feedback
+=========================
+
+When running a tutorial, you can prompt the user to inspect the current state. You can ask the user to just
+press "enter" or even to confirm that the current state looks okay (with answering "yes" or "now").
+
+When rendering a tutorial, prompt parts are simply skipped.
+
+As an example:
+
+.. literalinclude:: /tutorials/interactive-prompt/tutorial.yaml
+    :caption: docs/tutorials/interactive-prompt/tutorial.yaml
+    :language: yaml
+
+.. structured-tutorial:: interactive-prompt/tutorial.yaml
+
+In Sphinx, you can call ``structured-tutorial-part`` only twice, as prompts are simply skipped. The first
+part just creates a file. Since ``temporary_directory: true`` in the configuration, this will run in
+a temporary directory that is removed after running the tutorial:
+
+.. structured-tutorial-part::
+
+When running the tutorial, the user will now be prompted to confirm the current state. The prompt would
+contain the current working directory. Presumably, the user would check the contents of ``test.txt`` in that
+directory.

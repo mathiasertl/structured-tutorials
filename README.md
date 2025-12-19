@@ -1,6 +1,10 @@
 # structured-tutorials
 
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+![image](https://github.com/mathiasertl/structured-tutorials/workflows/Tests/badge.svg)
+![image](https://img.shields.io/pypi/v/structured-tutorials.svg)
+![image](https://img.shields.io/pypi/dm/structured-tutorials.svg)
+![image](https://img.shields.io/pypi/pyversions/structured-tutorials.svg)
+![image](https://img.shields.io/github/license/mathiasertl/structured-tutorials)
 
 `structured-tutorials` allows you to write tutorials that can be rendered as Sphinx documentation and also be
 run on your local system to verify correctness.
@@ -10,13 +14,6 @@ render those commands in your project documentation. A command-line tool can loa
 run it on your local system.
 
 ## TODO
-
-* config files that are written to a destination
-* Alternatives (e.g. Redis vs. RabbitMQ or MariaDB vs. PostgreSQL)
-  * For both commands and config files
-* Execute commands locally
-  * test output
-  * define wait time after run
 * Run in vagrant
 
 # License

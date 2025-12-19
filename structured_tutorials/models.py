@@ -34,7 +34,7 @@ def template_field_title_generator(field_name: str, field_info: FieldInfo) -> st
 def validate_regex(value: Any) -> Any:
     """Validate and compile a regular expression."""
     if isinstance(value, str):
-        return re.compile(str)
+        return re.compile(value)
     return value
 
 
@@ -88,12 +88,14 @@ class TestPortModel(TestSpecificationMixin, BaseModel):
     port: Annotated[int, Field(ge=0, le=65535)]
 
 
-class TestOutputModel(TestSpecificationMixin, BaseModel):
+class TestOutputModel(BaseModel):
     """Test the output of the command."""
 
     model_config = ConfigDict(extra="forbid")
     stream: Literal["stdout", "stderr"] = "stdout"
-    test: Annotated[re.Pattern[str], BeforeValidator(validate_regex)] = Field(description="A regular expression to test.")
+    regex: Annotated[re.Pattern[str], BeforeValidator(validate_regex)] = Field(
+        description="A regular expression to test."
+    )
 
 
 class CommandRuntimeConfigurationModel(ConfigurationMixin, CommandBaseModel):

@@ -48,13 +48,14 @@ class RunnerBase(abc.ABC):
                     raise ValueError(f"Part {part_no}: More then one alternative selected: {selected}")
 
     def run_shell_command(
-        self, command: str | tuple[str], show_output=None, capture_output=False
+        self, command: str | tuple[str], show_output: bool | None = None, capture_output: bool = False
     ) -> CompletedProcess[str]:
         if show_output is None:
             show_output = self.show_command_output
 
         if capture_output:
-            stdout = stderr = subprocess.PIPE
+            stdout: int | None = subprocess.PIPE
+            stderr: int | None = subprocess.PIPE
         elif show_output:
             stdout = stderr = None
         else:
@@ -69,7 +70,7 @@ class RunnerBase(abc.ABC):
             logged_command = shlex.join(logged_command)
 
         command_logger.info(logged_command)
-        proc = subprocess.run(command, shell=shell, stdout=stdout, stderr=stderr)
+        proc = subprocess.run(command, shell=shell, stdout=stdout, stderr=stderr, text=True)
 
         if capture_output and show_output:
             print("--- stdout ---")

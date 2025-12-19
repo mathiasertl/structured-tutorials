@@ -1,9 +1,5 @@
 parts:
   - commands:
-      - command: "true"
-      - command: "true"
-        run:
-          status_code: 0
       # Do not fail the tutorial if this command returns exit code 1.
       - command: "false"
         run:
