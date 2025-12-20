@@ -1,0 +1,2 @@
+# valid yaml file, but does not pass YAML validation.
+test: wrong format

@@ -1,0 +1,9 @@
+# Tutorial that has a foo and a bar alternative.
+parts:
+  - alternatives:
+      foo:
+        commands:
+          - command: ls foo
+      bar:
+        commands:
+          - command: ls bar

@@ -122,6 +122,11 @@ class TutorialModel(BaseModel):
         """Load a tutorial from a YAML file."""
         with open(path) as stream:
             tutorial_data = safe_load(stream)
+
+        # e.g. an empty YAML file will return None
+        if not isinstance(tutorial_data, dict):
+            raise ValueError("File does not contain a mapping at top level.")
+
         tutorial_data["path"] = path.resolve()
         tutorial = TutorialModel.model_validate(tutorial_data, context={"path": path})
         return tutorial

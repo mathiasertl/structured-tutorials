@@ -15,6 +15,12 @@ from structured_tutorials.sphinx.utils import TutorialWrapper
 from tests.conftest import TEST_TUTORIALS_DIR
 
 
+@pytest.fixture
+def wrapper(tutorial: TutorialModel) -> TutorialWrapper:
+    """Fixture to get a wrapper from the tutorial fixture."""
+    return TutorialWrapper(tutorial)
+
+
 @pytest.mark.parametrize(
     ("commands", "expected"),
     (
@@ -48,6 +54,12 @@ def test_code_block_output(commands: tuple[str, ...], expected: str) -> None:
     tutorial = TutorialModel.model_validate({"path": Path.cwd(), "parts": [{"commands": commands}]})
     wrapper = TutorialWrapper(tutorial)
     assert wrapper.render_part() == f".. code-block:: console\n\n{textwrap.indent(expected, '    ')}"
+
+
+@pytest.mark.tutorial("command-as-list.yaml")
+def test_command_as_list(wrapper: TutorialWrapper) -> None:
+    """Test rendering a command as list."""
+    assert wrapper.render_part() == ".. code-block:: console\n\n"
 
 
 @pytest.mark.parametrize(
