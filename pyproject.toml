@@ -37,6 +37,13 @@ dynamic = ["version"]
 [project.scripts]
 structured-tutorial = "structured_tutorials.cli:main"
 
+[project.urls]
+Homepage = "https://structured-tutorials.readthedocs.io/"
+Documentation = "https://structured-tutorials.readthedocs.io/"
+Source = "https://github.com/mathiasertl/structured-tutorials"
+Issues = "https://github.com/mathiasertl/structured-tutorials/issues"
+Changelog = "https://structured-tutorials.readthedocs.io/en/latest/changelog.html"
+
 [tool.coverage.run]
 source = [
     "structured_tutorials",

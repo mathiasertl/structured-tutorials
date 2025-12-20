@@ -32,9 +32,7 @@ jobs:
 
       # Generate Swagger UI docs
       - name: Fetch Swagger UI
-        run: wget https://github.com/swagger-api/swagger-ui/archive/refs/tags/v${SWAGGER_UI_RELEASE}.tar.gz
-      - name: Extract Swagger UI
-        run: tar xf v${SWAGGER_UI_RELEASE}.tar.gz -C docs/_static/ --strip=1 swagger-ui-${SWAGGER_UI_RELEASE}/dist/ --transform s/dist/swagger-ui/
+        run: ./fetch_swagger.sh
       - name: Generate schema
         run: uv run generate-schema.py
 

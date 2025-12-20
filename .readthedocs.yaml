@@ -1,0 +1,44 @@
+
+
+# Read the Docs configuration file
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+
+# Required
+version: 2
+
+# Set the OS, Python version, and other tools you might need
+build:
+  os: ubuntu-24.04
+  tools:
+    python: "3.13"
+  jobs:
+    post_checkout:
+      - git fetch --unshallow || true
+      - git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*' || true
+      - git fetch --all --tags || true
+    create_environment:
+      - asdf plugin add uv
+      - asdf install uv 0.9.2
+      - asdf global uv 0.9.2
+    install:
+      - uv sync
+    pre_build:
+      - ./fetch_swagger.sh
+      - uv run generate-schema.py
+    build:
+      html:
+        - uv run sphinx-build -T -b html docs/ $READTHEDOCS_OUTPUT/html
+
+# Build documentation in the "docs/" directory with Sphinx
+sphinx:
+   configuration: docs/conf.py
+
+# Optionally, but recommended,
+# declare the Python requirements required to build your documentation
+# See https://docs.readthedocs.io/en/stable/guides/reproducible-builds.html
+# python:
+#    install:
+#    - requirements: docs/requirements.txt
+
+
+

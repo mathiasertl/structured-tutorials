@@ -3,6 +3,7 @@
 
 """Test the cli entry point function."""
 
+from collections.abc import Iterator
 from pathlib import Path
 from unittest.mock import patch
 
@@ -13,10 +14,10 @@ from structured_tutorials.models import TutorialModel
 
 
 @pytest.fixture(autouse=True)
-def mock_setup_logging() -> None:
+def mock_setup_logging() -> Iterator[None]:
     """Fixture to mock logging setup - so that it is not called multiple times."""
-    with patch("structured_tutorials.cli.setup_logging"):
-        return
+    with patch("structured_tutorials.cli.setup_logging", autospec=True):
+        yield
 
 
 def test_simple_tutorial(simple_tutorial: TutorialModel) -> None:
