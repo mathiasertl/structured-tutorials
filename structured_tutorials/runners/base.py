@@ -37,11 +37,11 @@ class RunnerBase(abc.ABC):
     def render(self, value: str, **context: Any) -> str:
         return self.env.from_string(value).render({**self.context, **context})
 
-    def render_command(self, command: CommandType, **context: Any) -> str:
+    def render_command(self, command: CommandType, **context: Any) -> CommandType:
         if isinstance(command, str):
             return self.render(command)
 
-        return shlex.join(self.render(token) for token in command)
+        return tuple(self.render(token) for token in command)
 
     def validate_alternatives(self) -> None:
         """Validate that for each alternative part, an alternative was selected."""
@@ -59,9 +59,10 @@ class RunnerBase(abc.ABC):
                     )
 
     def run_shell_command(
-        self, command: str | tuple[str], show_output: bool | None = None, capture_output: bool = False
+        self, command: CommandType, show_output: bool, capture_output: bool = False
     ) -> CompletedProcess[str]:
-        if show_output is None:
+        # Only show output if runner itself is not configured to hide all output
+        if show_output:
             show_output = self.show_command_output
 
         if capture_output:
@@ -72,17 +73,20 @@ class RunnerBase(abc.ABC):
         else:
             stdout = stderr = subprocess.DEVNULL
 
-        logged_command = command
-        if isinstance(command, str):
-            shell = True
-            logged_command = command
-        else:
+        # Render the command (args) as template
+        command = self.render_command(command)
+
+        shell = True
+        logged_command = command  # The command string we pass to the logger
+        if isinstance(command, tuple):
             shell = False
             logged_command = shlex.join(logged_command)
 
         command_logger.info(logged_command)
         proc = subprocess.run(command, shell=shell, stdout=stdout, stderr=stderr, text=True)
 
+        # If we want to show the output and capture it at the same time, we need can only show the streams
+        # separately at the end.
         if capture_output and show_output:
             print("--- stdout ---")
             print(proc.stdout)

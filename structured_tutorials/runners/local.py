@@ -5,6 +5,7 @@
 
 import logging
 import os
+import shlex
 import shutil
 import socket
 import subprocess
@@ -12,11 +13,13 @@ import tempfile
 import time
 from pathlib import Path
 
+from structured_tutorials.errors import CommandOutputTestError, CommandTestError
 from structured_tutorials.models.parts import AlternativeModel, CommandsPartModel, FilePartModel, PromptModel
 from structured_tutorials.models.tests import TestCommandModel, TestOutputModel, TestPortModel
 from structured_tutorials.runners.base import RunnerBase
 from structured_tutorials.utils import chdir, git_export
 
+log = logging.getLogger(__name__)
 part_log = logging.getLogger("part")
 
 
@@ -37,7 +40,7 @@ class LocalTutorialRunner(RunnerBase):
                 self.context.update(match.groupdict())
                 return
             else:
-                raise RuntimeError("Process did not have the expected output.")
+                raise CommandOutputTestError(f"Process did not have the expected output: '{value}'")
 
         # If an initial delay is configured, wait that long
         if test.delay > 0:
@@ -48,17 +51,18 @@ class LocalTutorialRunner(RunnerBase):
             tries += 1
 
             if isinstance(test, TestCommandModel):
-                test_command = self.render_command(test.command)
-                test_proc = self.run_shell_command(test_command, show_output=test.show_output)
+                test_proc = self.run_shell_command(test.command, show_output=test.show_output)
 
                 if test.status_code == test_proc.returncode:
                     return
+                else:
+                    log.error("%s: Test command failed.", shlex.join(test_proc.args))
             else:
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 try:
                     s.connect((test.host, test.port))
                 except Exception:
-                    pass
+                    log.error("%s:%s: failed to connect.", test.host, test.port)
                 else:
                     return
 
@@ -66,22 +70,21 @@ class LocalTutorialRunner(RunnerBase):
             if wait > 0 and tries <= test.retry:
                 time.sleep(wait)
 
-        raise RuntimeError("Test did not pass")
+        raise CommandTestError("Test did not pass")
 
     def run_commands(self, part: CommandsPartModel) -> None:
         for command_config in part.commands:
             if command_config.run.skip:
                 continue
 
-            # Render the command
-            command = self.render_command(command_config.command)
-
             # Capture output if any test is for the output.
             capture_output = any(isinstance(test, TestOutputModel) for test in command_config.run.test)
 
             # Run the command and check status code
             proc = self.run_shell_command(
-                command, show_output=command_config.run.show_output, capture_output=capture_output
+                command_config.command,
+                show_output=command_config.run.show_output,
+                capture_output=capture_output,
             )
 
             # Update list of cleanup commands
@@ -210,6 +213,8 @@ class LocalTutorialRunner(RunnerBase):
             else:
                 self.run_parts()
         finally:
+            if self.cleanup:
+                log.info("Running cleanup commands.")
+
             for command_config in self.cleanup:
-                command = self.render_command(command_config.command)
-                self.run_shell_command(command, command_config.show_output)
+                self.run_shell_command(command_config.command, command_config.show_output)

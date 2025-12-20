@@ -11,4 +11,4 @@ def validate_regex(value: Any) -> Any:
     """Validate and compile a regular expression."""
     if isinstance(value, str):
         return re.compile(value)
-    return value
+    return value  # pragma: no cover

@@ -10,6 +10,7 @@ from pytest_subprocess import FakeProcess
 from sphinx.application import Sphinx
 
 from structured_tutorials.models import TutorialModel
+from structured_tutorials.output import setup_logging
 from structured_tutorials.runners.base import RunnerBase
 
 TEST_DIR = Path(__file__).parent.absolute()
@@ -33,10 +34,16 @@ class Runner(RunnerBase):
         pass
 
 
-def pytest_configure(config):
+def pytest_configure(config: pytest.Config) -> None:
     """Pytest configuration."""
     config.addinivalue_line("markers", "tutorial_path(name): Path to a tutorial file.")
     config.addinivalue_line("markers", "tutorial(name): Loaded tutorial from the given file.")
+
+
+@pytest.fixture(scope="session", autouse=True)
+def global_setup() -> None:
+    """An auto-use session fixture to configure logging."""
+    setup_logging(level="INFO", no_colors=True, show_commands=True)
 
 
 @pytest.fixture
@@ -46,7 +53,7 @@ def tutorial_path(request: pytest.FixtureRequest) -> Path:
     if marker is None:
         raise ValueError("tutorial_path fixture requires a marker with a file name.")
     else:
-        data = marker.args[0]
+        data: str | Path = marker.args[0]
 
     return TEST_TUTORIALS_DIR / data
 

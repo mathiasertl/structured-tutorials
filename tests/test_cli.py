@@ -4,11 +4,19 @@
 """Test the cli entry point function."""
 
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
 from structured_tutorials.cli import main
 from structured_tutorials.models import TutorialModel
+
+
+@pytest.fixture(autouse=True)
+def mock_setup_logging() -> None:
+    """Fixture to mock logging setup - so that it is not called multiple times."""
+    with patch("structured_tutorials.cli.setup_logging"):
+        return
 
 
 def test_simple_tutorial(simple_tutorial: TutorialModel) -> None:

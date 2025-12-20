@@ -59,7 +59,7 @@ def test_code_block_output(commands: tuple[str, ...], expected: str) -> None:
 @pytest.mark.tutorial("command-as-list.yaml")
 def test_command_as_list(wrapper: TutorialWrapper) -> None:
     """Test rendering a command as list."""
-    assert wrapper.render_part() == ".. code-block:: console\n\n"
+    assert wrapper.render_part() == ".. code-block:: console\n\n    user@host:~$ echo 'word with spaces'\n"
 
 
 @pytest.mark.parametrize(

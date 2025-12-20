@@ -64,7 +64,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     try:
         runner.validate_alternatives()
     except InvalidAlternativesSelectedError as ex:
-        error(ex)
+        error(str(ex))
         sys.exit(1)
 
     runner.run()

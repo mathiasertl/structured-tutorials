@@ -3,6 +3,7 @@
 
 """Test local runner."""
 
+import subprocess
 from pathlib import Path
 from unittest import mock
 from unittest.mock import call
@@ -10,9 +11,16 @@ from unittest.mock import call
 import pytest
 from pytest_subprocess import FakeProcess
 
+from structured_tutorials.errors import CommandOutputTestError, CommandTestError
 from structured_tutorials.models import FilePartModel, TutorialModel
 from structured_tutorials.runners.local import LocalTutorialRunner
 from tests.conftest import DOCS_TUTORIALS_DIR, TEST_TUTORIALS_DIR
+
+
+@pytest.fixture
+def runner(tutorial: TutorialModel) -> LocalTutorialRunner:
+    """Fixture to retrieve a local tutorial runner based on the tutorial fixture."""
+    return LocalTutorialRunner(tutorial)
 
 
 def test_simple_tutorial(simple_tutorial: TutorialModel) -> None:
@@ -88,6 +96,59 @@ def test_test_commands(fp: FakeProcess) -> None:
     runner.run()
 
 
+@pytest.mark.tutorial("command-as-list.yaml")
+def test_command_as_list(fp: FakeProcess, runner: LocalTutorialRunner) -> None:
+    """Test running a command as list."""
+    recorder_main = fp.register(["echo", "word with spaces"])
+    recorder_test = fp.register(["ls", "test with spaces"])
+    recorder_cleanup = fp.register(["ls", "cleanup with spaces"])
+    runner.run()
+    expected = {"shell": False, "stderr": None, "stdout": None, "text": True}
+    assert recorder_main.calls[0].kwargs == expected
+    assert recorder_test.calls[0].kwargs == expected
+    assert recorder_cleanup.calls[0].kwargs == expected
+
+
+@pytest.mark.tutorial("command-hide-output.yaml")
+def test_command_hide_output(fp: FakeProcess, runner: LocalTutorialRunner) -> None:
+    """Test running a commands with hiding the output."""
+    # NOTE: output passed to fp.register() does not register in `capsys` fixture
+    recorder_main = fp.register("ls main")
+    recorder_test = fp.register("ls test")
+    recorder_cleanup = fp.register("ls cleanup")
+    runner.run()
+    expected = {"shell": True, "stderr": subprocess.DEVNULL, "stdout": subprocess.DEVNULL, "text": True}
+    assert recorder_main.calls[0].kwargs == expected
+    assert recorder_test.calls[0].kwargs == expected
+    assert recorder_cleanup.calls[0].kwargs == expected
+
+
+@pytest.mark.tutorial("command-test-output.yaml")
+def test_command_capture_output(
+    capsys: pytest.CaptureFixture[str], fp: FakeProcess, runner: LocalTutorialRunner
+) -> None:
+    """Test running a commands with capturing the output."""
+    recorder = fp.register("echo foo bar bla", stdout="foo bar bla", stderr="foo bla bla")
+    runner.run()
+    expected = {"shell": True, "stderr": subprocess.PIPE, "stdout": subprocess.PIPE, "text": True}
+    assert recorder.calls[0].kwargs == expected
+    output = capsys.readouterr()
+    assert output.out == "--- stdout ---\nfoo bar bla\n--- stderr ---\nfoo bla bla\n"
+    assert output.err == ""
+    assert runner.context["stdout"] == "bar"
+    assert runner.context["stderr"] == "bla"
+
+
+@pytest.mark.tutorial("command-test-output.yaml")
+def test_command_with_invalid_output(
+    capsys: pytest.CaptureFixture[str], fp: FakeProcess, runner: LocalTutorialRunner
+) -> None:
+    """Test running a commands with capturing the output."""
+    fp.register("echo foo bar bla", stdout="wrong output")
+    with pytest.raises(CommandOutputTestError):
+        runner.run()
+
+
 def test_test_commands_with_command_error(fp: FakeProcess) -> None:
     """Test the cleanup from docs."""
     fp.register("touch test.txt")
@@ -95,7 +156,7 @@ def test_test_commands_with_command_error(fp: FakeProcess) -> None:
     fp.register("rm test.txt")  # cleanup of part 1
     configuration = TutorialModel.from_file(DOCS_TUTORIALS_DIR / "test-command" / "tutorial.yaml")
     runner = LocalTutorialRunner(configuration)
-    with pytest.raises(RuntimeError, match=r"^Test did not pass$"):
+    with pytest.raises(CommandTestError, match=r"^Test did not pass$"):
         runner.run()
 
 
@@ -131,7 +192,7 @@ def test_test_commands_with_socket_error(fp: FakeProcess) -> None:
     ):
         connect_mock = mock.MagicMock(side_effect=Exception("error"))
         mock_socket.return_value.connect = connect_mock
-        with pytest.raises(RuntimeError, match=r"^Test did not pass$"):
+        with pytest.raises(CommandTestError, match=r"^Test did not pass$"):
             runner.run()
 
     # 2-second sleep is the initial delay

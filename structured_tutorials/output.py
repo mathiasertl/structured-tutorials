@@ -41,7 +41,7 @@ class LevelColorFormatter(ColorFormatter):
         logging.CRITICAL: Fore.MAGENTA,
     }
 
-    def format(self, record: logging.LogRecord) -> str:
+    def format(self, record: logging.LogRecord) -> str:  # pragma: no cover
         if not self.use_colors:
             return super().format(record)
 
@@ -57,7 +57,7 @@ class LevelColorFormatter(ColorFormatter):
 class BoldFormatter(ColorFormatter):
     """Formatter that outputs all messages in bold, if colors are used."""
 
-    def format(self, record: logging.LogRecord) -> str:
+    def format(self, record: logging.LogRecord) -> str:  # pragma: no cover
         if not self.use_colors:
             return super().format(record)
 

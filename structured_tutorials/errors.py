@@ -10,3 +10,19 @@ class StructuredTutorialError(Exception):
 
 class InvalidAlternativesSelectedError(StructuredTutorialError):
     """Exception raised when an invalid alternative is selected."""
+
+
+class PartError(StructuredTutorialError):
+    """Base class for all errors happening in a specific part."""
+
+
+class CommandsPartError(PartError):
+    """Base class for all errors happening in a specific commands part."""
+
+
+class CommandTestError(CommandsPartError):
+    """Base class for exceptions when a test for a command fails."""
+
+
+class CommandOutputTestError(CommandTestError):
+    """Exception raised when an output test fails."""
