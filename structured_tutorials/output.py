@@ -8,11 +8,17 @@ import logging.config
 import sys
 from typing import Any, ClassVar, Literal
 
-from colorama import Fore, Style, init
+from colorama import Fore, Style, just_fix_windows_console
+from termcolor import colored
 
-init()  # needed on Windows
+just_fix_windows_console()  # needed on Windows
 
 LOG_LEVELS = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+
+
+def error(text: str) -> None:
+    """Output a red/bold line on stderr."""
+    print(colored(text, "red", attrs=["bold"]), file=sys.stderr)
 
 
 class ColorFormatter(logging.Formatter):

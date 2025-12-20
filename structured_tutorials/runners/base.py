@@ -13,6 +13,7 @@ from typing import Any
 
 from jinja2 import Environment
 
+from structured_tutorials.errors import InvalidAlternativesSelectedError
 from structured_tutorials.models import AlternativeModel, TutorialModel
 from structured_tutorials.models.base import CommandType
 from structured_tutorials.models.parts import CleanupCommandModel
@@ -49,11 +50,13 @@ class RunnerBase(abc.ABC):
         for part_no, part in enumerate(self.tutorial.parts, start=1):
             if isinstance(part, AlternativeModel):
                 selected = chosen & set(part.alternatives)
-                print(selected, part.required)
+
                 if part.required and len(selected) == 0:
-                    raise ValueError(f"Part {part_no}: No alternative selected.")
+                    raise InvalidAlternativesSelectedError(f"Part {part_no}: No alternative selected.")
                 elif len(selected) != 1:
-                    raise ValueError(f"Part {part_no}: More then one alternative selected: {selected}")
+                    raise InvalidAlternativesSelectedError(
+                        f"Part {part_no}: More then one alternative selected: {selected}"
+                    )
 
     def run_shell_command(
         self, command: str | tuple[str], show_output: bool | None = None, capture_output: bool = False
