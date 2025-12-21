@@ -7,33 +7,24 @@ import os
 from pathlib import Path
 from typing import Annotated, Any, Literal, Self
 
-from pydantic import (
-    BaseModel,
-    ConfigDict,
-    Discriminator,
-    Field,
-    NonNegativeInt,
-    Tag,
-    field_validator,
-    model_validator,
-)
+from pydantic import BaseModel, ConfigDict, Discriminator, Field, NonNegativeInt, Tag, model_validator
 
 from structured_tutorials.models.base import (
+    TEMPLATE_DESCRIPTION,
     CommandBaseModel,
     CommandType,
     ConfigurationMixin,
+    FileMixin,
     template_field_title_generator,
 )
 from structured_tutorials.models.tests import TestCommandModel, TestOutputModel, TestPortModel
-
-TEMPLATE_DESCRIPTION = "This value is rendered as a template with the current context."
 
 
 def part_discriminator(value: Any) -> str | None:
     """Discriminator for parts."""
     if isinstance(value, dict):
         if typ := value.get("type"):
-            return typ
+            return typ  # type: ignore[no-any-return]
         if "commands" in value:
             return "commands"
         if "destination" in value:
@@ -153,7 +144,7 @@ class FileDocumentationConfigurationModel(ConfigurationMixin, BaseModel):
     )
 
 
-class FilePartModel(PartMixin, BaseModel):
+class FilePartModel(PartMixin, FileMixin, BaseModel):
     """A tutorial part for creating a file.
 
     Note that exactly one of `contents` or `source` is required.
@@ -162,42 +153,14 @@ class FilePartModel(PartMixin, BaseModel):
     model_config = ConfigDict(extra="forbid", title="File part")
 
     type: Literal["file"] = "file"
-    contents: str | None = Field(
-        default=None,
-        field_title_generator=template_field_title_generator,
-        description=f"Contents of the file. {TEMPLATE_DESCRIPTION}",
-    )
-    source: Path | None = Field(
-        default=None,
-        field_title_generator=template_field_title_generator,
-        description="The source path of the file to create. Unless `template` is `False`, the file is loaded "
-        "into memory and rendered as template.",
-    )
+
     destination: str = Field(
         field_title_generator=template_field_title_generator,
         description=f"The destination path of the file. {TEMPLATE_DESCRIPTION}",
     )
-    template: bool = Field(
-        default=True, description="Whether the file contents should be rendered in a template."
-    )
 
     doc: FileDocumentationConfigurationModel = FileDocumentationConfigurationModel()
     run: FileRuntimeConfigurationModel = FileRuntimeConfigurationModel()
-
-    @field_validator("source", mode="after")
-    @classmethod
-    def validate_source(cls, value: Path) -> Path:
-        if value.is_absolute():
-            raise ValueError(f"{value}: Must be a relative path (relative to the current cwd).")
-        return value
-
-    @model_validator(mode="after")
-    def validate_contents_or_source(self) -> Self:
-        if self.contents is None and self.source is None:
-            raise ValueError("Either contents or source is required.")
-        if self.contents is not None and self.source is not None:
-            raise ValueError("Only one of contents or source is allowed.")
-        return self
 
     @model_validator(mode="after")
     def validate_destination(self) -> Self:
@@ -251,7 +214,7 @@ class AlternativeModel(PartMixin, BaseModel):
 
     model_config = ConfigDict(extra="forbid", title="Alternatives")
 
-    type: Literal["alternative"] = "alternatives"
+    type: Literal["alternatives"] = "alternatives"
     alternatives: dict[str, Annotated[PartModels, Discriminator(part_discriminator)]]
     required: bool = Field(default=True, description="Whether one of the alternatives is required.")
     doc: AlternativeDocumentationConfigurationModel = AlternativeDocumentationConfigurationModel()
