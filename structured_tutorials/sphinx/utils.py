@@ -58,7 +58,8 @@ class TutorialWrapper:
         self.next_part = 0
         self.env = Environment(keep_trailing_newline=True)
         self.env.filters["wrap_command"] = wrap_command_filter
-        self.context = deepcopy(tutorial.configuration.doc.context)
+        self.context = deepcopy(tutorial.configuration.context)
+        self.context.update(deepcopy(tutorial.configuration.doc.context))
 
         # settings from sphinx:
         self.command_text_width = command_text_width

@@ -72,6 +72,9 @@ class ConfigurationModel(BaseModel):
 
     run: RuntimeConfigurationModel = RuntimeConfigurationModel()
     doc: DocumentationConfigurationModel = DocumentationConfigurationModel()
+    context: dict[str, Any] = Field(
+        default_factory=dict, description="Initial context for both documentation and runtime."
+    )
 
 
 class TutorialModel(BaseModel):
