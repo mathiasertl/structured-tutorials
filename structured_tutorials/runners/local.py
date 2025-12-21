@@ -152,7 +152,7 @@ class LocalTutorialRunner(RunnerBase):
     def run_prompt(self, part: PromptModel) -> None:
         prompt = self.render(part.prompt).strip() + " "
 
-        if part.type == "enter":
+        if part.response == "enter":
             input(prompt)
         else:  # type == confirm
             valid_inputs = ("n", "no", "yes", "y", "")

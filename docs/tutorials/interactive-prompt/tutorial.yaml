@@ -13,7 +13,7 @@ parts:
   - prompt: |-
       Current working directory is {{ cwd }} ...
       Is the current state satisfactory (y/n)?
-    type: confirm
+    response: confirm
     # Set to false to also raise an error if the user just presses enter:
     #default: true
     # You can also overwrite the error message the user will get:

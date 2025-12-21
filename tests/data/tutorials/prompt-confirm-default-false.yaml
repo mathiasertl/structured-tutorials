@@ -1,4 +1,4 @@
 parts:
   - prompt: "example:"
-    type: confirm
+    response: confirm
     default: false

@@ -4,14 +4,14 @@
 """Module containing main tutorial model and global configuration models."""
 
 from pathlib import Path
-from typing import Any, Self
+from typing import Annotated, Any, Self
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Discriminator, Field, Tag, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
 from yaml import safe_load
 
 from structured_tutorials.models.base import default_tutorial_root_factory
-from structured_tutorials.models.parts import AlternativeModel, PartModels, PromptModel
+from structured_tutorials.models.parts import AlternativeModel, PartModels, PromptModel, part_discriminator
 
 
 class DocumentationConfigurationModel(BaseModel):
@@ -91,9 +91,15 @@ class TutorialModel(BaseModel):
         description="Directory from which relative file paths are resolved. Defaults to the path of the "
         "tutorial file.",
     )  # absolute path (input: relative to path)
-    parts: tuple[PartModels | PromptModel | AlternativeModel, ...] = Field(
-        description="The individual parts of this tutorial."
-    )
+    parts: tuple[
+        Annotated[
+            PartModels
+            | Annotated[PromptModel, Tag("prompt")]
+            | Annotated[AlternativeModel, Tag("alternatives")],
+            Discriminator(part_discriminator),
+        ],
+        ...,
+    ] = Field(description="The individual parts of this tutorial.")
     configuration: ConfigurationModel = Field(default=ConfigurationModel())
 
     @field_validator("path", mode="after")

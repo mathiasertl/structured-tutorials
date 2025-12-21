@@ -5,9 +5,18 @@
 
 import os
 from pathlib import Path
-from typing import Literal, Self
+from typing import Annotated, Any, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, NonNegativeInt, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Discriminator,
+    Field,
+    NonNegativeInt,
+    Tag,
+    field_validator,
+    model_validator,
+)
 
 from structured_tutorials.models.base import (
     CommandBaseModel,
@@ -20,11 +29,29 @@ from structured_tutorials.models.tests import TestCommandModel, TestOutputModel,
 TEMPLATE_DESCRIPTION = "This value is rendered as a template with the current context."
 
 
+def part_discriminator(value: Any) -> str | None:
+    """Discriminator for parts."""
+    if isinstance(value, dict):
+        if typ := value.get("type"):
+            return typ
+        if "commands" in value:
+            return "commands"
+        if "destination" in value:
+            return "file"
+        if "prompt" in value:
+            return "prompt"
+        if "alternatives" in value:
+            return "alternatives"
+
+    elif isinstance(value, PartMixin):
+        return value.type
+    return None
+
+
 class PartMixin:
     """Mixin used by all parts."""
 
-    model_config = ConfigDict(extra="forbid")
-
+    type: str
     id: str = Field(default="", description="ID that can be used to reference the specific part.")
     index: int = Field(default=0, description="Index of the part in the tutorial.")
     name: str = Field(default="", description="Human-readable name of the part.")
@@ -183,8 +210,10 @@ class PromptModel(PartMixin, BaseModel):
     """Allows you to inspect the current state of the tutorial manually."""
 
     model_config = ConfigDict(extra="forbid", title="Prompt Configuration")
+
+    type: Literal["prompt"] = "prompt"
     prompt: str = Field(description=f"The prompt text. {TEMPLATE_DESCRIPTION}")
-    type: Literal["enter", "confirm"] = "enter"
+    response: Literal["enter", "confirm"] = "enter"
     default: bool = Field(
         default=True, description="For type=`confirm`, the default if the user just presses enter."
     )
@@ -196,7 +225,7 @@ class PromptModel(PartMixin, BaseModel):
     )
 
 
-PartModels = CommandsPartModel | FilePartModel
+PartModels = Annotated[CommandsPartModel, Tag("commands")] | Annotated[FilePartModel, Tag("file")]
 
 
 class AlternativeRuntimeConfigurationModel(ConfigurationMixin, BaseModel):
@@ -222,7 +251,8 @@ class AlternativeModel(PartMixin, BaseModel):
 
     model_config = ConfigDict(extra="forbid", title="Alternatives")
 
-    alternatives: dict[str, PartModels]
+    type: Literal["alternative"] = "alternatives"
+    alternatives: dict[str, Annotated[PartModels, Discriminator(part_discriminator)]]
     required: bool = Field(default=True, description="Whether one of the alternatives is required.")
     doc: AlternativeDocumentationConfigurationModel = AlternativeDocumentationConfigurationModel()
     run: AlternativeRuntimeConfigurationModel = AlternativeRuntimeConfigurationModel()

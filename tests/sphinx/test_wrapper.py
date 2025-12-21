@@ -302,19 +302,19 @@ def test_alternatives(aliases: dict[str, str], alternatives: dict[str, Any], exp
 
 
 @pytest.mark.tutorial("named-part")
-def test_named_parts(wrapper: TutorialWrapper) -> None:
+def test_named_part(wrapper: TutorialWrapper) -> None:
     """Test naming individual parts by id."""
     assert wrapper.render_part() == ".. code-block::\n    :caption: bar.txt\n\n    foo"
 
 
 @pytest.mark.tutorial("named-part")
-def test_named_parts_with_part_id(wrapper: TutorialWrapper) -> None:
+def test_named_part_with_part_id(wrapper: TutorialWrapper) -> None:
     """Test naming individual parts by id."""
     assert wrapper.render_part("id-file") == ".. code-block::\n    :caption: bar.txt\n\n    foo"
 
 
 @pytest.mark.tutorial("named-part")
-def test_named_parts_with_invalid_part_id(wrapper: TutorialWrapper) -> None:
+def test_named_part_with_invalid_part_id(wrapper: TutorialWrapper) -> None:
     """Test naming the wrong ID when trying to render the next part."""
     with pytest.raises(ExtensionError, match=r"^wrong: Part is not the next part \(next one is id-file\)\.$"):
         wrapper.render_part("wrong")

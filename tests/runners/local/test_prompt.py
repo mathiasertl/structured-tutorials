@@ -85,7 +85,7 @@ def test_confirm_prompt_does_not_confirm_error_template() -> None:
             "parts": [
                 {
                     "prompt": "example:",
-                    "type": "confirm",
+                    "response": "confirm",
                     "default": False,
                     "error": "{{ response }}: {{ example }}: This is wrong.",
                 }
