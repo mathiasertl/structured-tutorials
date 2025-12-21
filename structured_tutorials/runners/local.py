@@ -36,7 +36,7 @@ class LocalTutorialRunner(RunnerBase):
             else:
                 value = proc.stdout
 
-            if (match := test.regex.match(value)) is not None:
+            if (match := test.regex.search(value)) is not None:
                 self.context.update(match.groupdict())
                 return
             else:
