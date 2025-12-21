@@ -3,6 +3,7 @@
 
 """Utility functions for the sphinx extension."""
 
+import os
 import shlex
 from copy import deepcopy
 from importlib import resources
@@ -14,6 +15,7 @@ from sphinx.config import Config
 from sphinx.errors import ConfigError, ExtensionError
 
 from structured_tutorials import templates
+from structured_tutorials.errors import DestinationIsADirectoryError
 from structured_tutorials.models import (
     AlternativeModel,
     CommandsPartModel,
@@ -127,6 +129,14 @@ class TutorialWrapper:
             caption = self.render(part.doc.caption)
         elif part.doc.caption is not False:
             caption = self.render(str(part.destination))
+            if caption.endswith(os.path.sep):
+                # Model validation already validates that the destination does not look like a directory, if
+                # no source is set, but this could be tricked if the destination is a template.
+                if not part.source:
+                    raise DestinationIsADirectoryError(
+                        f"{caption}: Destination is directory, but no source given to derive filename."
+                    )
+                caption = os.path.join(caption, part.source.name)
         else:
             caption = ""
 

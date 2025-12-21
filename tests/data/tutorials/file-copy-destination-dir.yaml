@@ -1,0 +1,4 @@
+# Tutorial that copies a file to a destination directory
+parts:
+  - source: file_contents.txt
+    destination: dir/

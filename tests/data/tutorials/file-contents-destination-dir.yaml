@@ -1,0 +1,8 @@
+# Tutorial with a file part with contents and a destination directory.
+# This is an error, as the file name cannot be determined.
+configuration:
+  context:
+    destination: dir/
+parts:
+  - contents: foo
+    destination: "{{ destination }}"

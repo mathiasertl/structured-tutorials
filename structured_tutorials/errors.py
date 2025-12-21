@@ -28,5 +28,13 @@ class CommandOutputTestError(CommandTestError):
     """Exception raised when an output test fails."""
 
 
+class FilePartError(PartError):
+    """Exception raised for errors in file parts."""
+
+
+class DestinationIsADirectoryError(FilePartError):
+    """Exception raised when a destination is a directory."""
+
+
 class PromptNotConfirmedError(PartError):
     """Exception raised when a user does not confirm the current state in a prompt part."""

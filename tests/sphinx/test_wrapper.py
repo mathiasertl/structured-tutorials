@@ -10,6 +10,7 @@ from typing import Any
 import pytest
 from sphinx.errors import ExtensionError
 
+from structured_tutorials.errors import DestinationIsADirectoryError
 from structured_tutorials.models import TutorialModel
 from structured_tutorials.sphinx.utils import TutorialWrapper
 from tests.conftest import TEST_TUTORIALS_DIR
@@ -134,6 +135,19 @@ def test_file_part_with_source() -> None:
     )
     wrapper = TutorialWrapper(tutorial)
     assert wrapper.render_part() == f".. code-block::\n    :caption: {destination}\n\n    {contents}"
+
+
+@pytest.mark.tutorial("file-copy-destination-dir.yaml")
+def test_file_part_with_source_with_destination_directory(wrapper: TutorialWrapper) -> None:
+    """Test caption when destination is a directory."""
+    assert wrapper.render_part().startswith(".. code-block::\n    :caption: dir/file_contents.txt\n\n")
+
+
+@pytest.mark.tutorial("file-contents-destination-dir.yaml")
+def test_file_part_with_contents_with_destination_directory(wrapper: TutorialWrapper) -> None:
+    """Test caption when destination is a directory."""
+    with pytest.raises(DestinationIsADirectoryError):
+        assert wrapper.render_part()
 
 
 def test_file_part_with_source_without_template() -> None:
