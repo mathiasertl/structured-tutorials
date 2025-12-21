@@ -113,6 +113,15 @@ def test_command_as_list(fp: FakeProcess, runner: LocalTutorialRunner) -> None:
     assert recorder_cleanup.calls[0].kwargs == expected
 
 
+@pytest.mark.tutorial("command-with-chdir.yaml")
+def test_command_with_chdir(fp: FakeProcess, runner: LocalTutorialRunner) -> None:
+    """Test changing the working directory after a command."""
+    fp.register("ls")
+    with mock.patch("os.chdir", autospec=True) as mock_chdir:
+        runner.run()
+    mock_chdir.assert_called_once_with(Path("/does/not/exist"))
+
+
 @pytest.mark.tutorial("command-hide-output.yaml")
 def test_command_hide_output(fp: FakeProcess, runner: LocalTutorialRunner) -> None:
     """Test running a commands with hiding the output."""

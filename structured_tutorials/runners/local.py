@@ -100,6 +100,10 @@ class LocalTutorialRunner(RunnerBase):
             # Update the context from update_context
             self.context.update(command_config.run.update_context)
 
+            if command_config.run.chdir is not None:
+                log.info("Changing working directory to %s.", command_config.run.chdir)
+                os.chdir(command_config.run.chdir)
+
             # Run test commands
             for test_command_config in command_config.run.test:
                 self.run_test(test_command_config, proc)

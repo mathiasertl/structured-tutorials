@@ -34,6 +34,7 @@ class CommandRuntimeConfigurationModel(ConfigurationMixin, CommandBaseModel):
     model_config = ConfigDict(extra="forbid")
 
     update_context: dict[str, Any] = Field(default_factory=dict)
+    chdir: Path | None = Field(default=None, description="Change working directory to this path.")
     cleanup: tuple[CleanupCommandModel, ...] = tuple()
     test: tuple[TestCommandModel | TestPortModel | TestOutputModel, ...] = tuple()
 
