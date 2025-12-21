@@ -1,0 +1,9 @@
+# Tutorial that has a foo and a bar alternative.
+parts:
+  - alternatives:
+      foo:
+        contents: foo
+        destination: "{{ tmp_path }}/foo.txt"
+      bar:
+        contents: bar
+        destination: "{{ tmp_path }}/bar.txt"

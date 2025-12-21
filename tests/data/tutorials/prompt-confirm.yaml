@@ -1,4 +1,3 @@
 parts:
-  - prompt: "example:"
+  - prompt: "example:   "
     type: confirm
-    default: false

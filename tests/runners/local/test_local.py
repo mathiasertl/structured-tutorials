@@ -7,27 +7,14 @@ import os
 import subprocess
 from pathlib import Path
 from unittest import mock
-from unittest.mock import call
 
 import pytest
 from pytest_subprocess import FakeProcess
 
-from structured_tutorials.errors import CommandOutputTestError, CommandTestError, PromptNotConfirmedError
+from structured_tutorials.errors import CommandOutputTestError, CommandTestError
 from structured_tutorials.models import FilePartModel, TutorialModel
 from structured_tutorials.runners.local import LocalTutorialRunner
 from tests.conftest import DOCS_TUTORIALS_DIR, TEST_TUTORIALS_DIR
-
-
-@pytest.fixture
-def runner(tutorial: TutorialModel) -> LocalTutorialRunner:
-    """Fixture to retrieve a local tutorial runner based on the tutorial fixture."""
-    return LocalTutorialRunner(tutorial, interactive=False)
-
-
-@pytest.fixture
-def doc_runner(doc_tutorial: TutorialModel) -> LocalTutorialRunner:
-    """Fixture to retrieve a local tutorial runner based on an example from the documentation."""
-    return LocalTutorialRunner(doc_tutorial, interactive=False)
 
 
 def test_simple_tutorial(simple_tutorial: TutorialModel) -> None:
@@ -318,181 +305,6 @@ def test_file_part_with_contents_with_destination_template(tmp_path: Path) -> No
         RuntimeError, match=r"^dest/: Destination is directory, but no source given to derive filename\.$"
     ):
         runner.run()
-
-
-def test_alternatives_with_command(fp: FakeProcess) -> None:
-    """Test enter function."""
-    configuration = TutorialModel.model_validate(
-        {
-            "path": "/dummy.yaml",
-            "parts": [
-                {
-                    "alternatives": {
-                        "foo": {"commands": [{"command": "ls foo"}]},
-                        "bar": {"commands": [{"command": "ls bar"}]},
-                    }
-                },
-            ],
-        }
-    )
-    fp.register("ls foo")
-    runner = LocalTutorialRunner(configuration, alternatives=("foo",))
-    runner.run()
-
-    fp.register("ls bar")
-    runner = LocalTutorialRunner(configuration, alternatives=("bar",))
-    runner.run()
-
-
-def test_alternatives_with_file_part(tmp_path: Path) -> None:
-    """Test enter function."""
-    configuration = TutorialModel.model_validate(
-        {
-            "path": tmp_path / "dummy.yaml",
-            "parts": [
-                {
-                    "alternatives": {
-                        "foo": {"contents": "foo", "destination": str(tmp_path / "foo.txt")},
-                        "bar": {"contents": "bar", "destination": str(tmp_path / "bar.txt")},
-                    }
-                },
-            ],
-        }
-    )
-    runner = LocalTutorialRunner(configuration, alternatives=("foo",))
-    runner.run()
-    assert (tmp_path / "foo.txt").exists()
-
-    runner = LocalTutorialRunner(configuration, alternatives=("bar",))
-    runner.run()
-    assert (tmp_path / "bar.txt").exists()
-
-
-def test_alternatives_with_no_selected_part(tmp_path: Path) -> None:
-    """Test enter function."""
-    configuration = TutorialModel.model_validate(
-        {
-            "path": tmp_path / "dummy.yaml",
-            "parts": [
-                {
-                    "alternatives": {
-                        "foo": {"commands": [{"command": "ls foo"}]},
-                        "bar": {"commands": [{"command": "ls bar"}]},
-                    }
-                },
-            ],
-        }
-    )
-    runner = LocalTutorialRunner(configuration, alternatives=("bla",))
-    runner.run()
-
-
-@pytest.mark.parametrize("prompt", ("test", "test    "))
-@pytest.mark.parametrize("answer", ("", "yes", "y", "no", "n", "foobar"))
-def test_enter_prompt(prompt: str, answer: str) -> None:
-    """Test enter function."""
-    configuration = TutorialModel.model_validate({"path": "/dummy.yaml", "parts": [{"prompt": prompt}]})
-    runner = LocalTutorialRunner(configuration)
-    with mock.patch("builtins.input", return_value=answer, autospec=True) as mock_input:
-        runner.run()
-    mock_input.assert_called_once_with(f"{prompt.strip()} ")
-
-
-@pytest.mark.tutorial("prompt-simple")
-def test_prompt_with_noninteractive_mode(runner: LocalTutorialRunner) -> None:
-    """Test running a tutorial with a prompt in non-interactive mode - prompt is skipped."""
-    with mock.patch("builtins.input", return_value="", autospec=True) as mock_input:
-        runner.run()
-    mock_input.assert_not_called()
-
-
-@pytest.mark.parametrize("answer", ("", "y", "yes"))
-def test_confirm_prompt_confirms(answer: str) -> None:
-    """Test confirm prompt where empty answer passes."""
-    configuration = TutorialModel.model_validate(
-        {"path": "/dummy.yaml", "parts": [{"prompt": "example:", "type": "confirm"}]}
-    )
-    runner = LocalTutorialRunner(configuration)
-    with mock.patch("builtins.input", return_value=answer, autospec=True) as mock_input:
-        runner.run()
-    mock_input.assert_called_once_with("example: ")
-
-
-@pytest.mark.parametrize("answer", ("y", "yes"))
-def test_confirm_prompt_confirms_with_default_false(answer: str) -> None:
-    """Test confirm prompt where answer passes with default=False."""
-    configuration = TutorialModel.model_validate(
-        {"path": "/dummy.yaml", "parts": [{"prompt": "example:", "type": "confirm", "default": False}]}
-    )
-    runner = LocalTutorialRunner(configuration)
-    with mock.patch("builtins.input", return_value=answer, autospec=True) as mock_input:
-        runner.run()
-    mock_input.assert_called_once_with("example: ")
-
-
-@pytest.mark.parametrize("answer", ("", "n", "no"))
-@pytest.mark.tutorial("prompt-confirm")
-def test_confirm_prompt_does_not_confirm_with_default_false(answer: str, runner: LocalTutorialRunner) -> None:
-    """Test confirm prompt where answer does not confirm with default=False."""
-    runner.interactive = True  # force interactive mode
-    with mock.patch("builtins.input", return_value=answer, autospec=True) as mock_input:
-        with pytest.raises(PromptNotConfirmedError, match=r"^State was not confirmed\.$"):
-            runner.run()
-    mock_input.assert_called_once_with("example: ")
-
-
-def test_confirm_prompt_with_invalid_response() -> None:
-    """Test confirm prompt where we first give an invalid response."""
-    configuration = TutorialModel.model_validate(
-        {
-            "path": "/dummy.yaml",
-            "parts": [{"prompt": "example:", "type": "confirm", "default": False}],
-        }
-    )
-    runner = LocalTutorialRunner(configuration)
-    with mock.patch("builtins.input", side_effect=["foobar", "y"], autospec=True) as mock_input:
-        runner.run()
-    mock_input.assert_has_calls([call("example: "), call("example: ")])
-
-
-def test_confirm_prompt_does_not_confirm_error_template() -> None:
-    """Test confirm prompt where answer does not confirm with default=False."""
-    answer = "no"
-    value = "example value"
-    configuration = TutorialModel.model_validate(
-        {
-            "path": "/dummy.yaml",
-            "configuration": {"run": {"context": {"example": value}}},
-            "parts": [
-                {
-                    "prompt": "example:",
-                    "type": "confirm",
-                    "default": False,
-                    "error": "{{ response }}: {{ example }}: This is wrong.",
-                }
-            ],
-        }
-    )
-    runner = LocalTutorialRunner(configuration)
-    with mock.patch("builtins.input", return_value=answer, autospec=True) as mock_input:
-        with pytest.raises(PromptNotConfirmedError, match=rf"^{answer}: {value}: This is wrong\.$"):
-            runner.run()
-    mock_input.assert_called_once_with("example: ")
-
-
-def test_prompt_template() -> None:
-    """Test that the prompt is rendered as a template."""
-    configuration = TutorialModel.model_validate(
-        {
-            "path": "/dummy.yaml",
-            "configuration": {"run": {"context": {"example": "dest/"}}},
-            "parts": [{"prompt": "Go to {{ example }}"}],
-        }
-    )
-    runner = LocalTutorialRunner(configuration)
-    with mock.patch("builtins.input", return_value="", autospec=True) as mock_input:
-        runner.run()
-    mock_input.assert_called_once_with("Go to dest/ ")
 
 
 def test_temporary_directory(tmp_path: Path, fp: FakeProcess) -> None:
