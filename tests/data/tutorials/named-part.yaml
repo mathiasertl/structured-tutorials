@@ -1,0 +1,6 @@
+# simple with given id and name
+parts:
+  - contents: foo
+    destination: bar.txt
+    id: id-file
+    name: Create bar.txt

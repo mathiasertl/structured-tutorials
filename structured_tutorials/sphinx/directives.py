@@ -57,12 +57,17 @@ class PartDirective(CurrentDocumentMixin, SphinxDirective):
     """Directive to show a tutorial part."""
 
     required_arguments = 0
-    optional_arguments = 0
+    optional_arguments = 1
 
     def run(self) -> list[paragraph]:
+        # Get the named ID if set.
+        part_id = None
+        if self.arguments:
+            part_id = self.arguments[0].strip()
+
         # Render text
         tutorial_wrapper: TutorialWrapper = self.current_document["tutorial"]
-        text = tutorial_wrapper.render_part()
+        text = tutorial_wrapper.render_part(part_id=part_id)
 
         source, _lineno = self.get_source_info()
 

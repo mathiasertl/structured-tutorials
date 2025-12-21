@@ -171,7 +171,7 @@ class TutorialWrapper:
         value = template.render({"part": part, "tabs": tabs})
         return value.strip()
 
-    def render_part(self) -> str:
+    def render_part(self, part_id: str | None = None) -> str:
         """Render the given part of the tutorial."""
         # Find the next part that is not skipped
         for part in self.tutorial.parts[self.next_part :]:
@@ -183,6 +183,8 @@ class TutorialWrapper:
 
             # If the part is not configured to be skipped for docs, use it.
             if not part.doc.skip:
+                if part_id is not None and part.id != part_id:
+                    raise ExtensionError(f"{part_id}: Part is not the next part (next one is {part.id}).")
                 break
         else:
             raise ExtensionError("No more parts left in tutorial.")
