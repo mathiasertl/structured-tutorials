@@ -1,4 +1,4 @@
-tutorial_root: ../../
+tutorial_root: ../../../
 configuration:
   doc:
     context:

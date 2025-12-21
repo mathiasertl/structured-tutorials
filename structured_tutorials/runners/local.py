@@ -131,7 +131,7 @@ class LocalTutorialRunner(RunnerBase):
             return
 
         if part.source:
-            with open(part.source) as source_stream:
+            with open(self.tutorial.tutorial_root / part.source) as source_stream:
                 template = source_stream.read()
         else:
             assert isinstance(part.contents, str)  # assured by model validation
