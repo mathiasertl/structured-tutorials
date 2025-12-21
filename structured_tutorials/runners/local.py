@@ -17,7 +17,7 @@ from structured_tutorials.errors import CommandOutputTestError, CommandTestError
 from structured_tutorials.models.parts import AlternativeModel, CommandsPartModel, FilePartModel, PromptModel
 from structured_tutorials.models.tests import TestCommandModel, TestOutputModel, TestPortModel
 from structured_tutorials.runners.base import RunnerBase
-from structured_tutorials.utils import chdir, git_export
+from structured_tutorials.utils import chdir, cleanup, git_export
 
 log = logging.getLogger(__name__)
 part_log = logging.getLogger("part")
@@ -194,27 +194,23 @@ class LocalTutorialRunner(RunnerBase):
                 raise RuntimeError(f"{part} is not a tutorial part")
 
     def run(self) -> None:
-        try:
-            if self.tutorial.configuration.run.temporary_directory:
-                with tempfile.TemporaryDirectory() as tmpdir_name:
-                    self.context["cwd"] = Path(tmpdir_name)
-                    self.context["orig_cwd"] = Path.cwd()
+        if self.tutorial.configuration.run.temporary_directory:
+            with tempfile.TemporaryDirectory() as tmpdir_name:
+                log.info("Switching to temporary directory: %s", tmpdir_name)
+                self.context["cwd"] = self.context["temp_dir"] = Path(tmpdir_name)
+                self.context["orig_cwd"] = Path.cwd()
 
-                    with chdir(tmpdir_name):
-                        self.run_parts()
-            elif self.tutorial.configuration.run.git_export:
-                with tempfile.TemporaryDirectory() as tmpdir_name:
-                    work_dir = git_export(tmpdir_name)
-                    self.context["cwd"] = work_dir
-                    self.context["orig_cwd"] = Path.cwd()
+                with chdir(tmpdir_name), cleanup(self):
+                    self.run_parts()
+        elif self.tutorial.configuration.run.git_export:
+            with tempfile.TemporaryDirectory() as tmpdir_name:
+                work_dir = git_export(tmpdir_name)
+                log.info("Creating git export at: %s", work_dir)
+                self.context["cwd"] = self.context["export_dir"] = work_dir
+                self.context["orig_cwd"] = Path.cwd()
 
-                    with chdir(work_dir):
-                        self.run_parts()
-            else:
+                with chdir(work_dir), cleanup(self):
+                    self.run_parts()
+        else:
+            with cleanup(self):
                 self.run_parts()
-        finally:
-            if self.cleanup:
-                log.info("Running cleanup commands.")
-
-            for command_config in self.cleanup:
-                self.run_shell_command(command_config.command, command_config.show_output)

@@ -3,6 +3,7 @@
 
 """Utility functions."""
 
+import logging
 import os
 import random
 import string
@@ -10,6 +11,10 @@ import subprocess
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
+
+from structured_tutorials.runners.base import RunnerBase
+
+log = logging.getLogger(__name__)
 
 
 @contextmanager
@@ -21,6 +26,19 @@ def chdir(dest: str | Path) -> Iterator[Path]:
         yield cwd
     finally:
         os.chdir(cwd)
+
+
+@contextmanager
+def cleanup(runner: RunnerBase) -> Iterator[None]:
+    """Context manager to always run cleanup commands."""
+    try:
+        yield
+    finally:
+        if runner.cleanup:
+            log.info("Running cleanup commands.")
+
+        for command_config in runner.cleanup:
+            runner.run_shell_command(command_config.command, command_config.show_output)
 
 
 def git_export(destination: str | Path, ref: str = "HEAD") -> Path:
