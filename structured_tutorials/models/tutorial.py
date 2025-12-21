@@ -120,6 +120,14 @@ class TutorialModel(BaseModel):
         self.configuration.doc.context["tutorial_dir"] = self.path.parent
         return self
 
+    @model_validator(mode="after")
+    def update_part_data(self) -> Self:
+        for part_no, part in enumerate(self.parts):
+            part.index = part_no
+            if not part.id:
+                part.id = str(part_no)
+        return self
+
     @classmethod
     def from_file(cls, path: Path) -> "TutorialModel":
         """Load a tutorial from a YAML file."""

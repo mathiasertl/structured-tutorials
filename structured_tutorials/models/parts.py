@@ -20,6 +20,16 @@ from structured_tutorials.models.tests import TestCommandModel, TestOutputModel,
 TEMPLATE_DESCRIPTION = "This value is rendered as a template with the current context."
 
 
+class PartMixin:
+    """Mixin used by all parts."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: str = Field(default="", description="ID that can be used to reference the specific part.")
+    index: int = Field(default=0, description="Index of the part in the tutorial.")
+    name: str = Field(default="", description="Human-readable name of the part.")
+
+
 class CleanupCommandModel(CommandBaseModel):
     """Command to clean up artifacts created by the current part."""
 
@@ -72,7 +82,7 @@ class CommandsDocumentationConfigurationModel(ConfigurationMixin, BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-class CommandsPartModel(BaseModel):
+class CommandsPartModel(PartMixin, BaseModel):
     """A tutorial part consisting of one or more commands."""
 
     model_config = ConfigDict(extra="forbid", title="Command part")
@@ -116,7 +126,7 @@ class FileDocumentationConfigurationModel(ConfigurationMixin, BaseModel):
     )
 
 
-class FilePartModel(BaseModel):
+class FilePartModel(PartMixin, BaseModel):
     """A tutorial part for creating a file.
 
     Note that exactly one of `contents` or `source` is required.
@@ -169,7 +179,7 @@ class FilePartModel(BaseModel):
         return self
 
 
-class PromptModel(BaseModel):
+class PromptModel(PartMixin, BaseModel):
     """Allows you to inspect the current state of the tutorial manually."""
 
     model_config = ConfigDict(extra="forbid", title="Prompt Configuration")
@@ -201,7 +211,7 @@ class AlternativeDocumentationConfigurationModel(ConfigurationMixin, BaseModel):
     model_config = ConfigDict(extra="forbid", title="File part runtime configuration")
 
 
-class AlternativeModel(BaseModel):
+class AlternativeModel(PartMixin, BaseModel):
     """A tutorial part that has several different alternatives.
 
     When rendering documentation, alternatives are rendered in tabs. When running a tutorial, the runner has

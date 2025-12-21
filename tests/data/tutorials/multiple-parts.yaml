@@ -1,0 +1,16 @@
+# simple, but multiple parts
+parts:
+  - commands:
+    - command: ls
+  - contents: foo
+    destination: bar.txt
+    id: id-file
+    name: Create bar.txt
+  - prompt: "Press enter:"
+  - alternatives:
+      foo:
+        commands:
+          - command: foo
+      bar:
+        commands:
+          - command: bar

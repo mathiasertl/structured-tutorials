@@ -66,6 +66,30 @@ def test_path_and_tutorial_root(
     assert model.tutorial_root == expected_tutorial_root
 
 
+def test_simple_tutorial(simple_tutorial: TutorialModel) -> None:
+    """Test simple tutorial."""
+    print(simple_tutorial.parts)
+    assert simple_tutorial.parts[0].index == 0
+    assert simple_tutorial.parts[0].id == "0"
+
+
+@pytest.mark.tutorial("multiple-parts")
+def test_multiple_parts(tutorial: TutorialModel) -> None:
+    """Test some basic properties when having a tutorial with multiple parts."""
+    assert tutorial.parts[0].index == 0
+    assert tutorial.parts[0].id == "0"
+
+    assert tutorial.parts[1].index == 1
+    assert tutorial.parts[1].id == "id-file"
+    assert tutorial.parts[1].name == "Create bar.txt"
+
+    assert tutorial.parts[2].index == 2
+    assert tutorial.parts[2].id == "2"
+
+    assert tutorial.parts[3].index == 3
+    assert tutorial.parts[3].id == "3"
+
+
 def test_relative_path() -> None:
     """Test for validation error if tutorial is created with relative path."""
     with pytest.raises(ValueError, match=r"foo/test\.yaml: Must be an absolute path\."):
