@@ -14,7 +14,8 @@ dependencies = [
     "jinja2>=3.1.6",
     "pydantic>=2.11.4",
     "pyyaml>=6.0.2",
-    "sphinx>=7.3.7",
+    # need to exclude 8.2.0, as it drops support for Python 3.10
+    "sphinx>=8.0.0,<8.2.0",
     "sphinx-inline-tabs>=2023.4.21",
     "termcolor>=3.2.0",
 ]
@@ -115,10 +116,10 @@ combine-as-imports = true
 [tool.uv]
 conflicts = [
     [
-        { group = "Sphinx7.3" },
-        { group = "Sphinx7.4" },
+        { group = "Sphinx8.0" },
         { group = "Sphinx8.1" },
-        { group = "Sphinx8.2" },
+        #{ group = "Sphinx8.2" },
+        #{ group = "Sphinx9.0" },
     ],
 ]
 
@@ -139,7 +140,7 @@ dev = [
     "types-pyyaml>=6.0.12.20250516",
 ]
 
-"Sphinx7.3" = [ "Sphinx~=7.3.0" ]
-"Sphinx7.4" = [ "Sphinx~=7.4.0" ]
+"Sphinx8.0" = [ "Sphinx~=8.0.0" ]
 "Sphinx8.1" = [ "Sphinx~=8.1.0" ]
-"Sphinx8.2" = [ "Sphinx~=8.2.0" ]
+#"Sphinx8.2" = [ "Sphinx~=8.2.0" ]
+#"Sphinx8.2" = [ "Sphinx~=9.0.0" ]
