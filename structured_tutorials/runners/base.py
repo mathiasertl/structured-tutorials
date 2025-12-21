@@ -71,9 +71,9 @@ class RunnerBase(abc.ABC):
         command: CommandType,
         show_output: bool,
         capture_output: bool = False,
-        stdin: int | io.IO[Any] | None = None,
+        stdin: int | io.BufferedReader | None = None,
         input: bytes | None = None,
-    ) -> CompletedProcess[str]:
+    ) -> CompletedProcess[bytes]:
         # Only show output if runner itself is not configured to hide all output
         if show_output:
             show_output = self.show_command_output

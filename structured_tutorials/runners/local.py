@@ -88,6 +88,7 @@ class LocalTutorialRunner(RunnerBase):
                 if stdin_config.contents:
                     proc_input = self.render(stdin_config.contents).encode("utf-8")
                 elif stdin_config.template:  # source path, but template=True
+                    assert stdin_config.source is not None
                     with open(self.tutorial.tutorial_root / stdin_config.source) as stream:
                         stdin_template = stream.read()
                     proc_input = self.render(stdin_template).encode("utf-8")
@@ -98,7 +99,7 @@ class LocalTutorialRunner(RunnerBase):
                 and command_config.run.stdin.source
                 and not command_config.run.stdin.template
             ):
-                with open(self.tutorial.tutorial_root / stdin_config.source, "rb") as stdin:
+                with open(self.tutorial.tutorial_root / command_config.run.stdin.source, "rb") as stdin:
                     proc = self.run_shell_command(
                         command_config.command,
                         show_output=command_config.run.show_output,

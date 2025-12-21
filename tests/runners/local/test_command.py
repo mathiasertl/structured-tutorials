@@ -87,9 +87,9 @@ def test_command_with_stdin(fp: FakeProcess, runner: LocalTutorialRunner) -> Non
     cat_three = fp.register("cat", stdout=b"test: {{ variable }}")
     runner.run()
 
-    assert cat_one.calls[0].kwargs["stdin"] == -1
-    assert cat_two.calls[0].kwargs["stdin"] == -1
-    assert isinstance(cat_three.calls[0].kwargs["stdin"], io.BufferedReader)
+    assert cat_one.calls[0].kwargs["stdin"] == -1  # type: ignore[index]
+    assert cat_two.calls[0].kwargs["stdin"] == -1  # type: ignore[index]
+    assert isinstance(cat_three.calls[0].kwargs["stdin"], io.BufferedReader)  # type: ignore[index]
 
 
 @pytest.mark.tutorial("command-hide-output")
