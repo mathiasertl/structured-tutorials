@@ -4,7 +4,7 @@
 """Base model classes."""
 
 from pathlib import Path
-from typing import Annotated, Any, Self
+from typing import Annotated, Any
 
 from pydantic import (
     BaseModel,
@@ -16,6 +16,8 @@ from pydantic import (
     model_validator,
 )
 from pydantic.fields import FieldInfo
+
+from structured_tutorials.typing import Self
 
 # Type for commands to execute
 CommandType = str | tuple[str, ...]

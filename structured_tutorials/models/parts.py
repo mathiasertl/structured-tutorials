@@ -5,7 +5,7 @@
 
 import os
 from pathlib import Path
-from typing import Annotated, Any, Literal, Self
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Discriminator, Field, NonNegativeInt, Tag, model_validator
 
@@ -18,6 +18,7 @@ from structured_tutorials.models.base import (
     template_field_title_generator,
 )
 from structured_tutorials.models.tests import TestCommandModel, TestOutputModel, TestPortModel
+from structured_tutorials.typing import Self
 
 
 def part_discriminator(value: Any) -> str | None:

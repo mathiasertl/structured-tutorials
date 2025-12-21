@@ -4,6 +4,7 @@
 """Base classes for runners."""
 
 import abc
+import io
 import logging
 import shlex
 import subprocess
@@ -70,7 +71,7 @@ class RunnerBase(abc.ABC):
         command: CommandType,
         show_output: bool,
         capture_output: bool = False,
-        stdin: bytes | None = None,
+        stdin: int | io.IO[Any] | None = None,
         input: bytes | None = None,
     ) -> CompletedProcess[str]:
         # Only show output if runner itself is not configured to hide all output

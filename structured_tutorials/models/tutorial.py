@@ -4,7 +4,7 @@
 """Module containing main tutorial model and global configuration models."""
 
 from pathlib import Path
-from typing import Annotated, Any, Self
+from typing import Annotated, Any
 
 from pydantic import BaseModel, ConfigDict, Discriminator, Field, Tag, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
@@ -12,6 +12,7 @@ from yaml import safe_load
 
 from structured_tutorials.models.base import default_tutorial_root_factory
 from structured_tutorials.models.parts import AlternativeModel, PartModels, PromptModel, part_discriminator
+from structured_tutorials.typing import Self
 
 
 class DocumentationConfigurationModel(BaseModel):
