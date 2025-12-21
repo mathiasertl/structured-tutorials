@@ -179,8 +179,12 @@ class LocalTutorialRunner(RunnerBase):
                 raise RuntimeError(f"{selected_part} is not supported as alternative.")
 
     def run_parts(self) -> None:
-        for part_no, part in enumerate(self.tutorial.parts, start=1):
-            part_log.info(f"Running part {part_no}...")
+        for part in self.tutorial.parts:
+            if part.name:
+                part_log.info(f'Running "{part.name}"...')
+            else:
+                part_log.info(f"Running part {part.id}...")
+
             if isinstance(part, PromptModel):
                 if self.interactive:
                     self.run_prompt(part)
