@@ -1,0 +1,27 @@
+configuration:
+  context:
+    variable: value
+parts:
+  - commands:
+    - command: cat
+      run:
+        show_output: false
+        test:
+          - regex: "^stdin from yaml file: value$"
+        stdin:
+          contents: "stdin from yaml file: {{ variable }}"
+    - command: cat
+      run:
+        show_output: false
+        test:
+          - regex: "^test: value$"
+        stdin:
+          source: file_contents.txt
+    - command: cat
+      run:
+        show_output: false
+        test:
+          - regex: "^test: {{ variable }}$"
+        stdin:
+          source: file_contents.txt
+          template: false

@@ -7,6 +7,7 @@ import abc
 import logging
 import shlex
 import subprocess
+import sys
 from copy import deepcopy
 from subprocess import CompletedProcess
 from typing import Any
@@ -65,7 +66,12 @@ class RunnerBase(abc.ABC):
                     )
 
     def run_shell_command(
-        self, command: CommandType, show_output: bool, capture_output: bool = False
+        self,
+        command: CommandType,
+        show_output: bool,
+        capture_output: bool = False,
+        stdin: bytes | None = None,
+        input: bytes | None = None,
     ) -> CompletedProcess[str]:
         # Only show output if runner itself is not configured to hide all output
         if show_output:
@@ -89,15 +95,17 @@ class RunnerBase(abc.ABC):
             logged_command = shlex.join(logged_command)
 
         command_logger.info(logged_command)
-        proc = subprocess.run(command, shell=shell, stdout=stdout, stderr=stderr, text=True)
+        proc = subprocess.run(command, shell=shell, stdin=stdin, input=input, stdout=stdout, stderr=stderr)
 
         # If we want to show the output and capture it at the same time, we need can only show the streams
         # separately at the end.
         if capture_output and show_output:
             print("--- stdout ---")
-            print(proc.stdout)
+            sys.stdout.buffer.write(proc.stdout + b"\n")
+            sys.stdout.buffer.flush()
             print("--- stderr ---")
-            print(proc.stderr)
+            sys.stdout.buffer.write(proc.stderr + b"\n")
+            sys.stdout.buffer.flush()
 
         return proc
 

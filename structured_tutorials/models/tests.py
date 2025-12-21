@@ -35,6 +35,6 @@ class TestOutputModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     stream: Literal["stdout", "stderr"] = Field(default="stdout", description="The output stream to use.")
-    regex: Annotated[re.Pattern[str], BeforeValidator(validate_regex)] = Field(
+    regex: Annotated[re.Pattern[bytes], BeforeValidator(validate_regex)] = Field(
         description="A regular expression to test."
     )

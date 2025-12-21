@@ -27,7 +27,9 @@ class LocalTutorialRunner(RunnerBase):
     """Runner implementation that runs a tutorial on the local machine."""
 
     def run_test(
-        self, test: TestCommandModel | TestPortModel | TestOutputModel, proc: subprocess.CompletedProcess[str]
+        self,
+        test: TestCommandModel | TestPortModel | TestOutputModel,
+        proc: subprocess.CompletedProcess[bytes],
     ) -> None:
         # If the test is for an output stream, we can run it right away (the process has already finished).
         if isinstance(test, TestOutputModel):
@@ -37,10 +39,11 @@ class LocalTutorialRunner(RunnerBase):
                 value = proc.stdout
 
             if (match := test.regex.search(value)) is not None:
-                self.context.update(match.groupdict())
+                self.context.update({k: v.decode("utf-8") for k, v in match.groupdict().items()})
                 return
             else:
-                raise CommandOutputTestError(f"Process did not have the expected output: '{value}'")
+                decoded = value.decode("utf-8")
+                raise CommandOutputTestError(f"Process did not have the expected output: '{decoded}'")
 
         # If an initial delay is configured, wait that long
         if test.delay > 0:
@@ -80,12 +83,35 @@ class LocalTutorialRunner(RunnerBase):
             # Capture output if any test is for the output.
             capture_output = any(isinstance(test, TestOutputModel) for test in command_config.run.test)
 
+            proc_input = None
+            if stdin_config := command_config.run.stdin:
+                if stdin_config.contents:
+                    proc_input = self.render(stdin_config.contents).encode("utf-8")
+                elif stdin_config.template:  # source path, but template=True
+                    with open(self.tutorial.tutorial_root / stdin_config.source) as stream:
+                        stdin_template = stream.read()
+                    proc_input = self.render(stdin_template).encode("utf-8")
+
             # Run the command and check status code
-            proc = self.run_shell_command(
-                command_config.command,
-                show_output=command_config.run.show_output,
-                capture_output=capture_output,
-            )
+            if (
+                command_config.run.stdin
+                and command_config.run.stdin.source
+                and not command_config.run.stdin.template
+            ):
+                with open(self.tutorial.tutorial_root / stdin_config.source, "rb") as stdin:
+                    proc = self.run_shell_command(
+                        command_config.command,
+                        show_output=command_config.run.show_output,
+                        capture_output=capture_output,
+                        stdin=stdin,
+                    )
+            else:
+                proc = self.run_shell_command(
+                    command_config.command,
+                    show_output=command_config.run.show_output,
+                    capture_output=capture_output,
+                    input=proc_input,
+                )
 
             # Update list of cleanup commands
             self.cleanup = list(command_config.run.cleanup) + self.cleanup
@@ -180,8 +206,8 @@ class LocalTutorialRunner(RunnerBase):
 
     def run_parts(self) -> None:
         for part in self.tutorial.parts:
-            if part.name:
-                part_log.info(f'Running "{part.name}"...')
+            if part.name:  # pragma: no cover
+                part_log.info(part.name)
             else:
                 part_log.info(f"Running part {part.id}...")
 

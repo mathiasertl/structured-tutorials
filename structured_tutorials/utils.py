@@ -37,6 +37,9 @@ def cleanup(runner: RunnerBase) -> Iterator[None]:
     except Exception as ex:
         # Prompt the user to inspect the state if running in interactive mode AND the error is not already a
         # prompt confirmation prompt (in which case we assume the user already inspected the state).
+        if not isinstance(ex, PromptNotConfirmedError):
+            log.exception(ex)
+
         if runner.interactive and not isinstance(ex, PromptNotConfirmedError):
             input(f"""An error occurred while running the tutorial.
 Current working directory is {os.getcwd()}
