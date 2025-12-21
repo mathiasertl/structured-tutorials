@@ -25,7 +25,11 @@ class RunnerBase(abc.ABC):
     """Base class for runners to provide shared functionality."""
 
     def __init__(
-        self, tutorial: TutorialModel, alternatives: tuple[str, ...] = (), show_command_output: bool = True
+        self,
+        tutorial: TutorialModel,
+        alternatives: tuple[str, ...] = (),
+        show_command_output: bool = True,
+        interactive: bool = True,
     ):
         self.tutorial = tutorial
         self.context = deepcopy(tutorial.configuration.run.context)
@@ -33,6 +37,7 @@ class RunnerBase(abc.ABC):
         self.cleanup: list[CleanupCommandModel] = []
         self.alternatives = alternatives
         self.show_command_output = show_command_output
+        self.interactive = interactive
 
     def render(self, value: str, **context: Any) -> str:
         return self.env.from_string(value).render({**self.context, **context})

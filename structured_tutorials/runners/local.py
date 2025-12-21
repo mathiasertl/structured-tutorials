@@ -13,7 +13,7 @@ import tempfile
 import time
 from pathlib import Path
 
-from structured_tutorials.errors import CommandOutputTestError, CommandTestError
+from structured_tutorials.errors import CommandOutputTestError, CommandTestError, PromptNotConfirmedError
 from structured_tutorials.models.parts import AlternativeModel, CommandsPartModel, FilePartModel, PromptModel
 from structured_tutorials.models.tests import TestCommandModel, TestOutputModel, TestPortModel
 from structured_tutorials.runners.base import RunnerBase
@@ -157,7 +157,7 @@ class LocalTutorialRunner(RunnerBase):
 
             if response in ("n", "no") or (response == "" and not part.default):
                 error = self.render(part.error, response=response)
-                raise RuntimeError(error)
+                raise PromptNotConfirmedError(error)
 
     def run_alternative(self, part: AlternativeModel) -> None:
         selected = set(self.alternatives) & set(part.alternatives)
@@ -178,7 +178,8 @@ class LocalTutorialRunner(RunnerBase):
         for part_no, part in enumerate(self.tutorial.parts, start=1):
             part_log.info(f"Running part {part_no}...")
             if isinstance(part, PromptModel):
-                self.run_prompt(part)
+                if self.interactive:
+                    self.run_prompt(part)
                 continue
 
             if part.run.skip:

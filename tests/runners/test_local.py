@@ -23,27 +23,31 @@ def runner(tutorial: TutorialModel) -> LocalTutorialRunner:
     return LocalTutorialRunner(tutorial)
 
 
+@pytest.fixture
+def doc_runner(doc_tutorial: TutorialModel) -> LocalTutorialRunner:
+    """Fixture to retrieve a local tutorial runner based on an example from the documentation."""
+    return LocalTutorialRunner(doc_tutorial, interactive=False)
+
+
 def test_simple_tutorial(simple_tutorial: TutorialModel) -> None:
     """Test the local runner by running a simple tutorial."""
     runner = LocalTutorialRunner(simple_tutorial)
     runner.run()
 
 
-def test_exit_code_tutorial(fp: FakeProcess) -> None:
+@pytest.mark.doc_tutorial("exit_code")
+def test_exit_code_tutorial(fp: FakeProcess, doc_runner: LocalTutorialRunner) -> None:
     """Test status code specification."""
     fp.register(["false"], returncode=1)
-    configuration = TutorialModel.from_file(DOCS_TUTORIALS_DIR / "exit_code" / "tutorial.yaml")
-    runner = LocalTutorialRunner(configuration)
-    runner.run()
+    doc_runner.run()
 
 
-def test_exit_code_tutorial_with_unexpected_exit_code(fp: FakeProcess) -> None:
+@pytest.mark.doc_tutorial("exit_code")
+def test_exit_code_tutorial_with_error(fp: FakeProcess, doc_runner: LocalTutorialRunner) -> None:
     """Test behavior if a command has the wrong status code."""
     fp.register(["false"], returncode=2)
-    configuration = TutorialModel.from_file(DOCS_TUTORIALS_DIR / "exit_code" / "tutorial.yaml")
-    runner = LocalTutorialRunner(configuration)
     with pytest.raises(RuntimeError, match=r"false failed with return code 2 \(expected: 1\)\.$"):
-        runner.run()
+        doc_runner.run()
 
 
 def test_templates_tutorial(fp: FakeProcess) -> None:
@@ -75,15 +79,14 @@ def test_command_cleanup_from_docs_with_no_errors(fp: FakeProcess) -> None:
     runner.run()
 
 
-def test_command_cleanup_from_docs_with_error(fp: FakeProcess) -> None:
+@pytest.mark.doc_tutorial("cleanup-multiple")
+def test_command_cleanup_from_docs_with_error(fp: FakeProcess, doc_runner: LocalTutorialRunner) -> None:
     """Test the cleanup from docs."""
     fp.register("cmd1", returncode=1)
     fp.register("clean1")
     fp.register("clean2")
-    configuration = TutorialModel.from_file(DOCS_TUTORIALS_DIR / "cleanup-multiple" / "tutorial.yaml")
-    runner = LocalTutorialRunner(configuration)
     with pytest.raises(RuntimeError, match=r"cmd1 failed with return code 1 \(expected: 0\)\.$"):
-        runner.run()
+        doc_runner.run()
 
 
 def test_test_commands(fp: FakeProcess) -> None:
@@ -149,15 +152,14 @@ def test_command_with_invalid_output(
         runner.run()
 
 
-def test_test_commands_with_command_error(fp: FakeProcess) -> None:
+@pytest.mark.doc_tutorial("test-command")
+def test_test_commands_with_command_error(fp: FakeProcess, doc_runner: LocalTutorialRunner) -> None:
     """Test the cleanup from docs."""
     fp.register("touch test.txt")
     fp.register("test -e test.txt", returncode=1)
     fp.register("rm test.txt")  # cleanup of part 1
-    configuration = TutorialModel.from_file(DOCS_TUTORIALS_DIR / "test-command" / "tutorial.yaml")
-    runner = LocalTutorialRunner(configuration)
     with pytest.raises(CommandTestError, match=r"^Test did not pass$"):
-        runner.run()
+        doc_runner.run()
 
 
 def test_test_commands_with_one_socket_error(fp: FakeProcess) -> None:
@@ -179,13 +181,12 @@ def test_test_commands_with_one_socket_error(fp: FakeProcess) -> None:
     assert connect_mock.mock_calls == [mock.call(("localhost", 1234)), mock.call(("localhost", 1234))]
 
 
-def test_test_commands_with_socket_error(fp: FakeProcess) -> None:
+@pytest.mark.doc_tutorial("test-port")
+def test_test_commands_with_socket_error(fp: FakeProcess, doc_runner: LocalTutorialRunner) -> None:
     """Test the cleanup from docs."""
     fp.register("sleep 3s && ncat -e /bin/cat -k -l 1234 &")
     fp.register("pkill sleep")
     fp.register("pkill ncat")
-    configuration = TutorialModel.from_file(DOCS_TUTORIALS_DIR / "test-port" / "tutorial.yaml")
-    runner = LocalTutorialRunner(configuration)
     with (
         mock.patch("socket.socket", autospec=True) as mock_socket,
         mock.patch("time.sleep", autospec=True) as mock_sleep,
@@ -193,7 +194,7 @@ def test_test_commands_with_socket_error(fp: FakeProcess) -> None:
         connect_mock = mock.MagicMock(side_effect=Exception("error"))
         mock_socket.return_value.connect = connect_mock
         with pytest.raises(CommandTestError, match=r"^Test did not pass$"):
-            runner.run()
+            doc_runner.run()
 
     # 2-second sleep is the initial delay
     assert mock_sleep.mock_calls == [mock.call(2), mock.call(1.0), mock.call(2.0), mock.call(4.0)]
@@ -213,41 +214,41 @@ def test_skip_part(fp: FakeProcess) -> None:
     runner.run()
 
 
-def test_file_copy(tmp_path: Path) -> None:
+@pytest.mark.doc_tutorial("file-copy")
+def test_file_copy(tmp_path: Path, doc_tutorial: TutorialModel) -> None:
     """Test skipping a part when running."""
-    configuration = TutorialModel.from_file(DOCS_TUTORIALS_DIR / "file-copy" / "tutorial.yaml")
     # Update destination to copy to tmp_path
-    for part in configuration.parts:
+    for part in doc_tutorial.parts:
         assert isinstance(part, FilePartModel)
         part.destination = str(tmp_path) + part.destination
-    runner = LocalTutorialRunner(configuration)
+    runner = LocalTutorialRunner(doc_tutorial, interactive=False)
     runner.run()
 
-    part = configuration.parts[0]
+    part = doc_tutorial.parts[0]
     assert isinstance(part, FilePartModel)
     assert Path(part.destination).exists()
     with open(part.destination) as stream:
         assert stream.read() == "inline contents: at runtime"
 
-    part = configuration.parts[1]
+    part = doc_tutorial.parts[1]
     assert isinstance(part, FilePartModel)
     assert Path(part.destination).exists()
     with open(part.destination) as stream:
         assert stream.read() == "inline contents: {{ variable }}"
 
-    part = configuration.parts[2]
+    part = doc_tutorial.parts[2]
     assert isinstance(part, FilePartModel)
     assert Path(part.destination).exists()
     with open(part.destination) as stream:
         assert stream.read() == "test: at runtime"
 
-    part = configuration.parts[3]
+    part = doc_tutorial.parts[3]
     assert isinstance(part, FilePartModel)
     assert Path(part.destination).exists()
     with open(part.destination) as stream:
         assert stream.read() == "test: {{ variable }}"
 
-    part = configuration.parts[4]
+    part = doc_tutorial.parts[4]
     assert isinstance(part, FilePartModel)
     destination = Path(part.destination) / "file_contents.txt"
     assert destination.exists()
@@ -267,7 +268,7 @@ def test_file_part_with_destination_exists(tmp_path: Path) -> None:
             ],
         }
     )
-    runner = LocalTutorialRunner(configuration)
+    runner = LocalTutorialRunner(configuration, interactive=False)
     with pytest.raises(RuntimeError, match=rf"^{dest}: Destination already exists\.$"):
         runner.run()
 
@@ -371,6 +372,14 @@ def test_enter_prompt(prompt: str, answer: str) -> None:
     mock_input.assert_called_once_with(f"{prompt.strip()} ")
 
 
+@pytest.mark.tutorial("prompt-simple.yaml")
+def test_prompt_with_noninteractive_mode(runner: LocalTutorialRunner) -> None:
+    """Test running a tutorial with a prompt in non-interactive mode - prompt is skipped."""
+    with mock.patch("builtins.input", return_value="", autospec=True) as mock_input:
+        runner.run()
+    mock_input.assert_not_called()
+
+
 @pytest.mark.parametrize("answer", ("", "y", "yes"))
 def test_confirm_prompt_confirms(answer: str) -> None:
     """Test confirm prompt where empty answer passes."""
@@ -404,7 +413,7 @@ def test_confirm_prompt_does_not_confirm_with_default_false(answer: str) -> None
             "parts": [{"prompt": "example:", "type": "confirm", "default": False}],
         }
     )
-    runner = LocalTutorialRunner(configuration)
+    runner = LocalTutorialRunner(configuration, interactive=False)
     with mock.patch("builtins.input", return_value=answer, autospec=True) as mock_input:
         with pytest.raises(RuntimeError, match=r"^State was not confirmed\.$"):
             runner.run()

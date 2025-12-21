@@ -25,6 +25,14 @@ def main(argv: Sequence[str] | None = None) -> None:
     parser.add_argument("-a", "--alternative", dest="alternatives", action="append", default=[])
     parser.add_argument("--no-colors", action="store_true", default=False)
     parser.add_argument(
+        "-n",
+        "--non-interactive",
+        dest="interactive",
+        action="store_false",
+        default=True,
+        help="Never prompt for any user input.",
+    )
+    parser.add_argument(
         "--log-level",
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
         default="INFO",
@@ -60,7 +68,10 @@ def main(argv: Sequence[str] | None = None) -> None:
         sys.exit(1)
 
     runner = LocalTutorialRunner(
-        tutorial, alternatives=tuple(args.alternatives), show_command_output=args.show_command_output
+        tutorial,
+        alternatives=tuple(args.alternatives),
+        show_command_output=args.show_command_output,
+        interactive=args.interactive,
     )
 
     try:

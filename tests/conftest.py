@@ -36,6 +36,8 @@ class Runner(RunnerBase):
 
 def pytest_configure(config: pytest.Config) -> None:
     """Pytest configuration."""
+    config.addinivalue_line("markers", "doc_tutorial_path(name): Path to a tutorial file.")
+    config.addinivalue_line("markers", "doc_tutorial(name): Loaded tutorial from the given file.")
     config.addinivalue_line("markers", "tutorial_path(name): Path to a tutorial file.")
     config.addinivalue_line("markers", "tutorial(name): Loaded tutorial from the given file.")
 
@@ -68,6 +70,30 @@ def tutorial(request: pytest.FixtureRequest) -> TutorialModel:
         data = marker.args[0]
 
     return TutorialModel.from_file(TEST_TUTORIALS_DIR / data)
+
+
+@pytest.fixture
+def doc_tutorial_path(request: pytest.FixtureRequest) -> Path:
+    """Fixture to get a tutorial path from the documentation."""
+    marker = request.node.get_closest_marker("doc_tutorial_path")
+    if marker is None:
+        raise ValueError("doc_tutorial_path fixture requires a marker with a file name.")
+    else:
+        data: str | Path = marker.args[0]
+
+    return DOCS_TUTORIALS_DIR / data
+
+
+@pytest.fixture
+def doc_tutorial(request: pytest.FixtureRequest) -> TutorialModel:
+    """Fixture to get a tutorial from the documentation."""
+    marker = request.node.get_closest_marker("doc_tutorial")
+    if marker is None:
+        raise ValueError("doc_tutorial fixture requires a marker with a file name.")
+    else:
+        data = marker.args[0]
+
+    return TutorialModel.from_file(DOCS_TUTORIALS_DIR / data / "tutorial.yaml")
 
 
 @pytest.fixture(scope="session", params=test_tutorials + docs_tutorials)

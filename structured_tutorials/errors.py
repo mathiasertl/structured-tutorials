@@ -26,3 +26,7 @@ class CommandTestError(CommandsPartError):
 
 class CommandOutputTestError(CommandTestError):
     """Exception raised when an output test fails."""
+
+
+class PromptNotConfirmedError(PartError):
+    """Exception raised when a user does not confirm the current state in a prompt part."""
