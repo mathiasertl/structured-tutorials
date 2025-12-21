@@ -3,6 +3,7 @@
 
 """Test local runner."""
 
+import os
 import subprocess
 from pathlib import Path
 from unittest import mock
@@ -11,7 +12,7 @@ from unittest.mock import call
 import pytest
 from pytest_subprocess import FakeProcess
 
-from structured_tutorials.errors import CommandOutputTestError, CommandTestError
+from structured_tutorials.errors import CommandOutputTestError, CommandTestError, PromptNotConfirmedError
 from structured_tutorials.models import FilePartModel, TutorialModel
 from structured_tutorials.runners.local import LocalTutorialRunner
 from tests.conftest import DOCS_TUTORIALS_DIR, TEST_TUTORIALS_DIR
@@ -20,7 +21,7 @@ from tests.conftest import DOCS_TUTORIALS_DIR, TEST_TUTORIALS_DIR
 @pytest.fixture
 def runner(tutorial: TutorialModel) -> LocalTutorialRunner:
     """Fixture to retrieve a local tutorial runner based on the tutorial fixture."""
-    return LocalTutorialRunner(tutorial)
+    return LocalTutorialRunner(tutorial, interactive=False)
 
 
 @pytest.fixture
@@ -162,6 +163,22 @@ def test_test_commands_with_command_error(fp: FakeProcess, doc_runner: LocalTuto
         doc_runner.run()
 
 
+@pytest.mark.tutorial("command-simple.yaml")
+def test_command_with_error_with_interactive_mode(fp: FakeProcess, runner: LocalTutorialRunner) -> None:
+    """Test prompt when an error occurs when interactive mode is enabled."""
+    fp.register("ls", returncode=1)
+    runner.interactive = True  # force interactive mode
+    with pytest.raises(RuntimeError, match=r"^ls failed with return code 1 \(expected: 0\)\.$"):
+        with mock.patch("builtins.input", return_value="", autospec=True) as mock_input:
+            runner.run()
+    mock_input.assert_called_once_with(
+        "An error occurred while running the tutorial.\n"
+        f"Current working directory is {os.getcwd()}\n"
+        "\n"
+        "Press Enter to continue... "
+    )
+
+
 def test_test_commands_with_one_socket_error(fp: FakeProcess) -> None:
     """Test the cleanup from docs."""
     fp.register("sleep 3s && ncat -e /bin/cat -k -l 1234 &")
@@ -287,7 +304,7 @@ def test_file_part_with_contents_with_destination_template(tmp_path: Path) -> No
             ],
         }
     )
-    runner = LocalTutorialRunner(configuration)
+    runner = LocalTutorialRunner(configuration, interactive=False)
     with pytest.raises(
         RuntimeError, match=r"^dest/: Destination is directory, but no source given to derive filename\.$"
     ):
@@ -405,17 +422,12 @@ def test_confirm_prompt_confirms_with_default_false(answer: str) -> None:
 
 
 @pytest.mark.parametrize("answer", ("", "n", "no"))
-def test_confirm_prompt_does_not_confirm_with_default_false(answer: str) -> None:
+@pytest.mark.tutorial("prompt-confirm.yaml")
+def test_confirm_prompt_does_not_confirm_with_default_false(answer: str, runner: LocalTutorialRunner) -> None:
     """Test confirm prompt where answer does not confirm with default=False."""
-    configuration = TutorialModel.model_validate(
-        {
-            "path": "/dummy.yaml",
-            "parts": [{"prompt": "example:", "type": "confirm", "default": False}],
-        }
-    )
-    runner = LocalTutorialRunner(configuration, interactive=False)
+    runner.interactive = True  # force interactive mode
     with mock.patch("builtins.input", return_value=answer, autospec=True) as mock_input:
-        with pytest.raises(RuntimeError, match=r"^State was not confirmed\.$"):
+        with pytest.raises(PromptNotConfirmedError, match=r"^State was not confirmed\.$"):
             runner.run()
     mock_input.assert_called_once_with("example: ")
 
@@ -454,7 +466,7 @@ def test_confirm_prompt_does_not_confirm_error_template() -> None:
     )
     runner = LocalTutorialRunner(configuration)
     with mock.patch("builtins.input", return_value=answer, autospec=True) as mock_input:
-        with pytest.raises(RuntimeError, match=rf"^{answer}: {value}: This is wrong\.$"):
+        with pytest.raises(PromptNotConfirmedError, match=rf"^{answer}: {value}: This is wrong\.$"):
             runner.run()
     mock_input.assert_called_once_with("example: ")
 
