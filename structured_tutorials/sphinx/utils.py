@@ -185,4 +185,6 @@ class TutorialWrapper:
             text = self.render_alternatives(part)
         else:  # pragma: no cover
             raise ExtensionError(f"{part}: Unsupported part type.")
+
+        self.context.update(part.doc.update_context)
         return text

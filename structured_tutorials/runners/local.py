@@ -198,6 +198,8 @@ class LocalTutorialRunner(RunnerBase):
             else:  # pragma: no cover
                 raise RuntimeError(f"{part} is not a tutorial part")
 
+            self.context.update(part.run.update_context)
+
     def run(self) -> None:
         if self.tutorial.configuration.run.temporary_directory:
             with tempfile.TemporaryDirectory() as tmpdir_name:
