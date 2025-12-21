@@ -10,6 +10,7 @@ from pathlib import Path
 
 import yaml
 
+from structured_tutorials import __version__
 from structured_tutorials.errors import InvalidAlternativesSelectedError
 from structured_tutorials.models import TutorialModel
 from structured_tutorials.output import error, setup_logging
@@ -20,6 +21,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     """Main entry function for the command-line."""
     parser = argparse.ArgumentParser()
     parser.add_argument("path", type=Path)
+    parser.add_argument("--version", action="version", version=__version__)
     parser.add_argument("-a", "--alternative", dest="alternatives", action="append", default=[])
     parser.add_argument("--no-colors", action="store_true", default=False)
     parser.add_argument(
