@@ -25,7 +25,7 @@ def test_simple_tutorial(simple_tutorial: TutorialModel) -> None:
     main([str(simple_tutorial.path)])
 
 
-@pytest.mark.tutorial_path("invalid-yaml.yaml")
+@pytest.mark.tutorial_path("invalid-yaml")
 def test_invalid_yaml_file(capsys: pytest.CaptureFixture[str], tutorial_path: Path) -> None:
     """Test error when loading an invalid YAML file."""
     with pytest.raises(SystemExit) as exc_info:
@@ -37,7 +37,7 @@ def test_invalid_yaml_file(capsys: pytest.CaptureFixture[str], tutorial_path: Pa
     assert "invalid-yaml.yaml: Invalid YAML file:" in captured.err
 
 
-@pytest.mark.tutorial_path("invalid-model.yaml")
+@pytest.mark.tutorial_path("invalid-model")
 def test_invalid_model(capsys: pytest.CaptureFixture[str], tutorial_path: Path) -> None:
     """Test error when loading an invalid model."""
     with pytest.raises(SystemExit) as exc_info:
@@ -49,7 +49,7 @@ def test_invalid_model(capsys: pytest.CaptureFixture[str], tutorial_path: Path) 
     assert "invalid-model.yaml: File is not a valid Tutorial" in captured.err
 
 
-@pytest.mark.tutorial_path("empty.yaml")
+@pytest.mark.tutorial_path("empty")
 def test_empty_file(capsys: pytest.CaptureFixture[str], tutorial_path: Path) -> None:
     """Test error when loading an empty file (equal to an empty model)."""
     with pytest.raises(SystemExit) as exc_info:
@@ -64,7 +64,7 @@ def test_empty_file(capsys: pytest.CaptureFixture[str], tutorial_path: Path) -> 
     )
 
 
-@pytest.mark.tutorial_path("alternatives.yaml")
+@pytest.mark.tutorial_path("alternatives")
 def test_invalid_alternative(capsys: pytest.CaptureFixture[str], tutorial_path: Path) -> None:
     """Test error when loading an empty file (equal to an empty model)."""
     with pytest.raises(SystemExit) as exc_info:

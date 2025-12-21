@@ -57,7 +57,7 @@ def test_code_block_output(commands: tuple[str, ...], expected: str) -> None:
     assert wrapper.render_part() == f".. code-block:: console\n\n{textwrap.indent(expected, '    ')}"
 
 
-@pytest.mark.tutorial("command-as-list.yaml")
+@pytest.mark.tutorial("command-as-list")
 def test_command_as_list(wrapper: TutorialWrapper) -> None:
     """Test rendering a command as list."""
     assert wrapper.render_part() == ".. code-block:: console\n\n    user@host:~$ echo 'word with spaces'\n"
@@ -137,13 +137,13 @@ def test_file_part_with_source() -> None:
     assert wrapper.render_part() == f".. code-block::\n    :caption: {destination}\n\n    {contents}"
 
 
-@pytest.mark.tutorial("file-copy-destination-dir.yaml")
+@pytest.mark.tutorial("file-copy-destination-dir")
 def test_file_part_with_source_with_destination_directory(wrapper: TutorialWrapper) -> None:
     """Test caption when destination is a directory."""
     assert wrapper.render_part().startswith(".. code-block::\n    :caption: dir/file_contents.txt\n\n")
 
 
-@pytest.mark.tutorial("file-contents-destination-dir.yaml")
+@pytest.mark.tutorial("file-contents-destination-dir")
 def test_file_part_with_contents_with_destination_directory(wrapper: TutorialWrapper) -> None:
     """Test caption when destination is a directory."""
     with pytest.raises(DestinationIsADirectoryError):

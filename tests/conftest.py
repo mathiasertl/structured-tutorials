@@ -57,7 +57,7 @@ def tutorial_path(request: pytest.FixtureRequest) -> Path:
     else:
         data: str | Path = marker.args[0]
 
-    return TEST_TUTORIALS_DIR / data
+    return TEST_TUTORIALS_DIR / f"{data}.yaml"
 
 
 @pytest.fixture
@@ -67,9 +67,9 @@ def tutorial(request: pytest.FixtureRequest) -> TutorialModel:
     if marker is None:
         raise ValueError("tutorial fixture requires a marker with a file name.")
     else:
-        data = marker.args[0]
+        data: str = marker.args[0]
 
-    return TutorialModel.from_file(TEST_TUTORIALS_DIR / data)
+    return TutorialModel.from_file(TEST_TUTORIALS_DIR / f"{data}.yaml")
 
 
 @pytest.fixture
