@@ -207,18 +207,17 @@ class LocalTutorialRunner(RunnerBase):
 
     def run_parts(self) -> None:
         for part in self.tutorial.parts:
-            if part.name:  # pragma: no cover
-                part_log.info(part.name)
-            else:
-                part_log.info(f"Running part {part.id}...")
-
             if isinstance(part, PromptModel):
                 if self.interactive:
                     self.run_prompt(part)
                 continue
-
             if part.run.skip:
                 continue
+
+            if part.name:  # pragma: no cover
+                part_log.info(part.name)
+            else:
+                part_log.info(f"Running part {part.id}...")
 
             if isinstance(part, CommandsPartModel):
                 self.run_commands(part)

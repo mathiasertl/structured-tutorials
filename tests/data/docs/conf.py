@@ -22,7 +22,7 @@ extensions = [
 ]
 
 DOC_ROOT = Path(__file__).parent.parent
-tutorial_root = DOC_ROOT / "tutorials"
+structured_tutorials_root = DOC_ROOT / "tutorials"
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]

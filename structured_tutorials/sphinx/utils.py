@@ -30,7 +30,7 @@ TEMPLATE_DIR = resources.files(templates)
 
 def validate_configuration(app: Sphinx, config: Config) -> None:
     """Validate configuration directives, so that we can rely on values later."""
-    root = config.tutorial_root
+    root = config.structured_tutorials_root
     if not isinstance(root, Path):
         raise ConfigError(f"{root}: Must be of type Path.")
     if not root.is_absolute():

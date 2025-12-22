@@ -22,7 +22,7 @@ located:
 
     # configure the root directory where tutorials are located. Defaults to
     # the Sphinx source directory.
-    tutorial_root = DOC_ROOT / "tutorials"
+    #structured_tutorials_root = DOC_ROOT / "tutorials"
 
 
 *******************

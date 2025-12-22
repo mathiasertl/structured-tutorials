@@ -12,7 +12,7 @@ from sphinx.errors import ConfigError
 from tests.conftest import TEST_DATA_DIR
 
 
-def test_tutorial_root_with_wrong_type(tmpdir: Path) -> None:
+def test_structured_tutorials_root_with_wrong_type(tmpdir: Path) -> None:
     """Test passing the wrong type."""
     src_dir = TEST_DATA_DIR / "docs"
     build_dir = tmpdir / "_build"
@@ -23,11 +23,11 @@ def test_tutorial_root_with_wrong_type(tmpdir: Path) -> None:
             build_dir / "html",
             build_dir / "doctrees",
             "html",
-            confoverrides={"tutorial_root": False},
+            confoverrides={"structured_tutorials_root": False},
         )
 
 
-def test_tutorial_root_with_relative_path(tmpdir: Path) -> None:
+def test_structured_tutorials_root_with_relative_path(tmpdir: Path) -> None:
     """Test passing a relative_path."""
     src_dir = TEST_DATA_DIR / "docs"
     build_dir = tmpdir / "_build"
@@ -38,5 +38,5 @@ def test_tutorial_root_with_relative_path(tmpdir: Path) -> None:
             build_dir / "html",
             build_dir / "doctrees",
             "html",
-            confoverrides={"tutorial_root": Path("foo")},
+            confoverrides={"structured_tutorials_root": Path("foo")},
         )

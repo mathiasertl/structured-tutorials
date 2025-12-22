@@ -16,8 +16,8 @@ def setup(app: Sphinx) -> ExtensionMetadata:
     # Add dependency on other extension:
     # app.setup_extension("sphinx.ext.autodoc")
     app.connect("config-inited", validate_configuration)
-    app.add_config_value("tutorial_root", Path(app.srcdir), "env", types=[Path])
-    app.add_config_value("structured_tutorial_command_text_width", 75, "env", types=[int])
+    app.add_config_value("structured_tutorials_root", Path(app.srcdir), "env", types=[Path])
+    app.add_config_value("structured_tutorials_command_text_width", 75, "env", types=[int])
 
     app.add_directive("structured-tutorial", TutorialDirective)
     app.add_directive("structured-tutorial-part", PartDirective)
