@@ -46,7 +46,7 @@ def chdir(dest: str | Path) -> Iterator[Path]:
         os.chdir(cwd)
 
 
-def _prompt(interactive: bool):
+def _prompt(interactive: bool) -> None:
     if interactive:
         input(f"""An error occurred while running the tutorial.
 Current working directory is {os.getcwd()}

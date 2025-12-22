@@ -17,7 +17,7 @@ from structured_tutorials.output import error, setup_logging
 from structured_tutorials.runners.local import LocalTutorialRunner
 
 
-def main(argv: Sequence[str] | None = None) -> None:
+def main(argv: Sequence[str] | None = None) -> int:
     """Main entry function for the command-line."""
     parser = argparse.ArgumentParser()
     parser.add_argument("path", type=Path)
@@ -65,11 +65,11 @@ def main(argv: Sequence[str] | None = None) -> None:
     except yaml.YAMLError as exc:  # an invalid YAML file
         error(f"{args.path}: Invalid YAML file:")
         print(exc, file=sys.stderr)
-        sys.exit(1)
+        return 1
     except ValueError as ex:  # thrown by Pydantic model loading
         error(f"{args.path}: File is not a valid Tutorial:")
         print(ex, file=sys.stderr)
-        sys.exit(1)
+        return 1
 
     runner = LocalTutorialRunner(
         tutorial,
@@ -83,9 +83,10 @@ def main(argv: Sequence[str] | None = None) -> None:
         runner.validate_alternatives()
     except InvalidAlternativesSelectedError as ex:
         error(str(ex))
-        sys.exit(1)
+        return 1
 
     try:
         runner.run()
     except RunTutorialException:
-        pass  # ignored, already handled by cleanup
+        return 1  # ignored, already handled by cleanup
+    return 0

@@ -53,7 +53,7 @@ class TestOutputModel(BaseModel):
         return value
 
     @model_validator(mode="after")
-    def validate(self) -> Self:
+    def validate_tests(self) -> Self:
         if not self.regex and not self.line_count and not self.character_count:
             raise ValueError("At least one test must be specified.")
         return self

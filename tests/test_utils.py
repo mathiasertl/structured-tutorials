@@ -21,7 +21,7 @@ from structured_tutorials.utils import check_count
 )
 def test_check_count(value: str, tested: COUNT_TYPE) -> None:
     """Test check_count."""
-    assert check_count(value, tested) is None
+    check_count(value, tested)
 
 
 @pytest.mark.parametrize(

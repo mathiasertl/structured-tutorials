@@ -5,12 +5,14 @@
 
 from collections.abc import Iterator
 from pathlib import Path
+from unittest import mock
 from unittest.mock import patch
 
 import pytest
 from pytest_subprocess import FakeProcess
 
 from structured_tutorials.cli import main
+from structured_tutorials.errors import RunTutorialException
 from structured_tutorials.models import TutorialModel
 
 
@@ -21,9 +23,15 @@ def mock_setup_logging() -> Iterator[None]:
         yield
 
 
-def test_simple_tutorial(simple_tutorial: TutorialModel) -> None:
+def test_simple_tutorial(fp: FakeProcess, simple_tutorial: TutorialModel) -> None:
     """Test the cli entry point function by running a simple tutorial."""
     main([str(simple_tutorial.path)])
+
+
+def test_simple_tutorial_with_run_exception(fp: FakeProcess, simple_tutorial: TutorialModel) -> None:
+    """Test the cli entry point function by running a simple tutorial."""
+    with mock.patch("structured_tutorials.cli.LocalTutorialRunner.run", side_effect=RunTutorialException()):
+        main([str(simple_tutorial.path)])
 
 
 @pytest.mark.tutorial_path("command-undefined-variable")
@@ -43,11 +51,8 @@ def test_undefined_variable_with_definition(fp: FakeProcess, tutorial_path: Path
 @pytest.mark.tutorial_path("invalid-yaml")
 def test_invalid_yaml_file(capsys: pytest.CaptureFixture[str], tutorial_path: Path) -> None:
     """Test error when loading an invalid YAML file."""
-    with pytest.raises(SystemExit) as exc_info:
-        main([str(tutorial_path)])
+    assert main([str(tutorial_path)]) == 1
     captured = capsys.readouterr()
-
-    assert exc_info.value.code == 1
     assert captured.out == ""
     assert "invalid-yaml.yaml: Invalid YAML file:" in captured.err
 
@@ -55,11 +60,9 @@ def test_invalid_yaml_file(capsys: pytest.CaptureFixture[str], tutorial_path: Pa
 @pytest.mark.tutorial_path("invalid-model")
 def test_invalid_model(capsys: pytest.CaptureFixture[str], tutorial_path: Path) -> None:
     """Test error when loading an invalid model."""
-    with pytest.raises(SystemExit) as exc_info:
-        main([str(tutorial_path)])
+    assert main([str(tutorial_path)]) == 1
     captured = capsys.readouterr()
 
-    assert exc_info.value.code == 1
     assert captured.out == ""
     assert "invalid-model.yaml: File is not a valid Tutorial" in captured.err
 
@@ -67,11 +70,9 @@ def test_invalid_model(capsys: pytest.CaptureFixture[str], tutorial_path: Path) 
 @pytest.mark.tutorial_path("empty")
 def test_empty_file(capsys: pytest.CaptureFixture[str], tutorial_path: Path) -> None:
     """Test error when loading an empty file (equal to an empty model)."""
-    with pytest.raises(SystemExit) as exc_info:
-        main([str(tutorial_path)])
+    assert main([str(tutorial_path)]) == 1
     captured = capsys.readouterr()
 
-    assert exc_info.value.code == 1
     assert captured.out == ""
     assert (
         "empty.yaml: File is not a valid Tutorial:\n"
@@ -82,10 +83,8 @@ def test_empty_file(capsys: pytest.CaptureFixture[str], tutorial_path: Path) -> 
 @pytest.mark.tutorial_path("alternatives")
 def test_invalid_alternative(capsys: pytest.CaptureFixture[str], tutorial_path: Path) -> None:
     """Test error when loading an empty file (equal to an empty model)."""
-    with pytest.raises(SystemExit) as exc_info:
-        main(["-a", "wrong", str(tutorial_path)])
+    assert main(["-a", "wrong", str(tutorial_path)]) == 1
     captured = capsys.readouterr()
 
-    assert exc_info.value.code == 1
     assert captured.out == ""
     assert "Part 1: No alternative selected." in captured.err
