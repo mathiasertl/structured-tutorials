@@ -73,7 +73,6 @@ Configure the tutorial that is being displayed - this will not show any output:
 
 ## TODO
 
-* Set context parameters in sphinx config
 * Ouptut test: lines/chars of output (exact or min/max)
 * Test file existance or something like that
 * Pre/post text for each part

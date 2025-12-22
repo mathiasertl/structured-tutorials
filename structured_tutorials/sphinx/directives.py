@@ -43,10 +43,11 @@ class TutorialDirective(CurrentDocumentMixin, SphinxDirective):
     def run(self) -> list[Node]:
         tutorial_arg = self.arguments[0].strip()
 
+        context = self.config.structured_tutorials_context.get(tutorial_arg, {})
         command_text_width: int = self.config.structured_tutorials_command_text_width
         tutorial_path = get_tutorial_path(self.config.structured_tutorials_root, tutorial_arg)
         self.current_document["tutorial"] = TutorialWrapper.from_file(
-            tutorial_path, command_text_width=command_text_width
+            tutorial_path, context=context, command_text_width=command_text_width
         )
 
         # NOTE: `highlighting` directive returns a custom Element for unknown reasons

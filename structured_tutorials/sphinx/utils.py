@@ -8,6 +8,7 @@ import shlex
 from copy import deepcopy
 from importlib import resources
 from pathlib import Path
+from typing import Any
 
 from jinja2 import Environment
 from sphinx.application import Sphinx
@@ -55,22 +56,28 @@ class TutorialWrapper:
     This class exists mainly to wrap the main logic into a separate class that is more easily testable.
     """
 
-    def __init__(self, tutorial: TutorialModel, command_text_width: int = 75) -> None:
+    def __init__(
+        self, tutorial: TutorialModel, context: dict[str, Any] | None = None, command_text_width: int = 75
+    ) -> None:
         self.tutorial = tutorial
         self.next_part = 0
         self.env = Environment(keep_trailing_newline=True)
         self.env.filters["wrap_command"] = wrap_command_filter
         self.context = deepcopy(tutorial.configuration.context)
         self.context.update(deepcopy(tutorial.configuration.doc.context))
+        if context:
+            self.context.update(context)
 
         # settings from sphinx:
         self.command_text_width = command_text_width
 
     @classmethod
-    def from_file(cls, path: Path, command_text_width: int = 75) -> "TutorialWrapper":
+    def from_file(
+        cls, path: Path, context: dict[str, Any] | None = None, command_text_width: int = 75
+    ) -> "TutorialWrapper":
         """Factory method for creating a TutorialWrapper from a file."""
         tutorial = TutorialModel.from_file(path)
-        return cls(tutorial)
+        return cls(tutorial, context=context, command_text_width=command_text_width)
 
     def render(self, template: str) -> str:
         return self.env.from_string(template).render(self.context)

@@ -18,6 +18,7 @@ def setup(app: Sphinx) -> ExtensionMetadata:
     app.connect("config-inited", validate_configuration)
     app.add_config_value("structured_tutorials_root", Path(app.srcdir), "env", types=[Path])
     app.add_config_value("structured_tutorials_command_text_width", 75, "env", types=[int])
+    app.add_config_value("structured_tutorials_context", {}, "env", types=[dict])
 
     app.add_directive("structured-tutorial", TutorialDirective)
     app.add_directive("structured-tutorial-part", PartDirective)

@@ -23,6 +23,11 @@ extensions = [
 
 DOC_ROOT = Path(__file__).parent.parent
 structured_tutorials_root = DOC_ROOT / "tutorials"
+structured_tutorials_context = {
+    "command-undefined-variable.yaml": {
+        "variable": "variable-defined-in-config",
+    }
+}
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
