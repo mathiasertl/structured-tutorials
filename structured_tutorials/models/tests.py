@@ -6,10 +6,11 @@
 import re
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, BeforeValidator, ConfigDict, Field
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, field_validator, model_validator
 
 from structured_tutorials.models.base import CommandBaseModel, CommandType, TestSpecificationMixin
 from structured_tutorials.models.validators import validate_regex
+from structured_tutorials.typing import COUNT_TYPE, Self
 
 
 class TestCommandModel(TestSpecificationMixin, CommandBaseModel):
@@ -35,6 +36,24 @@ class TestOutputModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     stream: Literal["stdout", "stderr"] = Field(default="stdout", description="The output stream to use.")
-    regex: Annotated[re.Pattern[bytes], BeforeValidator(validate_regex)] = Field(
-        description="A regular expression to test."
+    regex: Annotated[re.Pattern[bytes], BeforeValidator(validate_regex)] | None = Field(
+        default=None, description="A regular expression to test."
     )
+    line_count: COUNT_TYPE = Field(default=None, description="Test for the given line count.")
+    character_count: COUNT_TYPE = Field(default=None, description="Test for the given character count.")
+
+    @field_validator("line_count", "character_count", mode="after")
+    @classmethod
+    def validate_counts(cls, value: COUNT_TYPE) -> COUNT_TYPE:
+        if isinstance(value, tuple):
+            min, max = value
+            if min is not None and max is not None and min > max:
+                raise ValueError("Minimum is bigger then the maximum.")
+
+        return value
+
+    @model_validator(mode="after")
+    def validate(self) -> Self:
+        if not self.regex and not self.line_count and not self.character_count:
+            raise ValueError("At least one test must be specified.")
+        return self

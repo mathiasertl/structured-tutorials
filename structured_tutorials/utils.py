@@ -8,14 +8,31 @@ import os
 import random
 import string
 import subprocess
-from collections.abc import Iterator
+from collections.abc import Iterator, Sized
 from contextlib import contextmanager
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from structured_tutorials.errors import PromptNotConfirmedError, StructuredTutorialError
-from structured_tutorials.runners.base import RunnerBase
+from structured_tutorials.typing import COUNT_TYPE
+
+if TYPE_CHECKING:
+    from structured_tutorials.runners.base import RunnerBase
 
 log = logging.getLogger(__name__)
+
+
+def check_count(value: Sized, count: COUNT_TYPE) -> None:
+    """Shared function to test a count."""
+    if count is None:
+        return
+    if isinstance(count, int) and len(value) != count:
+        raise ValueError(f"{len(value)}, but expected {count}.")
+    if isinstance(count, tuple):
+        if count[0] is not None and len(value) < count[0]:
+            raise ValueError(f"{len(value)} is less then the minimum ({count[0]}).")
+        if count[1] is not None and len(value) > count[1]:
+            raise ValueError(f"{len(value)} is more then the maximum ({count[1]}).")
 
 
 @contextmanager
@@ -38,7 +55,7 @@ Press Enter to continue... """)
 
 
 @contextmanager
-def cleanup(runner: RunnerBase) -> Iterator[None]:
+def cleanup(runner: "RunnerBase") -> Iterator[None]:
     """Context manager to always run cleanup commands."""
     try:
         yield

@@ -123,6 +123,29 @@ def test_command_capture_output(
     assert runner.context["stderr"] == "bla"
 
 
+@pytest.mark.tutorial("command-test-output-count")
+def test_command_with_line_and_character_count(fp: FakeProcess, runner: LocalTutorialRunner) -> None:
+    """Test running a command and testing line/character count."""
+    fp.register("echo foo", stdout="foo")
+    runner.run()
+
+
+@pytest.mark.tutorial("command-test-output-count")
+def test_command_with_character_count_error(fp: FakeProcess, runner: LocalTutorialRunner) -> None:
+    """Test running a command that outputs too many characters."""
+    fp.register("echo foo", stdout="foobar")
+    with pytest.raises(RunTutorialException, match=r"^Character count error: 6, but expected 3\.$"):
+        runner.run()
+
+
+@pytest.mark.tutorial("command-test-output-count")
+def test_command_with_line_count_error(fp: FakeProcess, runner: LocalTutorialRunner) -> None:
+    """Test running a command that outputs too many lines."""
+    fp.register("echo foo", stdout="f\nb")
+    with pytest.raises(RunTutorialException, match=r"^Line count error: 2, but expected 1\.$"):
+        runner.run()
+
+
 @pytest.mark.tutorial("command-test-output")
 def test_command_with_invalid_output(
     caplog: pytest.LogCaptureFixture, fp: FakeProcess, runner: LocalTutorialRunner

@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from structured_tutorials.models import TutorialModel
 from structured_tutorials.models.base import CommandBaseModel
 from structured_tutorials.models.parts import FilePartModel
-from structured_tutorials.models.tests import TestCommandModel, TestPortModel
+from structured_tutorials.models.tests import TestCommandModel, TestOutputModel, TestPortModel
 
 
 def test_from_file(tutorial_paths: Path) -> None:
@@ -171,3 +171,16 @@ def test_annotated_field_constraints(model: type[BaseModel], data: dict[str, Any
     """Test annotated field constraints."""
     with pytest.raises(ValueError, match=error):
         model.model_validate(data)
+
+
+def test_output_model_with_empty_value() -> None:
+    """Test error for an TestOutputModel with no tests."""
+    with pytest.raises(ValueError, match=r"At least one test must be specified\."):
+        TestOutputModel.model_validate({})
+
+
+@pytest.mark.parametrize("field", ("line_count", "character_count"))
+def test_output_model_with_min_max_mismatch(field: str) -> None:
+    """Test error for an TestOutputModel where min is bigger than max."""
+    with pytest.raises(ValueError, match=r"Minimum is bigger then the maximum\."):
+        TestOutputModel.model_validate({field: [1, 0]})

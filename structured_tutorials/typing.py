@@ -13,3 +13,4 @@ except ImportError:  # pragma: no cover
 __all__ = [
     "Self",
 ]
+COUNT_TYPE = int | tuple[int | None, int | None] | None

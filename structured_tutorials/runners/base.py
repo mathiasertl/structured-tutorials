@@ -15,10 +15,12 @@ from typing import Any
 
 from jinja2 import Environment
 
-from structured_tutorials.errors import InvalidAlternativesSelectedError
+from structured_tutorials.errors import CommandOutputTestError, InvalidAlternativesSelectedError
 from structured_tutorials.models import AlternativeModel, TutorialModel
 from structured_tutorials.models.base import CommandType
 from structured_tutorials.models.parts import CleanupCommandModel
+from structured_tutorials.models.tests import TestOutputModel
+from structured_tutorials.utils import check_count
 
 command_logger = logging.getLogger("command")
 
@@ -54,6 +56,31 @@ class RunnerBase(abc.ABC):
             return self.render(command)
 
         return tuple(self.render(token) for token in command)
+
+    def test_output(self, proc: subprocess.CompletedProcess[bytes], test: TestOutputModel) -> None:
+        if test.stream == "stderr":
+            value = proc.stderr
+        else:
+            value = proc.stdout
+
+        if test.regex:
+            if (match := test.regex.search(value)) is not None:
+                self.context.update({k: v.decode("utf-8") for k, v in match.groupdict().items()})
+            else:
+                decoded = value.decode("utf-8")
+                raise CommandOutputTestError(f"Process did not have the expected output: '{decoded}'")
+
+        # Test for line/character count of output
+        if test.line_count:
+            try:
+                check_count(value.splitlines(), test.line_count)
+            except ValueError as ex:
+                raise CommandOutputTestError(f"Line count error: {ex}")
+        if test.character_count:
+            try:
+                check_count(value, test.character_count)
+            except ValueError as ex:
+                raise CommandOutputTestError(f"Character count error: {ex}")
 
     def validate_alternatives(self) -> None:
         """Validate that for each alternative part, an alternative was selected."""

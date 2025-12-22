@@ -1,0 +1,9 @@
+parts:
+  - commands:
+      - command: echo foo
+        run:
+          test:
+            - character_count: 3
+              line_count: 1
+            - character_count: [3, 3]
+              line_count: [1, 1]

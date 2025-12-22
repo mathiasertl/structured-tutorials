@@ -33,17 +33,8 @@ class LocalTutorialRunner(RunnerBase):
     ) -> None:
         # If the test is for an output stream, we can run it right away (the process has already finished).
         if isinstance(test, TestOutputModel):
-            if test.stream == "stderr":
-                value = proc.stderr
-            else:
-                value = proc.stdout
-
-            if (match := test.regex.search(value)) is not None:
-                self.context.update({k: v.decode("utf-8") for k, v in match.groupdict().items()})
-                return
-            else:
-                decoded = value.decode("utf-8")
-                raise CommandOutputTestError(f"Process did not have the expected output: '{decoded}'")
+            self.test_output(proc, test)
+            return
 
         # If an initial delay is configured, wait that long
         if test.delay > 0:
