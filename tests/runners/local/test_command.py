@@ -174,7 +174,7 @@ def test_environment(fp: FakeProcess, runner: LocalTutorialRunner) -> None:
     recorder1 = fp.register("echo 1 $VARIABLE")
     recorder2 = fp.register("echo 2 $VARIABLE")
     runner.run()
-    assert recorder1.calls[0].kwargs["env"]["VARIABLE"] == "VALUE 1"
+    assert recorder1.calls[0].kwargs["env"]["VARIABLE"] == "VALUE 1"  # type: ignore[index]
     assert recorder2.calls[0].kwargs == {
         "shell": True,
         "stdin": None,

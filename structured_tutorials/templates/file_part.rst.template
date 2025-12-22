@@ -1,3 +1,6 @@
+{% if text_before %}{{ text_before }}
+
+{% endif -%}
 .. code-block::{% if part.doc.language %} {{ part.doc.language }}{% endif %}{% if caption %}
     :caption: {{ caption }}{% endif %}{% if part.doc.linenos or part.doc.lineno_start %}
     :linenos:{% endif %}{% if part.doc.lineno_start %}
@@ -5,4 +8,6 @@
     :emphasize-lines: {{ part.doc.emphasize_lines }}{% endif %}{% if part.doc.name %}
     :name: {{ part.doc.name }}{% endif %}
 
-    {{ content|indent() }}
+    {{ content|indent() }}{% if text_after %}
+
+{{ text_after }}{% endif %}

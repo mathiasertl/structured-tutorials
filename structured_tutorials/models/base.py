@@ -67,6 +67,13 @@ class ConfigurationMixin:
     update_context: dict[str, Any] = Field(default_factory=dict)
 
 
+class DocumentationConfigurationMixin:
+    """Mixin for documentation configuration models."""
+
+    text_before: str = Field(default="", description="Text before documenting this part.")
+    text_after: str = Field(default="", description="Text after documenting this part.")
+
+
 class FileMixin:
     """Mixin for specifying a file (used in file part and for stdin of commands)."""
 

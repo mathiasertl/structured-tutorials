@@ -114,11 +114,15 @@ class TutorialWrapper:
             # Update the context from update_context
             self.context.update(command_config.doc.update_context)
 
-        template = """.. code-block:: console
-
-{% for cmd in commands %}{{ cmd|indent(4, first=True) }}
-{% endfor %}"""
-        return self.env.from_string(template).render({"commands": commands})
+        template_str = TEMPLATE_DIR.joinpath("commands_part.rst.template").read_text("utf-8")
+        template = self.env.from_string(template_str)
+        return template.render(
+            {
+                "commands": commands,
+                "text_after": self.render(part.doc.text_after),
+                "text_before": self.render(part.doc.text_before),
+            }
+        )
 
     def render_file(self, part: FilePartModel) -> str:
         content = part.contents
@@ -155,7 +159,15 @@ class TutorialWrapper:
 
         # Render template
         template = self.env.from_string(template_str)
-        value = template.render({"part": part, "content": content, "caption": caption})
+        value = template.render(
+            {
+                "part": part,
+                "content": content,
+                "caption": caption,
+                "text_after": self.render(part.doc.text_after),
+                "text_before": self.render(part.doc.text_before),
+            }
+        )
         return value
 
     def render_alternatives(self, part: AlternativeModel) -> str:
@@ -175,7 +187,14 @@ class TutorialWrapper:
 
         # Render template
         template = self.env.from_string(template_str)
-        value = template.render({"part": part, "tabs": tabs})
+        value = template.render(
+            {
+                "part": part,
+                "tabs": tabs,
+                "text_after": self.render(part.doc.text_after),
+                "text_before": self.render(part.doc.text_before),
+            }
+        )
         return value.strip()
 
     def render_part(self, part_id: str | None = None) -> str:

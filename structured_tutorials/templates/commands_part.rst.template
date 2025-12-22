@@ -1,0 +1,9 @@
+{% if text_before %}{{ text_before }}
+
+{% endif -%}
+.. code-block:: console
+
+{% for cmd in commands %}{{ cmd|indent(4, first=True) }}
+{% endfor %}{% if text_after %}
+
+{{ text_after }}{% endif %}

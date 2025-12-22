@@ -14,6 +14,7 @@ from structured_tutorials.models.base import (
     CommandBaseModel,
     CommandType,
     ConfigurationMixin,
+    DocumentationConfigurationMixin,
     FileMixin,
     template_field_title_generator,
 )
@@ -100,7 +101,7 @@ class CommandsRuntimeConfigurationModel(ConfigurationMixin, BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-class CommandsDocumentationConfigurationModel(ConfigurationMixin, BaseModel):
+class CommandsDocumentationConfigurationModel(ConfigurationMixin, DocumentationConfigurationMixin, BaseModel):
     """Documentation configuration for an entire commands part."""
 
     model_config = ConfigDict(extra="forbid")
@@ -124,7 +125,7 @@ class FileRuntimeConfigurationModel(ConfigurationMixin, BaseModel):
     model_config = ConfigDict(extra="forbid", title="File part runtime configuration")
 
 
-class FileDocumentationConfigurationModel(ConfigurationMixin, BaseModel):
+class FileDocumentationConfigurationModel(ConfigurationMixin, DocumentationConfigurationMixin, BaseModel):
     """Configure a file part when rendering it as documentation.
 
     For the `language`, `caption`, `linenos`, `lineno_start`, `emphasize_lines` and `name` options, please
@@ -203,7 +204,9 @@ class AlternativeRuntimeConfigurationModel(ConfigurationMixin, BaseModel):
     model_config = ConfigDict(extra="forbid", title="File part runtime configuration")
 
 
-class AlternativeDocumentationConfigurationModel(ConfigurationMixin, BaseModel):
+class AlternativeDocumentationConfigurationModel(
+    ConfigurationMixin, DocumentationConfigurationMixin, BaseModel
+):
     """Configure an alternative part when documenting the tutorial."""
 
     model_config = ConfigDict(extra="forbid", title="File part runtime configuration")

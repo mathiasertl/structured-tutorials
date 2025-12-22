@@ -1,0 +1,32 @@
+# alternatives with text before/after
+configuration:
+  context:
+    key: value
+parts:
+  - alternatives:
+      foo:
+        commands:
+          - command: ls foo
+      bar:
+        commands:
+          - command: ls bar
+    doc:
+      text_after: "after: {{ key }}"
+      text_before: "before: {{ key }}"
+  - alternatives:
+      foo:
+        commands:
+          - command: ls foo
+        doc:
+          text_after: "foo-after: {{ key }}"
+          text_before: "foo-before: {{ key }}"
+
+      bar:
+        commands:
+          - command: ls bar
+        doc:
+          text_after: "foo-after: {{ key }}"
+          text_before: "foo-before: {{ key }}"
+    doc:
+      text_after: "after2: {{ key }}"
+      text_before: "before2: {{ key }}"

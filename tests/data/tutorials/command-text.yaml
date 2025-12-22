@@ -1,0 +1,10 @@
+# commands with text before/after
+configuration:
+  context:
+    key: value
+parts:
+  - commands:
+      - command: ls
+    doc:
+      text_after: "after: {{ key }}"
+      text_before: "before: {{ key }}"

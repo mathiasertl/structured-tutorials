@@ -1,5 +1,9 @@
+{% if text_before %}{{ text_before }}
+
+{% endif -%}
 {% for title, contents in tabs %}
 .. tab:: {{ title }}
 
     {{ contents|indent() }}
 {% endfor %}
+{% if text_after %}{{ text_after }}{% endif %}

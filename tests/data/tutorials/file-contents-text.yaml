@@ -1,0 +1,10 @@
+# file with text before/after
+configuration:
+  context:
+    key: value
+parts:
+  - contents: foo
+    destination: "test.txt"
+    doc:
+      text_after: "after: {{ key }}"
+      text_before: "before: {{ key }}"

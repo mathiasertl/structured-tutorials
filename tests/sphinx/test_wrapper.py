@@ -318,3 +318,63 @@ def test_named_part_with_invalid_part_id(wrapper: TutorialWrapper) -> None:
     """Test naming the wrong ID when trying to render the next part."""
     with pytest.raises(ExtensionError, match=r"^wrong: Part is not the next part \(next one is id-file\)\.$"):
         wrapper.render_part("wrong")
+
+
+@pytest.mark.tutorial("command-text")
+def test_commands_with_before_after_text(wrapper: TutorialWrapper) -> None:
+    """Test command part with before-after text."""
+    code = ".. code-block:: console\n\n    user@host:~$ ls\n\n"
+    assert wrapper.render_part() == f"before: value\n\n{code}\nafter: value"
+
+
+@pytest.mark.tutorial("file-contents-text")
+def test_file_with_before_after_text(wrapper: TutorialWrapper) -> None:
+    """Test file part with before-after text."""
+    code = ".. code-block::\n    :caption: test.txt\n\n    foo\n\n"
+    assert wrapper.render_part() == f"before: value\n\n{code}after: value"
+
+
+@pytest.mark.tutorial("alternatives-text")
+def test_alternative_with_before_after_text(wrapper: TutorialWrapper) -> None:
+    """Test file part with before-after text."""
+    code = """
+.. tab:: foo
+
+    .. code-block:: console
+
+        user@host:~$ ls foo
+
+.. tab:: bar
+
+    .. code-block:: console
+
+        user@host:~$ ls bar
+
+"""
+    assert wrapper.render_part() == f"before: value\n\n{code}after: value"
+
+    code = """
+.. tab:: foo
+
+    foo-before: value
+
+    .. code-block:: console
+
+        user@host:~$ ls foo
+
+
+    foo-after: value
+
+.. tab:: bar
+
+    foo-before: value
+
+    .. code-block:: console
+
+        user@host:~$ ls bar
+
+
+    foo-after: value
+
+"""
+    assert wrapper.render_part() == f"before2: value\n\n{code}after2: value"
