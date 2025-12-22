@@ -1,0 +1,7 @@
+# Tutorial with a file part with contents and a destination directory.
+# This is an error, as the file name cannot be determined.
+parts:
+  - contents: foo
+    destination: "{{ tmp_path }}/destination.txt"
+  - contents: bar
+    destination: "{{ tmp_path }}/destination.txt"

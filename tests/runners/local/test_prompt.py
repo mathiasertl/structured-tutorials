@@ -8,7 +8,6 @@ from unittest.mock import call
 
 import pytest
 
-from structured_tutorials.errors import PromptNotConfirmedError
 from structured_tutorials.models import TutorialModel
 from structured_tutorials.runners.local import LocalTutorialRunner
 
@@ -58,12 +57,14 @@ def test_confirm_prompt_confirms_with_default_false(answer: str, runner: LocalTu
 
 @pytest.mark.parametrize("answer", ("", "n", "no"))
 @pytest.mark.tutorial("prompt-confirm-default-false")
-def test_confirm_prompt_does_not_confirm_with_default_false(answer: str, runner: LocalTutorialRunner) -> None:
+def test_confirm_prompt_does_not_confirm_with_default_false(
+    caplog: pytest.LogCaptureFixture, answer: str, runner: LocalTutorialRunner
+) -> None:
     """Test confirm prompt where answer does not confirm with default=False."""
     with mock.patch("builtins.input", return_value=answer, autospec=True) as mock_input:
-        with pytest.raises(PromptNotConfirmedError, match=r"^State was not confirmed\.$"):
-            runner.run()
+        runner.run()
     mock_input.assert_called_once_with("example: ")
+    assert "State was not confirmed." in caplog.text
 
 
 @pytest.mark.tutorial("prompt-confirm-default-false")
@@ -74,29 +75,16 @@ def test_confirm_prompt_with_invalid_response(runner: LocalTutorialRunner) -> No
     mock_input.assert_has_calls([call("example: "), call("example: ")])
 
 
-def test_confirm_prompt_does_not_confirm_error_template() -> None:
+@pytest.mark.tutorial("prompt-confirm-error-template")
+def test_confirm_prompt_does_not_confirm_error_template(
+    caplog: pytest.LogCaptureFixture, runner: LocalTutorialRunner
+) -> None:
     """Test confirm prompt where answer does not confirm with default=False."""
     answer = "no"
-    value = "example value"
-    configuration = TutorialModel.model_validate(
-        {
-            "path": "/dummy.yaml",
-            "configuration": {"run": {"context": {"example": value}}},
-            "parts": [
-                {
-                    "prompt": "example:",
-                    "response": "confirm",
-                    "default": False,
-                    "error": "{{ response }}: {{ example }}: This is wrong.",
-                }
-            ],
-        }
-    )
-    runner = LocalTutorialRunner(configuration)
     with mock.patch("builtins.input", return_value=answer, autospec=True) as mock_input:
-        with pytest.raises(PromptNotConfirmedError, match=rf"^{answer}: {value}: This is wrong\.$"):
-            runner.run()
+        runner.run()
     mock_input.assert_called_once_with("example: ")
+    assert f"{answer}: {runner.context['key']}: This is wrong."
 
 
 def test_prompt_template() -> None:

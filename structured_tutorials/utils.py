@@ -12,7 +12,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 
-from structured_tutorials.errors import PromptNotConfirmedError
+from structured_tutorials.errors import PromptNotConfirmedError, StructuredTutorialError
 from structured_tutorials.runners.base import RunnerBase
 
 log = logging.getLogger(__name__)
@@ -29,23 +29,29 @@ def chdir(dest: str | Path) -> Iterator[Path]:
         os.chdir(cwd)
 
 
+def _prompt(interactive: bool):
+    if interactive:
+        input(f"""An error occurred while running the tutorial.
+Current working directory is {os.getcwd()}
+
+Press Enter to continue... """)
+
+
 @contextmanager
 def cleanup(runner: RunnerBase) -> Iterator[None]:
     """Context manager to always run cleanup commands."""
     try:
         yield
+    except PromptNotConfirmedError as ex:
+        # The user did not confirm a prompt. We just log this fact as warning and continue with cleanup.
+        # We do NOT prompt the user here, as we assume the user already inspected the state.
+        log.warning(ex)
+    except StructuredTutorialError as ex:
+        log.error(ex)
+        _prompt(runner.interactive)
     except Exception as ex:
-        # Prompt the user to inspect the state if running in interactive mode AND the error is not already a
-        # prompt confirmation prompt (in which case we assume the user already inspected the state).
-        if not isinstance(ex, PromptNotConfirmedError):
-            log.exception(ex)
-
-        if runner.interactive and not isinstance(ex, PromptNotConfirmedError):
-            input(f"""An error occurred while running the tutorial.
-Current working directory is {os.getcwd()}
-
-Press Enter to continue... """)
-        raise
+        log.exception(ex)
+        _prompt(runner.interactive)
     finally:
         if runner.cleanup:
             log.info("Running cleanup commands.")

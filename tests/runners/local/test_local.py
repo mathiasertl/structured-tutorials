@@ -28,11 +28,13 @@ def test_exit_code_tutorial(fp: FakeProcess, doc_runner: LocalTutorialRunner) ->
 
 
 @pytest.mark.doc_tutorial("exit_code")
-def test_exit_code_tutorial_with_error(fp: FakeProcess, doc_runner: LocalTutorialRunner) -> None:
+def test_exit_code_tutorial_with_error(
+    caplog: pytest.LogCaptureFixture, fp: FakeProcess, doc_runner: LocalTutorialRunner
+) -> None:
     """Test behavior if a command has the wrong status code."""
     fp.register(["false"], returncode=2)
-    with pytest.raises(RuntimeError, match=r"false failed with return code 2 \(expected: 1\)\.$"):
-        doc_runner.run()
+    doc_runner.run()
+    assert "false failed with return code 2 (expected: 1)." in caplog.text
 
 
 def test_templates_tutorial(fp: FakeProcess) -> None:
@@ -93,42 +95,27 @@ def test_file_copy(tmp_path: Path, doc_tutorial: TutorialModel) -> None:
         assert stream.read() == "test: {{ variable }}"
 
 
-def test_file_part_with_destination_exists(tmp_path: Path) -> None:
-    """Test that file parts have a destination that already exists.."""
-    dest = tmp_path / "test.txt"
-    configuration = TutorialModel.model_validate(
-        {
-            "path": "/dummy.yaml",
-            "parts": [
-                {"contents": "foo", "destination": str(dest)},
-                {"contents": "bar", "destination": str(dest)},
-            ],
-        }
-    )
-    runner = LocalTutorialRunner(configuration, interactive=False)
-    with pytest.raises(RuntimeError, match=rf"^{dest}: Destination already exists\.$"):
-        runner.run()
+@pytest.mark.tutorial("file-contents-exists")
+def test_file_part_with_destination_exists(
+    caplog: pytest.LogCaptureFixture, tmp_path: Path, runner: LocalTutorialRunner
+) -> None:
+    """Test that file parts have a destination that already exists."""
+    runner.context["tmp_path"] = tmp_path
+    runner.run()
+    assert f"{tmp_path}/destination.txt: Destination already exists" in caplog.text
 
-    with open(dest) as stream:
+    # Make sure we still have the old contents
+    with open(tmp_path / "destination.txt") as stream:
         assert stream.read() == "foo"
 
 
-def test_file_part_with_contents_with_destination_template(tmp_path: Path) -> None:
+@pytest.mark.tutorial("file-contents-destination-dir")
+def test_file_part_with_contents_with_destination_template(
+    caplog: pytest.LogCaptureFixture, tmp_path: Path, runner: LocalTutorialRunner
+) -> None:
     """Test that file parts have a destination that already exists."""
-    configuration = TutorialModel.model_validate(
-        {
-            "path": "/dummy.yaml",
-            "configuration": {"run": {"context": {"example": "dest/"}}},
-            "parts": [
-                {"contents": "foo", "destination": "{{ example }}"},
-            ],
-        }
-    )
-    runner = LocalTutorialRunner(configuration, interactive=False)
-    with pytest.raises(
-        RuntimeError, match=r"^dest/: Destination is directory, but no source given to derive filename\.$"
-    ):
-        runner.run()
+    runner.run()
+    assert "dir/: Destination is directory, but no source given to derive filename." in caplog.text
 
 
 def test_temporary_directory(tmp_path: Path, fp: FakeProcess) -> None:

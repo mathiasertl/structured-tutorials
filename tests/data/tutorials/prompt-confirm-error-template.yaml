@@ -1,0 +1,8 @@
+configuration:
+  context:
+    key: value
+parts:
+  - prompt: "example:   "
+    response: confirm
+    default: false
+    error: "{{ response }}: {{ key }}: This is wrong."
