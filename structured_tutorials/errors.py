@@ -8,6 +8,10 @@ class StructuredTutorialError(Exception):
     """Base class for all exceptions thrown by this project."""
 
 
+class RunTutorialException(StructuredTutorialError):
+    """Exception that is raised when we capture an exception while running (and not yet cleaning up)."""
+
+
 class InvalidAlternativesSelectedError(StructuredTutorialError):
     """Exception raised when an invalid alternative is selected."""
 

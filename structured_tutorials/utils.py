@@ -13,7 +13,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from structured_tutorials.errors import PromptNotConfirmedError, StructuredTutorialError
+from structured_tutorials.errors import PromptNotConfirmedError, RunTutorialException, StructuredTutorialError
 from structured_tutorials.typing import COUNT_TYPE
 
 if TYPE_CHECKING:
@@ -66,9 +66,11 @@ def cleanup(runner: "RunnerBase") -> Iterator[None]:
     except StructuredTutorialError as ex:
         log.error(ex)
         _prompt(runner.interactive)
+        raise RunTutorialException(ex) from ex
     except Exception as ex:
         log.exception(ex)
         _prompt(runner.interactive)
+        raise RunTutorialException(ex) from ex
     finally:
         if runner.cleanup:
             log.info("Running cleanup commands.")

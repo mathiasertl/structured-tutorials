@@ -9,6 +9,7 @@ from unittest import mock
 import pytest
 from pytest_subprocess import FakeProcess
 
+from structured_tutorials.errors import RunTutorialException
 from structured_tutorials.models import FilePartModel, TutorialModel
 from structured_tutorials.runners.local import LocalTutorialRunner
 from tests.conftest import DOCS_TUTORIALS_DIR, TEST_TUTORIALS_DIR
@@ -33,7 +34,8 @@ def test_exit_code_tutorial_with_error(
 ) -> None:
     """Test behavior if a command has the wrong status code."""
     fp.register(["false"], returncode=2)
-    doc_runner.run()
+    with pytest.raises(RunTutorialException):
+        doc_runner.run()
     assert "false failed with return code 2 (expected: 1)." in caplog.text
 
 
@@ -101,7 +103,8 @@ def test_file_part_with_destination_exists(
 ) -> None:
     """Test that file parts have a destination that already exists."""
     runner.context["tmp_path"] = tmp_path
-    runner.run()
+    with pytest.raises(RunTutorialException):
+        runner.run()
     assert f"{tmp_path}/destination.txt: Destination already exists" in caplog.text
 
     # Make sure we still have the old contents
@@ -114,7 +117,11 @@ def test_file_part_with_contents_with_destination_template(
     caplog: pytest.LogCaptureFixture, tmp_path: Path, runner: LocalTutorialRunner
 ) -> None:
     """Test that file parts have a destination that already exists."""
-    runner.run()
+    with pytest.raises(
+        RunTutorialException,
+        match=r"^dir/: Destination is directory, but no source given to derive filename\.$",
+    ):
+        runner.run()
     assert "dir/: Destination is directory, but no source given to derive filename." in caplog.text
 
 

@@ -12,6 +12,7 @@ from unittest import mock
 import pytest
 from pytest_subprocess import FakeProcess
 
+from structured_tutorials.errors import RunTutorialException
 from structured_tutorials.runners.local import LocalTutorialRunner
 
 
@@ -42,7 +43,8 @@ def test_command_cleanup_from_docs_with_error(
     fp.register("cmd1", returncode=1)
     fp.register("clean1")
     fp.register("clean2")
-    doc_runner.run()
+    with pytest.raises(RunTutorialException, match=r"^cmd1 failed with return code 1 \(expected: 0\)\.$"):
+        doc_runner.run()
     assert "cmd1 failed with return code 1 (expected: 0)." in caplog.text
 
 
@@ -147,25 +149,21 @@ def test_command_with_line_count_error(fp: FakeProcess, runner: LocalTutorialRun
 
 
 @pytest.mark.tutorial("command-test-output")
-def test_command_with_invalid_output(
-    caplog: pytest.LogCaptureFixture, fp: FakeProcess, runner: LocalTutorialRunner
-) -> None:
+def test_command_with_invalid_output(fp: FakeProcess, runner: LocalTutorialRunner) -> None:
     """Test running a commands with capturing the output."""
-    fp.register("echo foo bar bla", stdout="wrong output")
-    runner.run()
-    assert "Process did not have the expected output: 'wrong output'" in caplog.text
+    fp.register("echo foo bar bla", stdout="wrong")
+    with pytest.raises(RunTutorialException, match=r"^Process did not have the expected output: 'wrong'$"):
+        runner.run()
 
 
 @pytest.mark.doc_tutorial("test-command")
-def test_test_commands_with_command_error(
-    caplog: pytest.LogCaptureFixture, fp: FakeProcess, doc_runner: LocalTutorialRunner
-) -> None:
+def test_test_commands_with_command_error(fp: FakeProcess, doc_runner: LocalTutorialRunner) -> None:
     """Test the cleanup from docs."""
     fp.register("touch test.txt")
     fp.register("test -e test.txt", returncode=1)
     fp.register("rm test.txt")  # cleanup of part 1
-    doc_runner.run()
-    assert "Test did not pass" in caplog.text
+    with pytest.raises(RunTutorialException, match="Test did not pass"):
+        doc_runner.run()
 
 
 @pytest.mark.tutorial("command-simple")
@@ -175,7 +173,10 @@ def test_command_with_error_with_interactive_mode(
     """Test prompt when an error occurs when interactive mode is enabled."""
     fp.register("ls", returncode=1)
     runner.interactive = True  # force interactive mode
-    with mock.patch("builtins.input", return_value="", autospec=True) as mock_input:
+    with (
+        mock.patch("builtins.input", return_value="", autospec=True) as mock_input,
+        pytest.raises(RunTutorialException, match=r"^ls failed with return code 1 \(expected: 0\)\.$"),
+    ):
         runner.run()
     mock_input.assert_called_once_with(
         "An error occurred while running the tutorial.\n"
@@ -205,9 +206,7 @@ def test_test_commands_with_one_socket_error(fp: FakeProcess, doc_runner: LocalT
 
 
 @pytest.mark.doc_tutorial("test-port")
-def test_test_commands_with_socket_error(
-    caplog: pytest.LogCaptureFixture, fp: FakeProcess, doc_runner: LocalTutorialRunner
-) -> None:
+def test_test_commands_with_socket_error(fp: FakeProcess, doc_runner: LocalTutorialRunner) -> None:
     """Test the cleanup from docs."""
     fp.register("sleep 3s && ncat -e /bin/cat -k -l 1234 &")
     fp.register("pkill sleep")
@@ -218,8 +217,9 @@ def test_test_commands_with_socket_error(
     ):
         connect_mock = mock.MagicMock(side_effect=Exception("error"))
         mock_socket.return_value.connect = connect_mock
-        doc_runner.run()
-    assert "Test did not pass" in caplog.text
+
+        with pytest.raises(RunTutorialException, match="Test did not pass"):
+            doc_runner.run()
 
     # 2-second sleep is the initial delay
     assert mock_sleep.mock_calls == [mock.call(2), mock.call(1.0), mock.call(2.0), mock.call(4.0)]

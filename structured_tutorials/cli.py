@@ -11,7 +11,7 @@ from pathlib import Path
 import yaml
 
 from structured_tutorials import __version__
-from structured_tutorials.errors import InvalidAlternativesSelectedError
+from structured_tutorials.errors import InvalidAlternativesSelectedError, RunTutorialException
 from structured_tutorials.models import TutorialModel
 from structured_tutorials.output import error, setup_logging
 from structured_tutorials.runners.local import LocalTutorialRunner
@@ -85,4 +85,7 @@ def main(argv: Sequence[str] | None = None) -> None:
         error(str(ex))
         sys.exit(1)
 
-    runner.run()
+    try:
+        runner.run()
+    except RunTutorialException:
+        pass  # ignored, already handled by cleanup
