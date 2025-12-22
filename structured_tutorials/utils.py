@@ -76,7 +76,12 @@ def cleanup(runner: "RunnerBase") -> Iterator[None]:
             log.info("Running cleanup commands.")
 
         for command_config in runner.cleanup:
-            runner.run_shell_command(command_config.command, command_config.show_output)
+            runner.run_shell_command(
+                command_config.command,
+                command_config.show_output,
+                environment=command_config.environment,
+                clear_environment=command_config.clear_environment,
+            )
 
 
 def git_export(destination: str | Path, ref: str = "HEAD") -> Path:

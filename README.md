@@ -73,13 +73,13 @@ Configure the tutorial that is being displayed - this will not show any output:
 
 ## TODO
 
-* Test file existance or something like that
-* Pre/post text for each part
 * Running commands:
 
   * Clear env
   * Add env (value is template)
 
+* Pre/post text for each part
+* Test file existence or something like that
 * Platform independent "echo" step (useful for debugging/testing)
 * Run in vagrant
 

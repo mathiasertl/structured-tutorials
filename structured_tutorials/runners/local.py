@@ -13,7 +13,7 @@ import tempfile
 import time
 from pathlib import Path
 
-from structured_tutorials.errors import CommandOutputTestError, CommandTestError, PromptNotConfirmedError
+from structured_tutorials.errors import CommandTestError, PromptNotConfirmedError
 from structured_tutorials.models.parts import AlternativeModel, CommandsPartModel, FilePartModel, PromptModel
 from structured_tutorials.models.tests import TestCommandModel, TestOutputModel, TestPortModel
 from structured_tutorials.runners.base import RunnerBase
@@ -45,7 +45,12 @@ class LocalTutorialRunner(RunnerBase):
             tries += 1
 
             if isinstance(test, TestCommandModel):
-                test_proc = self.run_shell_command(test.command, show_output=test.show_output)
+                test_proc = self.run_shell_command(
+                    test.command,
+                    show_output=test.show_output,
+                    environment=test.environment,
+                    clear_environment=test.clear_environment,
+                )
 
                 if test.status_code == test_proc.returncode:
                     return
@@ -96,6 +101,8 @@ class LocalTutorialRunner(RunnerBase):
                         show_output=command_config.run.show_output,
                         capture_output=capture_output,
                         stdin=stdin,
+                        environment=command_config.run.environment,
+                        clear_environment=command_config.run.clear_environment,
                     )
             else:
                 proc = self.run_shell_command(
@@ -103,6 +110,8 @@ class LocalTutorialRunner(RunnerBase):
                     show_output=command_config.run.show_output,
                     capture_output=capture_output,
                     input=proc_input,
+                    environment=command_config.run.environment,
+                    clear_environment=command_config.run.clear_environment,
                 )
 
             # Update list of cleanup commands

@@ -1,0 +1,11 @@
+parts:
+  - commands:
+      - command: echo 1 $VARIABLE
+        run:
+          environment:
+            VARIABLE: VALUE 1
+      - command: echo 2 $VARIABLE
+        run:
+          clear_environment: true
+          environment:
+            VARIABLE: VALUE 2

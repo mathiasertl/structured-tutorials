@@ -6,6 +6,7 @@
 import abc
 import io
 import logging
+import os
 import shlex
 import subprocess
 import sys
@@ -75,12 +76,12 @@ class RunnerBase(abc.ABC):
             try:
                 check_count(value.splitlines(), test.line_count)
             except ValueError as ex:
-                raise CommandOutputTestError(f"Line count error: {ex}")
+                raise CommandOutputTestError(f"Line count error: {ex}") from ex
         if test.character_count:
             try:
                 check_count(value, test.character_count)
             except ValueError as ex:
-                raise CommandOutputTestError(f"Character count error: {ex}")
+                raise CommandOutputTestError(f"Character count error: {ex}") from ex
 
     def validate_alternatives(self) -> None:
         """Validate that for each alternative part, an alternative was selected."""
@@ -104,11 +105,14 @@ class RunnerBase(abc.ABC):
         capture_output: bool = False,
         stdin: int | io.BufferedReader | None = None,
         input: bytes | None = None,
+        environment: dict[str, Any] | None = None,
+        clear_environment: bool = False,
     ) -> CompletedProcess[bytes]:
         # Only show output if runner itself is not configured to hide all output
         if show_output:
             show_output = self.show_command_output
 
+        # Configure stdout/stderr streams
         if capture_output:
             stdout: int | None = subprocess.PIPE
             stderr: int | None = subprocess.PIPE
@@ -116,6 +120,20 @@ class RunnerBase(abc.ABC):
             stdout = stderr = None
         else:
             stdout = stderr = subprocess.DEVNULL
+
+        # Configure environment
+        if environment:
+            # If environment is passed, we render variables as templates
+            environment = {k: self.render(v) for k, v in environment.items()}
+        elif environment is None:  # pragma: no cover  # dict is always passed directly
+            # just to simplify the next branch -> environment is always a dict
+            environment = {}
+        if clear_environment:
+            env = environment
+        elif environment:
+            env = {**os.environ, **environment}
+        else:
+            env = None
 
         # Render the command (args) as template
         command = self.render_command(command)
@@ -127,7 +145,9 @@ class RunnerBase(abc.ABC):
             logged_command = shlex.join(logged_command)
 
         command_logger.info(logged_command)
-        proc = subprocess.run(command, shell=shell, stdin=stdin, input=input, stdout=stdout, stderr=stderr)
+        proc = subprocess.run(
+            command, shell=shell, stdin=stdin, input=input, stdout=stdout, stderr=stderr, env=env
+        )
 
         # If we want to show the output and capture it at the same time, we need can only show the streams
         # separately at the end.

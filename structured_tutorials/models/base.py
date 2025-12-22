@@ -43,6 +43,10 @@ class CommandBaseModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     status_code: Annotated[int, Field(ge=0, le=255)] = 0
+    clear_environment: bool = Field(default=False, description="Clear the environment.")
+    environment: dict[str, Any] = Field(
+        default_factory=dict, description="Additional environment variables for the process."
+    )
     show_output: bool = Field(
         default=True, description="Set to `False` to always hide the output of this command."
     )
