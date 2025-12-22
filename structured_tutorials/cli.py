@@ -52,9 +52,13 @@ def main(argv: Sequence[str] | None = None) -> None:
         default=True,
         help="Do not show the output of commands that are run on the terminal.",
     )
+    parser.add_argument(
+        "-D", "--define", action="append", default=[], nargs=2, help="Define custom variables in context."
+    )
     args = parser.parse_args(argv)
 
     setup_logging(level=args.log_level, no_colors=args.no_colors, show_commands=args.show_commands)
+    context = {k: v for k, v in args.define}
 
     try:
         tutorial = TutorialModel.from_file(args.path)
@@ -72,6 +76,7 @@ def main(argv: Sequence[str] | None = None) -> None:
         alternatives=tuple(args.alternatives),
         show_command_output=args.show_command_output,
         interactive=args.interactive,
+        context=context,
     )
 
     try:

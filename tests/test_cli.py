@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from pytest_subprocess import FakeProcess
 
 from structured_tutorials.cli import main
 from structured_tutorials.models import TutorialModel
@@ -23,6 +24,20 @@ def mock_setup_logging() -> Iterator[None]:
 def test_simple_tutorial(simple_tutorial: TutorialModel) -> None:
     """Test the cli entry point function by running a simple tutorial."""
     main([str(simple_tutorial.path)])
+
+
+@pytest.mark.tutorial_path("command-undefined-variable")
+def test_undefined_variable(fp: FakeProcess, tutorial_path: Path) -> None:
+    """Test running a tutorial with an undefined variable."""
+    fp.register("ls ")
+    main([str(tutorial_path)])
+
+
+@pytest.mark.tutorial_path("command-undefined-variable")
+def test_undefined_variable_with_definition(fp: FakeProcess, tutorial_path: Path) -> None:
+    """Test running a tutorial with an undefined variable, but passing it through the command-line."""
+    fp.register("ls foo")
+    main([str(tutorial_path), "-D", "variable", "foo"])
 
 
 @pytest.mark.tutorial_path("invalid-yaml")

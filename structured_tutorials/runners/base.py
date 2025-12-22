@@ -32,10 +32,14 @@ class RunnerBase(abc.ABC):
         alternatives: tuple[str, ...] = (),
         show_command_output: bool = True,
         interactive: bool = True,
+        context: dict[str, Any] | None = None,
     ):
         self.tutorial = tutorial
         self.context = deepcopy(tutorial.configuration.context)
         self.context.update(deepcopy(tutorial.configuration.run.context))
+        if context:
+            self.context.update(context)
+
         self.env = Environment(keep_trailing_newline=True)
         self.cleanup: list[CleanupCommandModel] = []
         self.alternatives = alternatives
