@@ -1,19 +1,37 @@
 configuration:
-  doc:
+  context:  # context shared between documentation and runtime
+    filename: example.json
+  doc:  # template context at runtime
     context:
-      dir: example
-      filename: example.txt
-      contents: test content
-  run:
+      dest: /tmp/tmp...
+      contents: '{"key": "doc"}'
+  run:  # template context at runtime
     context:
-      dir: runtime
-      filename: runtime.txt
-      contents: real data
+      # dest is captured and added to the context by mktemp at runtime
+      contents: '{"key": "run"}'
 parts:
-  - commands:
-      - command: mkdir {{ dir }}
-      - command: echo {{ contents }} > {{ dir }}/{{ filename }}
-      - command: cat {{ dir }}/{{ filename }}
+  - id: create-directory
+    commands:
+      - command: mktemp -d
         doc:
-          output: |
-            {{ contents }}
+          output: "{{ dest }}"
+        run:
+          show_output: false
+          test:
+            # Capture the whole output and add it to the context
+            - regex: (?P<dest>.*)
+          cleanup:
+            # Remove temporary directory after running the tutorial
+            - command: rm -rf {{ dest }}
+  - id: create-file
+    contents: "{{ contents }}\n"
+    destination: "{{ dest }}/{{ filename }}"
+    doc:
+      language: json
+  - commands:
+      - command: cat {{ dest }}/{{ filename }}
+        doc:
+          output: "{{ contents }}"
+      - command: cat {{ dest }}/{{ filename }} | python -m json.tool
+        doc:
+          output: ...

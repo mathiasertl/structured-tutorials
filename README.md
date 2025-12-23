@@ -39,7 +39,7 @@ extensions = [
 ## Your first (trivial) tutorial
 
 To create your first tutorial, create it in `docs/tutorial.yaml` (or elsewhere, if you configured
-`tutorial_root` in `conf.py`):
+`structured_tutorials_root` in `conf.py`):
 
 ```yaml
 parts:

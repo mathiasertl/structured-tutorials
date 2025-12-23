@@ -6,10 +6,16 @@ Quickstart
 Installation
 ************
 
-To do: show how to install wheel once it exists.
+**structured-tutorials** is published on `PyPI <https://pypi.org/project/structured-tutorials/>`_ and
+thus can simply be installed via ``pip`` (or any other package management tool, such as
+`uv <https://docs.astral.sh/uv/>`_):
 
-To configure Sphinx, you need to add an extension and, optionally, the root directory where the tutorials are
-located:
+.. code-block:: console
+
+    $ pip install structured-tutorials
+
+To render your tutorials in Sphinx, add the extension and, optionally, where your tutorials are stored
+(this can be outside of the Sphinx root):
 
 .. code-block:: python
 
@@ -18,11 +24,8 @@ located:
         "structured_tutorials.sphinx",
     ]
 
-    DOC_ROOT = Path(__file__).parent
-
-    # configure the root directory where tutorials are located. Defaults to
-    # the Sphinx source directory.
-    #structured_tutorials_root = DOC_ROOT / "tutorials"
+    # Location where your tutorials are stored (default: same directory as conf.py).
+    #structured_tutorials_root = Path(__file__).parent / "tutorials"
 
 
 *******************
@@ -40,8 +43,12 @@ You can run this tutorial straight away:
 .. code-block:: console
 
     user@host:~/example/$ structured-tutorial docs/tutorials/quickstart/tutorial.yaml
+    Running part 0...
+    + structured-tutorial --help
     usage: structured-tutorial [-h] path
     ...
+    + echo "Finished running example tutorial."
+    Finished running example tutorial.
 
 Finally, you can render the tutorial in your Sphinx tutorial:
 
@@ -54,58 +61,63 @@ In fact, above lines are included below, so this is how this tutorial will rende
 .. include:: /include/quickstart.rst
 
 ***********************
-Tutorials are templates
+A more advanced example
 ***********************
 
-Commands as well as output are rendered using `Jinja <https://jinja.palletsprojects.com/en/stable/>`_
-templates. This allows you to reduce repetition of values or cases where a tutorial should behave differently
-from runtime when rendering documentation.
+The above is nice but not very useful. Let's show you a few new cool features next.
 
-The following example will create a directory, writes to a file in it and outputs the contents of said file:
+Commands, output, file contents and many other parts are rendered using `Jinja templates
+<https://jinja.palletsprojects.com/en/stable/>`_. This allows you to reduce repetition of and use different
+values for documentation and runtime.
+
+Tutorials can create files (that are shown appropriately in your documentation). The tutorial below shows you
+how to create a JSON file that shows up with proper syntax highlighting.
+
+You can test success of a command by checking the status code, output or even if a TCP port was
+opened. When checking the output, you can use regular expressions for matching and even named patterns to
+update the context with runtime data. Below we create a temporary directory with ``mktemp`` and use it
+later to create the file in it.
+
+The following example will create a directory, writes to a file in it and outputs its contents:
 
 .. literalinclude:: /tutorials/templates/tutorial.yaml
     :caption: docs/tutorials/templates/tutorial.yaml
     :language: yaml
 
-This is how the documentation renders:
+Render this tutorial
+====================
 
-.. structured-tutorial:: templates/tutorial.yaml
+The code in your reStructuredText doesn't look much different. You render three parts, and the first two
+reference the id you have given them in the YAML file.
 
-.. structured-tutorial-part::
+.. literalinclude:: /include/quickstart-more-features.rst
+    :caption: docs/tutorial.rst
+    :language: rst
 
-However, when running, you will just get:
+The above file is included below.
+
+.. include:: /include/quickstart-more-features.rst
+
+Run this tutorial
+=================
+
+When running this tutorial, it'll do what you instructed the user to do: Create a temporary directory, then a
+JSON file in it, and then output it. Cleanup is assured through the cleanup directive, even if one of the
+commands would fail:
 
 .. code-block:: console
 
-    user@host:~$ structured-tutorial docs/tutorials/templates/tutorial.yaml
-    real data
-
-***************************
-Tutorials can contain files
-***************************
-
-Tutorials can contain files that are also rendered as templates.
-
-The following example tutorial could be used to instruct the user to create a JSON file in
-``/tmp/example.json`` and then call ``python`` to verify the syntax.
-
-Using this YAML file:
-
-.. literalinclude:: /tutorials/simple-file/tutorial.yaml
-    :caption: docs/tutorials/simple-file/tutorial.yaml
-    :language: yaml
-
-you could render a Tutorial like this:
-
-.. structured-tutorial:: simple-file/tutorial.yaml
-
-Create a configuration file with the following contents:
-
-.. structured-tutorial-part::
-
-and make sure it is valid JSON:
-
-.. structured-tutorial-part::
+    user@host:~/example/$ structured-tutorial docs/tutorials/templates/tutorial.yaml
+    Running part create-directory...
+    + mktemp -d
+    Running part create-file...
+    Running part 2...
+    + cat /tmp/tmp.6G6S9dX0MN/example.txt
+    {"key": "run"}
+    + cat /tmp/tmp.6G6S9dX0MN/example.txt | python -m json.tool
+    ...
+    INFO     | Running cleanup commands.
+    + rm -r /tmp/tmp.6G6S9dX0M
 
 ********************************************
 Generating documentation out of the tutorial
