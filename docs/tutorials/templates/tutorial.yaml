@@ -28,6 +28,8 @@ parts:
     destination: "{{ dest }}/{{ filename }}"
     doc:
       language: json
+      # If you use sphinxcontrib-spelling, make sure the filename is not spell-checked
+      ignore_spelling: true
   - commands:
       - command: cat {{ dest }}/{{ filename }}
         doc:
