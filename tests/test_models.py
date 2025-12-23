@@ -182,5 +182,12 @@ def test_output_model_with_empty_value() -> None:
 @pytest.mark.parametrize("field", ("line_count", "character_count"))
 def test_output_model_with_min_max_mismatch(field: str) -> None:
     """Test error for an TestOutputModel where min is bigger than max."""
-    with pytest.raises(ValueError, match=r"Minimum is bigger then the maximum\."):
+    with pytest.raises(ValueError, match=r"Minimum \(1\) is greater than maximum \(0\)\."):
         TestOutputModel.model_validate({field: [1, 0]})
+
+
+@pytest.mark.parametrize("field", ("line_count", "character_count"))
+def test_output_model_with_min_and_max_none(field: str) -> None:
+    """Test error for an TestOutputModel where min and max are both None."""
+    with pytest.raises(ValueError, match=r"At least one of minimum or maximum must be specified\."):
+        TestOutputModel.model_validate({field: [None, None]})

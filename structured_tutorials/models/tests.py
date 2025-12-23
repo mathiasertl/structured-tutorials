@@ -6,7 +6,7 @@
 import re
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, model_validator
 
 from structured_tutorials.models.base import CommandBaseModel, CommandType, TestSpecificationMixin
 from structured_tutorials.models.validators import validate_regex
@@ -41,16 +41,6 @@ class TestOutputModel(BaseModel):
     )
     line_count: COUNT_TYPE = Field(default=None, description="Test for the given line count.")
     character_count: COUNT_TYPE = Field(default=None, description="Test for the given character count.")
-
-    @field_validator("line_count", "character_count", mode="after")
-    @classmethod
-    def validate_counts(cls, value: COUNT_TYPE) -> COUNT_TYPE:
-        if isinstance(value, tuple):
-            min, max = value
-            if min is not None and max is not None and min > max:
-                raise ValueError("Minimum is bigger then the maximum.")
-
-        return value
 
     @model_validator(mode="after")
     def validate_tests(self) -> Self:
