@@ -73,6 +73,18 @@ def tutorial(request: pytest.FixtureRequest) -> TutorialModel:
 
 
 @pytest.fixture
+def expected_rst(request: pytest.FixtureRequest) -> str:
+    """Fixture to get a tutorial from the test fixtures."""
+    marker = request.node.get_closest_marker("tutorial")
+    if marker is None:
+        raise ValueError("tutorial fixture requires a marker with a file name.")
+    else:
+        data: str = marker.args[0]
+
+    return (TEST_TUTORIALS_DIR / f"{data}.rst").read_text().strip() + "\n"
+
+
+@pytest.fixture
 def doc_tutorial_path(request: pytest.FixtureRequest) -> Path:
     """Fixture to get a tutorial path from the documentation."""
     marker = request.node.get_closest_marker("doc_tutorial_path")

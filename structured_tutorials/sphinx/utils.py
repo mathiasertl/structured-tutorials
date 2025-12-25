@@ -86,6 +86,10 @@ class TutorialWrapper:
         """Render a CommandsPartModel as a code-block."""
         commands = []
         for command_config in part.commands:
+            # Skip individual commands if marked as skipped for documentation
+            if command_config.doc.skip:
+                continue
+
             # Render the prompt
             prompt = self.env.from_string(self.context["prompt_template"]).render(self.context)
 

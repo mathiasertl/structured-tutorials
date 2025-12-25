@@ -70,6 +70,15 @@ def test_command_as_list(fp: FakeProcess, runner: LocalTutorialRunner) -> None:
     assert recorder_cleanup.calls[0].kwargs == expected
 
 
+@pytest.mark.tutorial("command-skip-single-command")
+def test_command_skip_single_command(fp: FakeProcess, runner: LocalTutorialRunner) -> None:
+    """Run a tutorial where a single command is skipped."""
+    fp.register("echo 1")
+    fp.register("echo 2")
+    # echo 3 is skipped at runtime
+    runner.run()
+
+
 @pytest.mark.tutorial("command-with-chdir")
 def test_command_with_chdir(fp: FakeProcess, runner: LocalTutorialRunner) -> None:
     """Test changing the working directory after a command."""

@@ -63,6 +63,12 @@ def test_command_as_list(wrapper: TutorialWrapper) -> None:
     assert wrapper.render_part() == ".. code-block:: console\n\n    user@host:~$ echo 'word with spaces'\n"
 
 
+@pytest.mark.tutorial("command-skip-single-command")
+def test_command_skip_single_command(wrapper: TutorialWrapper, expected_rst: str) -> None:
+    """Render a tutorial where a single command is skipped."""
+    assert wrapper.render_part() == expected_rst
+
+
 @pytest.mark.parametrize(
     ("file_config", "expected"),
     (
