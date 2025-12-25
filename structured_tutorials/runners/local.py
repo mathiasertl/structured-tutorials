@@ -52,6 +52,9 @@ class LocalTutorialRunner(RunnerBase):
                     clear_environment=test.clear_environment,
                 )
 
+                # Update environment regardless of success of command
+                self.environment.update({k: self.render(v) for k, v in test.update_environment.items()})
+
                 if test.status_code == test_proc.returncode:
                     return
                 else:
@@ -134,6 +137,11 @@ class LocalTutorialRunner(RunnerBase):
             # Run test commands
             for test_command_config in command_config.run.test:
                 self.run_test(test_command_config, proc)
+
+            # Update environment (after test commands - they may update the context)
+            self.environment.update(
+                {k: self.render(v) for k, v in command_config.run.update_environment.items()}
+            )
 
     def write_file(self, part: FilePartModel) -> None:
         """Write a file."""

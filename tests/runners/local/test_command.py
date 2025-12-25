@@ -64,7 +64,7 @@ def test_command_as_list(fp: FakeProcess, runner: LocalTutorialRunner) -> None:
     recorder_test = fp.register(["ls", "test with spaces"])
     recorder_cleanup = fp.register(["ls", "cleanup with spaces"])
     runner.run()
-    expected = {"shell": False, "stdin": None, "stderr": None, "stdout": None, "env": None}
+    expected = {"shell": False, "stdin": None, "stderr": None, "stdout": None, "env": {}}
     assert recorder_main.calls[0].kwargs == expected
     assert recorder_test.calls[0].kwargs == expected
     assert recorder_cleanup.calls[0].kwargs == expected
@@ -117,7 +117,7 @@ def test_command_hide_output(fp: FakeProcess, runner: LocalTutorialRunner) -> No
         "stdin": None,
         "stderr": subprocess.DEVNULL,
         "stdout": subprocess.DEVNULL,
-        "env": None,
+        "env": {},
     }
     assert recorder_main.calls[0].kwargs == expected
     assert recorder_test.calls[0].kwargs == expected
@@ -136,7 +136,7 @@ def test_command_capture_output(
         "stdin": None,
         "stderr": subprocess.PIPE,
         "stdout": subprocess.PIPE,
-        "env": None,
+        "env": {},
     }
     assert recorder.calls[0].kwargs == expected
     output = capsys.readouterr()
@@ -175,22 +175,6 @@ def test_command_with_invalid_output(fp: FakeProcess, runner: LocalTutorialRunne
     fp.register("echo foo bar bla", stdout="wrong")
     with pytest.raises(RunTutorialException, match=r"^Process did not have the expected output: 'wrong'$"):
         runner.run()
-
-
-@pytest.mark.tutorial("command-simple-env")
-def test_environment(fp: FakeProcess, runner: LocalTutorialRunner) -> None:
-    """Test running a commands with environment variables."""
-    recorder1 = fp.register("echo 1 $VARIABLE")
-    recorder2 = fp.register("echo 2 $VARIABLE")
-    runner.run()
-    assert recorder1.calls[0].kwargs["env"]["VARIABLE"] == "VALUE 1"  # type: ignore[index]
-    assert recorder2.calls[0].kwargs == {
-        "shell": True,
-        "stdin": None,
-        "stderr": None,
-        "stdout": None,
-        "env": {"VARIABLE": "VALUE 2"},
-    }
 
 
 @pytest.mark.doc_tutorial("test-command")

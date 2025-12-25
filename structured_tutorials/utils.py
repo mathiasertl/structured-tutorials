@@ -83,6 +83,11 @@ def cleanup(runner: "RunnerBase") -> Iterator[None]:
                 clear_environment=command_config.clear_environment,
             )
 
+            # Update environment for subsequent commands
+            runner.environment.update(
+                {k: runner.render(v) for k, v in command_config.update_environment.items()}
+            )
+
 
 def git_export(destination: str | Path, ref: str = "HEAD") -> Path:
     """Export the git repository to `django-ca-{ref}/` in the given destination directory.

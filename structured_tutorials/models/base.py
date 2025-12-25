@@ -44,7 +44,10 @@ class CommandBaseModel(BaseModel):
 
     status_code: Annotated[int, Field(ge=0, le=255)] = 0
     clear_environment: bool = Field(default=False, description="Clear the environment.")
-    environment: dict[str, Any] = Field(
+    update_environment: dict[str, str] = Field(
+        default_factory=dict, description="Update the environment for all subsequent commands."
+    )
+    environment: dict[str, str] = Field(
         default_factory=dict, description="Additional environment variables for the process."
     )
     show_output: bool = Field(

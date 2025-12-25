@@ -1,0 +1,27 @@
+configuration:
+  run:
+    clear_environment: true
+parts:
+  - commands:
+      # First command gets a clear environment, but updates env for subsequent commands
+      - command: "echo \"1: VALUE\""
+        run:
+          test:
+            - regex: "(?P<VALUE>.*)"
+          update_environment:
+            KEY: "{{ VALUE }}"
+
+      # Temporarily override environment variable
+      - command: "echo \"2: $KEY\""
+        run:
+          environment:
+            KEY: OTHER VALUE
+            KEY2: VALUE2
+
+      # Gets clear env, just with the one set in step 1
+      - command: "echo \"3: $KEY\""
+
+      # clear environment entirely
+      - command: "echo \"4: $KEY\""
+        run:
+          clear_environment: true

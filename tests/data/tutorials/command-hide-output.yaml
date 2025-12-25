@@ -1,3 +1,6 @@
+configuration:
+  run:
+    clear_environment: true
 parts:
   - commands:
       - command: ls main

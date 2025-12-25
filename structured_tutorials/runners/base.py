@@ -38,12 +38,24 @@ class RunnerBase(abc.ABC):
         context: dict[str, Any] | None = None,
     ):
         self.tutorial = tutorial
+
+        # Create Jinja2 environment for rendering templates
+        self.env = Environment(keep_trailing_newline=True)
+
+        # Compute initial context
         self.context = deepcopy(tutorial.configuration.context)
         self.context.update(deepcopy(tutorial.configuration.run.context))
         if context:
             self.context.update(context)
 
-        self.env = Environment(keep_trailing_newline=True)
+        # Set up the environment for commands
+        if tutorial.configuration.run.clear_environment:
+            self.environment = {}
+        else:
+            self.environment = os.environ.copy()
+        self.environment.update(tutorial.configuration.run.environment)
+        self.environment = {k: self.render(v) for k, v in self.environment.items() if v is not None}
+
         self.cleanup: list[CleanupCommandModel] = []
         self.alternatives = alternatives
         self.show_command_output = show_command_output
@@ -131,9 +143,9 @@ class RunnerBase(abc.ABC):
         if clear_environment:
             env = environment
         elif environment:
-            env = {**os.environ, **environment}
+            env = {**self.environment, **environment}
         else:
-            env = None
+            env = self.environment
 
         # Render the command (args) as template
         command = self.render_command(command)

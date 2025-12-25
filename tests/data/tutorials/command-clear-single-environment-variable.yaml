@@ -1,0 +1,7 @@
+configuration:
+  run:
+    environment:
+      ENV_1: null
+parts:
+  - commands:
+      - command: ls

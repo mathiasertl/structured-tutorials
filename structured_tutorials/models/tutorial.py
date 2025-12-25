@@ -57,6 +57,12 @@ class RuntimeConfigurationModel(BaseModel):
         default=False,
         description="Export a git archive to a temporary directory before running the tutorial.",
     )
+    environment: dict[str, str | None] = Field(
+        default_factory=dict,
+        description="Additional environment variables for all commands."
+        "Set a value to `None` to clear it from the global environment.",
+    )
+    clear_environment: bool = Field(default=False, description="Clear the environment for all commands.")
 
     @model_validator(mode="after")
     def set_default_context(self) -> Self:
