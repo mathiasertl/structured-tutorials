@@ -1,0 +1,9 @@
+configuration:
+  run:
+    context:
+      VALUE: /does/not/exist
+parts:
+  - commands:
+      - command: ls
+        run:
+          chdir: "{{ VALUE }}"

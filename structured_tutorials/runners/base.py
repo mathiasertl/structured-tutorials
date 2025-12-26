@@ -53,7 +53,7 @@ class RunnerBase(abc.ABC):
             self.environment = {}
         else:
             self.environment = os.environ.copy()
-        self.environment.update(tutorial.configuration.run.environment)
+        self.environment.update(tutorial.configuration.run.environment)  # type: ignore[arg-type]  # temporary
         self.environment = {k: self.render(v) for k, v in self.environment.items() if v is not None}
 
         self.cleanup: list[CleanupCommandModel] = []

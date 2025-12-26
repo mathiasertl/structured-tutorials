@@ -6,7 +6,7 @@
 import io
 import os
 import subprocess
-from pathlib import Path
+from typing import Any
 from unittest import mock
 
 import pytest
@@ -64,7 +64,7 @@ def test_command_as_list(fp: FakeProcess, runner: LocalTutorialRunner) -> None:
     recorder_test = fp.register(["ls", "test with spaces"])
     recorder_cleanup = fp.register(["ls", "cleanup with spaces"])
     runner.run()
-    expected = {"shell": False, "stdin": None, "stderr": None, "stdout": None, "env": {}}
+    expected: dict[str, Any] = {"shell": False, "stdin": None, "stderr": None, "stdout": None, "env": {}}
     assert recorder_main.calls[0].kwargs == expected
     assert recorder_test.calls[0].kwargs == expected
     assert recorder_cleanup.calls[0].kwargs == expected
@@ -85,7 +85,16 @@ def test_command_with_chdir(fp: FakeProcess, runner: LocalTutorialRunner) -> Non
     fp.register("ls")
     with mock.patch("os.chdir", autospec=True) as mock_chdir:
         runner.run()
-    mock_chdir.assert_called_once_with(Path("/does/not/exist"))
+    mock_chdir.assert_called_once_with("/does/not/exist")
+
+
+@pytest.mark.tutorial("command-with-chdir-template")
+def test_command_with_chdir_with_template(fp: FakeProcess, runner: LocalTutorialRunner) -> None:
+    """Test changing the working directory after a command."""
+    fp.register("ls")
+    with mock.patch("os.chdir", autospec=True) as mock_chdir:
+        runner.run()
+    mock_chdir.assert_called_once_with("/does/not/exist")
 
 
 @pytest.mark.tutorial("command-stdin")
@@ -112,7 +121,7 @@ def test_command_hide_output(fp: FakeProcess, runner: LocalTutorialRunner) -> No
     recorder_test = fp.register("ls test")
     recorder_cleanup = fp.register("ls cleanup")
     runner.run()
-    expected = {
+    expected: dict[str, Any] = {
         "shell": True,
         "stdin": None,
         "stderr": subprocess.DEVNULL,
@@ -131,7 +140,7 @@ def test_command_capture_output(
     """Test running a commands with capturing the output."""
     recorder = fp.register("echo foo bar bla", stdout="foo bar bla", stderr="foo bla bla")
     runner.run()
-    expected = {
+    expected: dict[str, Any] = {
         "shell": True,
         "stdin": None,
         "stderr": subprocess.PIPE,

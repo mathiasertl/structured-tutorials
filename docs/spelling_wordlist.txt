@@ -7,3 +7,4 @@ hostname
 cwd
 backend
 reStructuredText
+bugfix

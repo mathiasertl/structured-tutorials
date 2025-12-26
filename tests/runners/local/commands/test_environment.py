@@ -36,7 +36,9 @@ def test_simple_environment(fp: FakeProcess, runner: LocalTutorialRunner) -> Non
     recorder = fp.register("ls")
     assert runner.environment == ENV
     runner.run()
-    assert recorder.calls[0].kwargs["env"] == ENV
+    actual_kwargs = recorder.calls[0].kwargs
+    assert actual_kwargs is not None
+    assert actual_kwargs["env"] == ENV
 
 
 @pytest.mark.tutorial("command-clear-single-environment-variable")
@@ -46,7 +48,9 @@ def test_clear_single_environment_variable(fp: FakeProcess, runner: LocalTutoria
     recorder = fp.register("ls")
     assert runner.environment == {"ENV_2": "VALUE_2"}
     runner.run()
-    assert recorder.calls[0].kwargs["env"] == {"ENV_2": "VALUE_2"}
+    actual_kwargs = recorder.calls[0].kwargs
+    assert actual_kwargs is not None
+    assert actual_kwargs["env"] == {"ENV_2": "VALUE_2"}
 
 
 @pytest.mark.tutorial("command-clear-environment-globally")
@@ -58,10 +62,10 @@ def test_global_environment(fp: FakeProcess, runner: LocalTutorialRunner) -> Non
     recorder3 = fp.register('echo "3: $KEY"')
     recorder4 = fp.register('echo "4: $KEY"')
     runner.run()
-    assert recorder1.calls[0].kwargs["env"] == {}
-    assert recorder2.calls[0].kwargs["env"] == {"KEY": "OTHER VALUE", "KEY2": "VALUE2"}
-    assert recorder3.calls[0].kwargs["env"] == {"KEY": "1: VALUE"}
-    assert recorder4.calls[0].kwargs["env"] == {}
+    assert recorder1.calls[0].kwargs["env"] == {}  # type: ignore[index]
+    assert recorder2.calls[0].kwargs["env"] == {"KEY": "OTHER VALUE", "KEY2": "VALUE2"}  # type: ignore[index]
+    assert recorder3.calls[0].kwargs["env"] == {"KEY": "1: VALUE"}  # type: ignore[index]
+    assert recorder4.calls[0].kwargs["env"] == {}  # type: ignore[index]
 
 
 @pytest.mark.tutorial("command-env-variable-for-single-command")

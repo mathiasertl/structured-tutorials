@@ -3,6 +3,19 @@ ChangeLog
 #########
 
 ******************
+0.3.0 (2025-12-26)
+******************
+
+* Tutorials can now be configured to pass a clear environment to all processes.
+* Tutorials can now configure additional environment variables passed to all processes.
+* Single commands can now update the environment for all subsequent commands. Values are rendered as
+  templates, so you can add (parts of) the output of a command to the environment by combining a test for
+  the command output that uses a named pattern in a regular expression for the output.
+* ``parts.{commands}.{command}.run.{chdir}`` is now a template. This allows you to change the directory based
+  on the output of a previous command.
+* Bugfix: Individual commands marked as skipped for documentation, are now actually skipped.
+
+******************
 0.2.0 (2025-12-23)
 ******************
 
