@@ -1,5 +1,7 @@
 """Standard Sphinx configuration module."""
 
+from importlib.util import find_spec
+
 # Configuration file for the Sphinx documentation builder.
 #
 # For the full list of built-in configuration values, see the documentation:
@@ -18,12 +20,14 @@ release = "0.1.0"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    "sphinx_rtd_theme",
     "sphinxcontrib.spelling",
     "structured_tutorials.sphinx",
     "sphinx_inline_tabs",
 ]
-html_theme = "sphinx_rtd_theme"
+
+if find_spec("sphinx_rtd_theme") is not None:
+    extensions.append("sphinx_rtd_theme")
+    html_theme = "sphinx_rtd_theme"
 
 DOC_ROOT = Path(__file__).parent
 structured_tutorials_root = DOC_ROOT / "tutorials"

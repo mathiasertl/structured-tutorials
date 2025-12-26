@@ -14,7 +14,7 @@ dependencies = [
     "jinja2>=3.1.6",
     "pydantic>=2.11.4",
     "pyyaml>=6.0.2",
-    "sphinx>=8.2.0;python_version>='3.11'",
+    "sphinx>=8.1.0;python_version>='3.11'",
     "sphinx~=8.1.0;python_version<'3.11'",
     "sphinx-inline-tabs>=2025",
     "termcolor>=3.2.0",
@@ -122,6 +122,7 @@ conflicts = [
         { group = "Sphinx8.2" },
         { group = "Sphinx9.0" },
     ],
+    [ { group = "Sphinx9.0" }, { group = "rtd" } ]
 ]
 
 [dependency-groups]
@@ -134,14 +135,15 @@ dev = [
     "pytest-random-order>=1.1.1",
     "pytest-subprocess>=1.5.3",
     "ruff>=0.11.10",
-    "sphinx-rtd-theme>=3.0.2",
     "sphinxcontrib-spelling>=8.0.1",
     "types-colorama>=0.4.15.20250801",
     "types-docutils>=0.21.0.20250604",
     "types-pyyaml>=6.0.12.20250516",
 ]
+rtd = [
+    "sphinx-rtd-theme>=3.0.2",
+]
 
-"Sphinx8.1" = [ "Sphinx~=8.1.0;python_version<'3.11'" ]
+"Sphinx8.1" = [ "Sphinx~=8.1.0" ]
 "Sphinx8.2" = [ "Sphinx~=8.2.0;python_version>='3.11'" ]
-# Not working b/c of RTD theme ATM
-#"Sphinx9.0" = [ "Sphinx~=9.0.0;python_version>='3.11'" ]
+"Sphinx9.0" = [ "Sphinx~=9.0.0;python_version>='3.11'" ]

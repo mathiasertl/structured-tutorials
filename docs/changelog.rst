@@ -6,6 +6,7 @@ ChangeLog
 0.3.0 (2025-12-26)
 ******************
 
+* Add support for Sphinx 9.0.
 * Tutorials can now be configured to pass a clear environment to all processes.
 * Tutorials can now configure additional environment variables passed to all processes.
 * Single commands can now update the environment for all subsequent commands. Values are rendered as
