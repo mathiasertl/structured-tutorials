@@ -63,22 +63,26 @@ class StdinCommandModel(FileMixin, BaseModel):
 
 
 class CommandRuntimeConfigurationModel(ConfigurationMixin, CommandBaseModel):
-    """Model for runtime configuration when running a single command."""
+    """Runtime configuration for a single command."""
 
     model_config = ConfigDict(extra="forbid")
 
-    chdir: Path | None = Field(default=None, description="Change working directory to this path.")
+    chdir: Path | None = Field(
+        default=None,
+        description=f"Change working directory to this path. This change affects all subsequent commands."
+        f" {TEMPLATE_DESCRIPTION}",
+    )
     cleanup: tuple[CleanupCommandModel, ...] = tuple()
     test: tuple[TestCommandModel | TestPortModel | TestOutputModel, ...] = tuple()
     stdin: StdinCommandModel | None = None
 
 
 class CommandDocumentationConfigurationModel(ConfigurationMixin, BaseModel):
-    """Model for documenting a single command."""
+    """Documentation configuration for a single command."""
 
     model_config = ConfigDict(extra="forbid")
 
-    output: str = ""
+    output: str = Field(default="", description="The output to show when rendering the command.")
 
 
 class CommandModel(BaseModel):
