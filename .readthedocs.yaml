@@ -18,8 +18,8 @@ build:
       - git fetch --all --tags || true
     create_environment:
       - asdf plugin add uv
-      - asdf install uv 0.9.2
-      - asdf global uv 0.9.2
+      - asdf install uv 0.9.27
+      - asdf global uv 0.9.27
     install:
       - uv sync --group dev --group rtd
     pre_build:
