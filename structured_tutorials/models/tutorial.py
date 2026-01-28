@@ -6,13 +6,60 @@
 from pathlib import Path
 from typing import Annotated, Any
 
-from pydantic import BaseModel, ConfigDict, Discriminator, Field, Tag, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Discriminator,
+    Field,
+    RootModel,
+    Tag,
+    field_validator,
+    model_validator,
+)
 from pydantic_core.core_schema import ValidationInfo
 from yaml import safe_load
 
-from structured_tutorials.models.base import default_tutorial_root_factory
+from structured_tutorials.models.base import DictRootModelMixin, default_tutorial_root_factory
 from structured_tutorials.models.parts import AlternativeModel, PartModels, PromptModel, part_discriminator
 from structured_tutorials.typing import Self
+
+
+class DocumentationAlternativeConfigurationModel(BaseModel):
+    """Additional documentation configuration for alternatives."""
+
+    model_config = ConfigDict(extra="forbid", title="Additional configuration for alternatives.")
+
+    context: dict[str, Any] = Field(
+        default_factory=dict, description="Key/value pairs for the initial context for an alternative."
+    )
+    name: str = Field(default="", description="Name of the alternative (used e.g. in tab titles).")
+
+
+class RuntimeAlternativeConfigurationModel(BaseModel):
+    """Additional runtime configuration for alternatives."""
+
+    model_config = ConfigDict(extra="forbid", title="Additional configuration for alternatives.")
+
+    context: dict[str, Any] = Field(
+        default_factory=dict, description="Key/value pairs for the initial context for an alternative."
+    )
+    environment: dict[str, str | None] = Field(
+        default_factory=dict, description="Additional environment variables for all commands."
+    )
+
+
+class DocumentationAlternativesConfigurationModel(
+    DictRootModelMixin[DocumentationAlternativeConfigurationModel],
+    RootModel[dict[str, DocumentationAlternativeConfigurationModel]],
+):
+    pass
+
+
+class RuntimeAlternativesConfigurationModel(
+    DictRootModelMixin[RuntimeAlternativeConfigurationModel],
+    RootModel[dict[str, RuntimeAlternativeConfigurationModel]],
+):
+    pass
 
 
 class DocumentationConfigurationModel(BaseModel):
@@ -23,9 +70,8 @@ class DocumentationConfigurationModel(BaseModel):
     context: dict[str, Any] = Field(
         default_factory=dict, description="Key/value pairs for the initial context when rendering templates."
     )
-    alternative_names: dict[str, str] = Field(
-        default_factory=dict,
-        description="Names for alternative keys, used in tab titles. By default, the key itself is used.",
+    alternatives: DocumentationAlternativesConfigurationModel = Field(
+        default_factory=lambda: DocumentationAlternativesConfigurationModel({})
     )
 
     @model_validator(mode="after")
@@ -63,6 +109,9 @@ class RuntimeConfigurationModel(BaseModel):
         "Set a value to `None` to clear it from the global environment.",
     )
     clear_environment: bool = Field(default=False, description="Clear the environment for all commands.")
+    alternatives: RuntimeAlternativesConfigurationModel = Field(
+        default_factory=lambda: RuntimeAlternativesConfigurationModel({})
+    )
 
     @model_validator(mode="after")
     def set_default_context(self) -> Self:
