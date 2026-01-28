@@ -24,7 +24,7 @@ build:
       - uv sync --group dev --group rtd
     pre_build:
       - ./fetch_swagger.sh
-      - uv run generate-schema.py
+      - uv run generate-schema.py -o > docs/_static/schema.json
     build:
       html:
         - uv run sphinx-build -T -b html docs/ $READTHEDOCS_OUTPUT/html
