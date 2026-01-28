@@ -297,14 +297,36 @@ def test_prompt(parts: tuple[str, ...], expected: list[str]) -> None:
 )
 def test_alternatives(aliases: dict[str, str], alternatives: dict[str, Any], expected: str) -> None:
     """Test alternative parts."""
+    alternative_configs = {k: {"name": v} for k, v in aliases.items()}
     data = {
         "path": "/dummy.yaml",
-        "configuration": {"doc": {"alternative_names": aliases}},
+        "configuration": {"doc": {"alternatives": alternative_configs}},
         "parts": [{"alternatives": alternatives}],
     }
     tutorial = TutorialModel.model_validate(data)
     wrapper = TutorialWrapper(tutorial)
     assert wrapper.render_part() == expected
+
+
+@pytest.mark.tutorial("alternatives-configuration")
+def test_alternatives_with_configuration(wrapper: TutorialWrapper) -> None:
+    """Test alternative parts with configuration."""
+    assert (
+        wrapper.render_part()
+        == """.. tab:: FOO
+
+    .. code-block:: console
+
+        user@host:~$ echo foo FOO: foo-var
+
+.. tab:: BAR
+
+    .. code-block:: console
+
+        user@host:~$ ls bar BAR: bar-var"""
+    )
+
+    assert wrapper.render_part() == ".. code-block:: console\n\n    user@host:~$ echo xx yy zz\n"
 
 
 @pytest.mark.tutorial("named-part")

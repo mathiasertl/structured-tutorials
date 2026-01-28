@@ -1,18 +1,37 @@
 configuration:
   doc:
-    # Optional: Specify names that show up in tabs instead of the keys used below:
-    alternative_names:
-      mariadb: MariaDB
-      postgresql: PostgreSQL
+    # Optional: Specify additional configuration for each alternative
+    alternatives:
+      mariadb:
+        name: MariaDB
+        context:
+          package: mariadb-server
+      postgresql:
+        name: PostgreSQL
+        context:
+          package: postgresql
+  # you can also update configuration at runtime
+  run:
+    alternatives:
+      mariadb:
+        context:
+          dbclient: mysql
+      postgresql:
+        context:
+          dbclient: psql
 parts:
   # part 1: install database backend
   - alternatives:
-      mariadb:
+      # We use YAML anchors here to reduce duplication. "{{ package }}" is the name of the
+      # correct package.
+      mariadb: &install-package
         commands:
-          - command: echo sudo apt install mariadb-server
-      postgresql:
-        commands:
-          - command: echo sudo apt install postgresql
+          - command: sudo apt install {{ package }}
+      postgresql: *install-package
+    run:
+      # Skip installation of packages at runtime (we don't want the tutorial
+      # to require sudo)
+      skip: true
 
   # part 2: configure some application for that database
   - alternatives:

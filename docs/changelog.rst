@@ -2,6 +2,12 @@
 ChangeLog
 #########
 
+***********
+0.4.0 (TBR)
+***********
+
+* Alternatives now allow specific context and environment variables.
+
 ******************
 0.3.0 (2025-12-26)
 ******************

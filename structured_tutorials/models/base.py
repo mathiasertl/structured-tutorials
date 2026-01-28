@@ -4,7 +4,7 @@
 """Base model classes."""
 
 from pathlib import Path
-from typing import Annotated, Any
+from typing import Annotated, Any, Generic, TypeVar, overload
 
 from pydantic import (
     BaseModel,
@@ -21,6 +21,7 @@ from structured_tutorials.typing import Self
 
 # Type for commands to execute
 CommandType = str | tuple[str, ...]
+V = TypeVar("V")
 
 TEMPLATE_DESCRIPTION = "This value is rendered as a template with the current context."
 
@@ -75,6 +76,21 @@ class DocumentationConfigurationMixin:
 
     text_before: str = Field(default="", description="Text before documenting this part.")
     text_after: str = Field(default="", description="Text after documenting this part.")
+
+
+class DictRootModelMixin(Generic[V]):
+    """Mixin for dict-based root models."""
+
+    root: dict[str, V]
+
+    @overload
+    def get(self, key: str, default: V) -> V: ...
+
+    @overload
+    def get(self, key: str, default: None) -> V | None: ...
+
+    def get(self, key: str, default: V | None = None) -> V | None:
+        return self.root.get(key, default)
 
 
 class FileMixin:

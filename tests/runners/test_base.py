@@ -33,3 +33,12 @@ def test_validate_alternatives_with_multiple_selected_alternatives(tutorial: Tut
         InvalidAlternativesSelectedError, match=r"^Part 1: More then one alternative selected:"
     ):
         runner.validate_alternatives()
+
+
+@pytest.mark.tutorial("alternatives-configuration")
+def test_alternatives_configuration(tutorial: TutorialModel) -> None:
+    """Test alternatives configuration at runtime."""
+    runner = Runner(tutorial, alternatives=("foo",))
+    assert runner.alternatives == ("foo",)
+    assert runner.context["key"] == "foo-var"
+    assert runner.environment == {"env-key": "env-foo", "foo-key": "env-foo-key"}

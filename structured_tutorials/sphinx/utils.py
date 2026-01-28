@@ -5,6 +5,7 @@
 
 import os
 import shlex
+from contextlib import contextmanager
 from copy import deepcopy
 from importlib import resources
 from pathlib import Path
@@ -24,6 +25,7 @@ from structured_tutorials.models import (
     PromptModel,
     TutorialModel,
 )
+from structured_tutorials.models.tutorial import DocumentationAlternativeConfigurationModel
 from structured_tutorials.textwrap import wrap_command_filter
 
 TEMPLATE_DIR = resources.files(templates)
@@ -70,6 +72,17 @@ class TutorialWrapper:
 
         # settings from sphinx:
         self.command_text_width = command_text_width
+
+    @contextmanager
+    def update_context(self, context: dict[str, Any]) -> None:
+        orig_context = self.context
+        new_context = deepcopy(orig_context)
+        new_context.update(context)
+        try:
+            self.context = new_context
+            yield
+        finally:
+            self.context = orig_context
 
     @classmethod
     def from_file(
@@ -177,14 +190,20 @@ class TutorialWrapper:
     def render_alternatives(self, part: AlternativeModel) -> str:
         tabs = []
         for key, alternate_part in part.alternatives.items():
-            key = self.tutorial.configuration.doc.alternative_names.get(key, key)
+            config = self.tutorial.configuration.doc.alternatives.get(
+                key, DocumentationAlternativeConfigurationModel()
+            )
+            name = config.name or key
 
-            if isinstance(alternate_part, CommandsPartModel):
-                tabs.append((key, self.render_code_block(alternate_part).strip()))
-            elif isinstance(alternate_part, FilePartModel):
-                tabs.append((key, self.render_file(alternate_part).strip()))
-            else:  # pragma: no cover
-                raise ExtensionError("Alternative found unknown part type.")
+            additional_context = {"alternative": key, "alternative_name": name, **config.context}
+
+            with self.update_context(additional_context):
+                if isinstance(alternate_part, CommandsPartModel):
+                    tabs.append((name, self.render_code_block(alternate_part).strip()))
+                elif isinstance(alternate_part, FilePartModel):
+                    tabs.append((name, self.render_file(alternate_part).strip()))
+                else:  # pragma: no cover
+                    raise ExtensionError("Alternative found unknown part type.")
 
         # Read template from resources
         template_str = TEMPLATE_DIR.joinpath("alternative_part.rst.template").read_text("utf-8")

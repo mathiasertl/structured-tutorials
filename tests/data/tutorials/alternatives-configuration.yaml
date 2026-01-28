@@ -1,0 +1,37 @@
+configuration:
+  doc:
+    alternatives:
+      foo:
+        name: FOO
+        context:
+          key: foo-var
+      bar:
+        name: BAR
+        context:
+          key: bar-var
+  run:
+    clear_environment: true
+    alternatives:
+      foo:
+        context:
+          key: foo-var
+        environment:
+          env-key: env-foo
+          foo-key: env-foo-key
+      bar:
+        context:
+          key: bar-var
+        environment:
+          env-key: env-bar
+          bar-key: env-bar-key
+parts:
+  - alternatives:
+      foo:
+        commands:
+          - command: "echo {{ alternative }} {{ alternative_name }}: {{ key }}"
+      bar:
+        commands:
+          - command: "ls {{ alternative }} {{ alternative_name }}: {{ key }}"
+  # to test that variables now disappear
+  - commands:
+      - command: "echo x{{ alternative }}x y{{ alternative_name }}y z{{ key }}z"
