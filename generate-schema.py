@@ -67,4 +67,7 @@ with open(args.swagger_path / "swagger-initializer.js", "w") as fh:
     fh.write(swagger_js)
 
 if args.output:
-    print(json.dumps(openapi, indent=4, sort_keys=True))
+    schema = TutorialModel.model_json_schema()
+    del schema["properties"]["path"]
+    schema["required"].remove("path")
+    print(json.dumps(schema, indent=4, sort_keys=True))

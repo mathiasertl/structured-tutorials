@@ -27,6 +27,14 @@ To render your tutorials in Sphinx, add the extension and, optionally, where you
     # Location where your tutorials are stored (default: same directory as conf.py).
     #structured_tutorials_root = Path(__file__).parent / "tutorials"
 
+Editor integration
+==================
+
+The JSON schema is can be found `here <_static/schema.json>`_ and can be used in IDEs for auto-completion
+and validation. For example:
+
+* `PyCharm <https://www.jetbrains.com/help/pycharm/yaml.html#json_schema>`_
+
 
 *******************
 Your first tutorial

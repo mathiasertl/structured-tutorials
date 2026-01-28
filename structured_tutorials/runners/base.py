@@ -56,8 +56,14 @@ class RunnerBase(abc.ABC):
         self.environment.update(tutorial.configuration.run.environment)  # type: ignore[arg-type]  # temporary
         self.environment = {k: self.render(v) for k, v in self.environment.items() if v is not None}
 
-        self.cleanup: list[CleanupCommandModel] = []
+        # Handle alternatives
         self.alternatives = alternatives
+        for alternative in alternatives:
+            if config := tutorial.configuration.run.alternatives.get(alternative):
+                self.environment.update(config.environment)
+                self.context.update(config.context)
+
+        self.cleanup: list[CleanupCommandModel] = []
         self.show_command_output = show_command_output
         self.interactive = interactive
 
