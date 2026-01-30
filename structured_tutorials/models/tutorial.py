@@ -46,12 +46,15 @@ class RuntimeAlternativeConfigurationModel(BaseModel):
     environment: dict[str, str | None] = Field(
         default_factory=dict, description="Additional environment variables for all commands."
     )
+    required_executables: tuple[str, ...] = Field(default=tuple(), description="Required executables.")
 
 
 class DocumentationAlternativesConfigurationModel(
     DictRootModelMixin[DocumentationAlternativeConfigurationModel],
     RootModel[dict[str, DocumentationAlternativeConfigurationModel]],
 ):
+    """Configuration for alternatives when rendering documentation."""
+
     pass
 
 
@@ -59,6 +62,8 @@ class RuntimeAlternativesConfigurationModel(
     DictRootModelMixin[RuntimeAlternativeConfigurationModel],
     RootModel[dict[str, RuntimeAlternativeConfigurationModel]],
 ):
+    """Configuration for alternatives at runtime."""
+
     pass
 
 
@@ -112,6 +117,7 @@ class RuntimeConfigurationModel(BaseModel):
     alternatives: RuntimeAlternativesConfigurationModel = Field(
         default_factory=lambda: RuntimeAlternativesConfigurationModel({})
     )
+    required_executables: tuple[str, ...] = Field(default=tuple(), description="Required executables.")
 
     @model_validator(mode="after")
     def set_default_context(self) -> Self:

@@ -16,6 +16,10 @@ class InvalidAlternativesSelectedError(StructuredTutorialError):
     """Exception raised when an invalid alternative is selected."""
 
 
+class RequiredExecutableNotFoundError(RunTutorialException):
+    """Exception raised when a required executable is not found."""
+
+
 class PartError(StructuredTutorialError):
     """Base class for all errors happening in a specific part."""
 

@@ -8,22 +8,38 @@ import io
 import logging
 import os
 import shlex
+import shutil
 import subprocess
 import sys
+import tempfile
 from copy import deepcopy
+from pathlib import Path
 from subprocess import CompletedProcess
 from typing import Any
 
 from jinja2 import Environment
 
-from structured_tutorials.errors import CommandOutputTestError, InvalidAlternativesSelectedError
-from structured_tutorials.models import AlternativeModel, TutorialModel
+from structured_tutorials.errors import (
+    CommandOutputTestError,
+    InvalidAlternativesSelectedError,
+    PromptNotConfirmedError,
+    RequiredExecutableNotFoundError,
+)
+from structured_tutorials.models import (
+    AlternativeModel,
+    CommandsPartModel,
+    FilePartModel,
+    PromptModel,
+    TutorialModel,
+)
 from structured_tutorials.models.base import CommandType
 from structured_tutorials.models.parts import CleanupCommandModel
 from structured_tutorials.models.tests import TestOutputModel
-from structured_tutorials.utils import check_count
+from structured_tutorials.utils import chdir, check_count, cleanup, git_export
 
+log = logging.getLogger(__name__)
 command_logger = logging.getLogger("command")
+part_log = logging.getLogger("part")
 
 
 class RunnerBase(abc.ABC):
@@ -50,22 +66,32 @@ class RunnerBase(abc.ABC):
 
         # Set up the environment for commands
         if tutorial.configuration.run.clear_environment:
-            self.environment = {}
+            environment: dict[str, str | None] = {}
         else:
-            self.environment = os.environ.copy()
-        self.environment.update(tutorial.configuration.run.environment)  # type: ignore[arg-type]  # temporary
-        self.environment = {k: self.render(v) for k, v in self.environment.items() if v is not None}
+            environment = os.environ.copy()  # type: ignore[assignment]
+        environment.update(tutorial.configuration.run.environment)
+
+        # Check for required executables
+        for executable in tutorial.configuration.run.required_executables:
+            if not shutil.which(executable, path=environment.get("PATH")):
+                raise RequiredExecutableNotFoundError(f"{executable}: Executable not found.")
 
         # Handle alternatives
         self.alternatives = alternatives
         for alternative in alternatives:
             if config := tutorial.configuration.run.alternatives.get(alternative):
-                self.environment.update(config.environment)
+                environment.update(config.environment)
                 self.context.update(config.context)
+
+                for executable in config.required_executables:
+                    if not shutil.which(executable, path=environment.get("PATH")):
+                        raise RequiredExecutableNotFoundError(f"{executable}: Executable not found.")
 
         self.cleanup: list[CleanupCommandModel] = []
         self.show_command_output = show_command_output
         self.interactive = interactive
+
+        self.environment = {k: self.render(v) for k, v in environment.items() if v is not None}
 
     def render(self, value: str, **context: Any) -> str:
         return self.env.from_string(value).render({**self.context, **context})
@@ -179,6 +205,84 @@ class RunnerBase(abc.ABC):
 
         return proc
 
-    @abc.abstractmethod
+    def run_prompt(self, part: PromptModel) -> None:
+        prompt = self.render(part.prompt).strip() + " "
+
+        if part.response == "enter":
+            input(prompt)
+        else:  # type == confirm
+            valid_inputs = ("n", "no", "yes", "y", "")
+            while (response := input(prompt).strip().lower()) not in valid_inputs:
+                print(f"Please enter a valid value ({'/'.join(valid_inputs)}).")
+
+            if response in ("n", "no") or (response == "" and not part.default):
+                error = self.render(part.error, response=response)
+                raise PromptNotConfirmedError(error)
+
+    def run_alternative(self, part: AlternativeModel) -> None:
+        selected = set(self.alternatives) & set(part.alternatives)
+
+        # Note: The CLI agent already verifies this - just assert this to be sure.
+        assert len(selected) <= 1, "More then one part selected."
+
+        if selected:
+            selected_part = part.alternatives[next(iter(selected))]
+            if isinstance(selected_part, CommandsPartModel):
+                self.run_commands(selected_part)
+            elif isinstance(selected_part, FilePartModel):
+                self.write_file(selected_part)
+            else:  # pragma: no cover
+                raise RuntimeError(f"{selected_part} is not supported as alternative.")
+
+    def run_parts(self) -> None:
+        for part in self.tutorial.parts:
+            if isinstance(part, PromptModel):
+                if self.interactive:
+                    self.run_prompt(part)
+                continue
+            if part.run.skip:
+                continue
+
+            if part.name:  # pragma: no cover
+                part_log.info(part.name)
+            else:
+                part_log.info(f"Running part {part.id}...")
+
+            if isinstance(part, CommandsPartModel):
+                self.run_commands(part)
+            elif isinstance(part, FilePartModel):
+                self.write_file(part)
+            elif isinstance(part, AlternativeModel):
+                self.run_alternative(part)
+            else:  # pragma: no cover
+                raise RuntimeError(f"{part} is not a tutorial part")
+
+            self.context.update(part.run.update_context)
+
     def run(self) -> None:
-        """Run the tutorial."""
+        if self.tutorial.configuration.run.temporary_directory:
+            with tempfile.TemporaryDirectory() as tmpdir_name:
+                log.info("Switching to temporary directory: %s", tmpdir_name)
+                self.context["cwd"] = self.context["temp_dir"] = Path(tmpdir_name)
+                self.context["orig_cwd"] = Path.cwd()
+
+                with chdir(tmpdir_name), cleanup(self):
+                    self.run_parts()
+        elif self.tutorial.configuration.run.git_export:
+            with tempfile.TemporaryDirectory() as tmpdir_name:
+                work_dir = git_export(tmpdir_name)
+                log.info("Creating git export at: %s", work_dir)
+                self.context["cwd"] = self.context["export_dir"] = work_dir
+                self.context["orig_cwd"] = Path.cwd()
+
+                with chdir(work_dir), cleanup(self):
+                    self.run_parts()
+        else:
+            with cleanup(self):
+                self.run_parts()
+
+    @abc.abstractmethod
+    def run_commands(self, part: CommandsPartModel) -> None: ...
+
+    @abc.abstractmethod
+    def write_file(self, part: FilePartModel) -> None: ...

@@ -5,6 +5,7 @@
 
 import os
 import shlex
+from collections.abc import Iterator
 from contextlib import contextmanager
 from copy import deepcopy
 from importlib import resources
@@ -74,7 +75,7 @@ class TutorialWrapper:
         self.command_text_width = command_text_width
 
     @contextmanager
-    def update_context(self, context: dict[str, Any]) -> None:
+    def update_context(self, context: dict[str, Any]) -> Iterator[None]:
         orig_context = self.context
         new_context = deepcopy(orig_context)
         new_context.update(context)

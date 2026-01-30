@@ -3,9 +3,11 @@
 
 """Test functionality found in the base class."""
 
+from pathlib import Path
+
 import pytest
 
-from structured_tutorials.errors import InvalidAlternativesSelectedError
+from structured_tutorials.errors import InvalidAlternativesSelectedError, RequiredExecutableNotFoundError
 from structured_tutorials.models import TutorialModel
 from tests.conftest import Runner
 
@@ -42,3 +44,49 @@ def test_alternatives_configuration(tutorial: TutorialModel) -> None:
     assert runner.alternatives == ("foo",)
     assert runner.context["key"] == "foo-var"
     assert runner.environment == {"env-key": "env-foo", "foo-key": "env-foo-key"}
+
+
+def test_required_executables() -> None:
+    """Test required executables."""
+    tutorial = TutorialModel(
+        configuration={"run": {"required_executables": ["git"]}}, parts=[], path=Path.cwd()
+    )
+    Runner(tutorial)
+
+
+def test_required_executables_in_alternatives() -> None:
+    """Test required executables in alternatives."""
+    tutorial = TutorialModel(
+        configuration={"run": {"alternatives": {"foo": {"required_executables": ["git"]}}}},
+        parts=[],
+        path=Path.cwd(),
+    )
+    Runner(tutorial, alternatives=("foo",))
+
+
+def test_required_executables_with_custom_path() -> None:
+    """Test required executables with a custom PATH environment variable."""
+    tutorial = TutorialModel(
+        configuration={"run": {"required_executables": ["git"], "environment": {"PATH": "/does/not/exist"}}},
+        parts=[],
+        path=Path.cwd(),
+    )
+    with pytest.raises(RequiredExecutableNotFoundError, match=r"^git: Executable not found.$"):
+        Runner(tutorial)
+
+
+def test_required_executables_in_alternative_with_custom_path() -> None:
+    """Test required executables with a custom PATH environment variable."""
+    tutorial = TutorialModel(
+        configuration={
+            "run": {
+                "alternatives": {
+                    "foo": {"required_executables": ["git"], "environment": {"PATH": "/does/not/exist"}}
+                }
+            },
+        },
+        parts=[],
+        path=Path.cwd(),
+    )
+    with pytest.raises(RequiredExecutableNotFoundError, match=r"^git: Executable not found.$"):
+        Runner(tutorial, alternatives=("foo",))

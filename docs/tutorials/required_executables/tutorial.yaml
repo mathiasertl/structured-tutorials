@@ -1,0 +1,18 @@
+configuration:
+  run:
+    # Don't even start if git is not installed
+    required_executables:
+      - git
+
+    # Require db clients only if alternative is selected
+    alternatives:
+      mariadb:
+        required_executables:
+          - mariadb
+      postgres:
+        required_executables:
+          - psql
+parts:
+  - commands:
+      - command: git checkout
+  # ...

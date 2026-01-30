@@ -61,12 +61,10 @@ def test_temporary_directory(tmp_path: Path, fp: FakeProcess) -> None:
     configuration = TutorialModel.from_file(DOCS_TUTORIALS_DIR / "temporary-directory" / "tutorial.yaml")
     runner = LocalTutorialRunner(configuration)
     with (
-        mock.patch(
-            "structured_tutorials.runners.local.tempfile.TemporaryDirectory.__enter__",
-            return_value=str(tmp_path),
-        ),
+        mock.patch("tempfile.TemporaryDirectory.__enter__", return_value=str(tmp_path)) as tmpfile_mock,
     ):
         runner.run()
+    tmpfile_mock.assert_called_once_with()
 
 
 def test_git_export(tmp_path: Path, fp: FakeProcess) -> None:
@@ -81,9 +79,7 @@ def test_git_export(tmp_path: Path, fp: FakeProcess) -> None:
     runner = LocalTutorialRunner(configuration)
     with (
         mock.patch("structured_tutorials.utils.random.choice", return_value="x"),
-        mock.patch(
-            "structured_tutorials.runners.local.tempfile.TemporaryDirectory.__enter__",
-            return_value=str(tmp_path),
-        ),
+        mock.patch("tempfile.TemporaryDirectory.__enter__", return_value=str(tmp_path)) as tmpfile_mock,
     ):
         runner.run()
+    tmpfile_mock.assert_called_once_with()

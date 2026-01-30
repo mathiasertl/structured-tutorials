@@ -9,7 +9,7 @@ import pytest
 from pytest_subprocess import FakeProcess
 from sphinx.application import Sphinx
 
-from structured_tutorials.models import TutorialModel
+from structured_tutorials.models import CommandsPartModel, FilePartModel, TutorialModel
 from structured_tutorials.output import setup_logging
 from structured_tutorials.runners.base import RunnerBase
 
@@ -30,8 +30,9 @@ docs_tutorials = [x / "tutorial.yaml" for x in DOCS_TUTORIALS_DIR.iterdir() if x
 class Runner(RunnerBase):
     """Dummy runner in this module."""
 
-    def run(self) -> None:
-        pass
+    def write_file(self, part: FilePartModel) -> None: ...
+
+    def run_commands(self, part: CommandsPartModel) -> None: ...
 
 
 def pytest_configure(config: pytest.Config) -> None:

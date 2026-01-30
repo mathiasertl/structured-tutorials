@@ -28,6 +28,20 @@ This will render as:
 Running commands
 ****************
 
+Test for installed tools
+========================
+
+You can specify a list of tools that is required for running the tutorial. ``structured-tutorials`` will then
+test if a certain tool is installed before starting the tutorial and present the user with a nice error
+message:
+
+.. literalinclude:: /tutorials/required_executables/tutorial.yaml
+    :language: yaml
+
+.. structured-tutorial:: required_executables/tutorial.yaml
+
+.. structured-tutorial-part::
+
 Test the status code
 ====================
 

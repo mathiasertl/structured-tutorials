@@ -9,18 +9,15 @@ import shlex
 import shutil
 import socket
 import subprocess
-import tempfile
 import time
 from pathlib import Path
 
-from structured_tutorials.errors import CommandTestError, PromptNotConfirmedError
-from structured_tutorials.models.parts import AlternativeModel, CommandsPartModel, FilePartModel, PromptModel
+from structured_tutorials.errors import CommandTestError
+from structured_tutorials.models.parts import CommandsPartModel, FilePartModel
 from structured_tutorials.models.tests import TestCommandModel, TestOutputModel, TestPortModel
 from structured_tutorials.runners.base import RunnerBase
-from structured_tutorials.utils import chdir, cleanup, git_export
 
 log = logging.getLogger(__name__)
-part_log = logging.getLogger("part")
 
 
 class LocalTutorialRunner(RunnerBase):
@@ -185,79 +182,3 @@ class LocalTutorialRunner(RunnerBase):
 
         with open(destination, "w") as destination_stream:
             destination_stream.write(contents)
-
-    def run_prompt(self, part: PromptModel) -> None:
-        prompt = self.render(part.prompt).strip() + " "
-
-        if part.response == "enter":
-            input(prompt)
-        else:  # type == confirm
-            valid_inputs = ("n", "no", "yes", "y", "")
-            while (response := input(prompt).strip().lower()) not in valid_inputs:
-                print(f"Please enter a valid value ({'/'.join(valid_inputs)}).")
-
-            if response in ("n", "no") or (response == "" and not part.default):
-                error = self.render(part.error, response=response)
-                raise PromptNotConfirmedError(error)
-
-    def run_alternative(self, part: AlternativeModel) -> None:
-        selected = set(self.alternatives) & set(part.alternatives)
-
-        # Note: The CLI agent already verifies this - just assert this to be sure.
-        assert len(selected) <= 1, "More then one part selected."
-
-        if selected:
-            selected_part = part.alternatives[next(iter(selected))]
-            if isinstance(selected_part, CommandsPartModel):
-                self.run_commands(selected_part)
-            elif isinstance(selected_part, FilePartModel):
-                self.write_file(selected_part)
-            else:  # pragma: no cover
-                raise RuntimeError(f"{selected_part} is not supported as alternative.")
-
-    def run_parts(self) -> None:
-        for part in self.tutorial.parts:
-            if isinstance(part, PromptModel):
-                if self.interactive:
-                    self.run_prompt(part)
-                continue
-            if part.run.skip:
-                continue
-
-            if part.name:  # pragma: no cover
-                part_log.info(part.name)
-            else:
-                part_log.info(f"Running part {part.id}...")
-
-            if isinstance(part, CommandsPartModel):
-                self.run_commands(part)
-            elif isinstance(part, FilePartModel):
-                self.write_file(part)
-            elif isinstance(part, AlternativeModel):
-                self.run_alternative(part)
-            else:  # pragma: no cover
-                raise RuntimeError(f"{part} is not a tutorial part")
-
-            self.context.update(part.run.update_context)
-
-    def run(self) -> None:
-        if self.tutorial.configuration.run.temporary_directory:
-            with tempfile.TemporaryDirectory() as tmpdir_name:
-                log.info("Switching to temporary directory: %s", tmpdir_name)
-                self.context["cwd"] = self.context["temp_dir"] = Path(tmpdir_name)
-                self.context["orig_cwd"] = Path.cwd()
-
-                with chdir(tmpdir_name), cleanup(self):
-                    self.run_parts()
-        elif self.tutorial.configuration.run.git_export:
-            with tempfile.TemporaryDirectory() as tmpdir_name:
-                work_dir = git_export(tmpdir_name)
-                log.info("Creating git export at: %s", work_dir)
-                self.context["cwd"] = self.context["export_dir"] = work_dir
-                self.context["orig_cwd"] = Path.cwd()
-
-                with chdir(work_dir), cleanup(self):
-                    self.run_parts()
-        else:
-            with cleanup(self):
-                self.run_parts()
