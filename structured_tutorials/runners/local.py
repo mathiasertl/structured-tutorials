@@ -13,7 +13,7 @@ import time
 from pathlib import Path
 
 from structured_tutorials.errors import CommandTestError
-from structured_tutorials.models.parts import CommandsPartModel, FilePartModel
+from structured_tutorials.models.parts import CommandModel, FilePartModel
 from structured_tutorials.models.tests import TestCommandModel, TestOutputModel, TestPortModel
 from structured_tutorials.runners.base import RunnerBase
 
@@ -71,16 +71,25 @@ class LocalTutorialRunner(RunnerBase):
 
         raise CommandTestError("Test did not pass")
 
-    def run_commands(self, part: CommandsPartModel) -> None:
-        for command_config in part.commands:
-            if command_config.run.skip:
-                continue
+    def run_command(self, config: CommandModel) -> None:
+        # Capture output if any test is for the output.
+        capture_output = any(isinstance(test, TestOutputModel) for test in config.run.test)
 
-            # Capture output if any test is for the output.
-            capture_output = any(isinstance(test, TestOutputModel) for test in command_config.run.test)
-
+        # Run the command and check status code
+        if config.run.stdin and config.run.stdin.source and not config.run.stdin.template:
+            with open(self.tutorial.tutorial_root / config.run.stdin.source, "rb") as stdin:
+                proc = self.run_shell_command(
+                    config.command,
+                    show_output=config.run.show_output,
+                    capture_output=capture_output,
+                    stdin=stdin,
+                    environment=config.run.environment,
+                    clear_environment=config.run.clear_environment,
+                )
+        else:
+            # Configure stdin
             proc_input = None
-            if stdin_config := command_config.run.stdin:
+            if stdin_config := config.run.stdin:
                 if stdin_config.contents:
                     proc_input = self.render(stdin_config.contents).encode("utf-8")
                 elif stdin_config.template:  # source path, but template=True
@@ -89,58 +98,39 @@ class LocalTutorialRunner(RunnerBase):
                         stdin_template = stream.read()
                     proc_input = self.render(stdin_template).encode("utf-8")
 
-            # Run the command and check status code
-            if (
-                command_config.run.stdin
-                and command_config.run.stdin.source
-                and not command_config.run.stdin.template
-            ):
-                with open(self.tutorial.tutorial_root / command_config.run.stdin.source, "rb") as stdin:
-                    proc = self.run_shell_command(
-                        command_config.command,
-                        show_output=command_config.run.show_output,
-                        capture_output=capture_output,
-                        stdin=stdin,
-                        environment=command_config.run.environment,
-                        clear_environment=command_config.run.clear_environment,
-                    )
-            else:
-                proc = self.run_shell_command(
-                    command_config.command,
-                    show_output=command_config.run.show_output,
-                    capture_output=capture_output,
-                    input=proc_input,
-                    environment=command_config.run.environment,
-                    clear_environment=command_config.run.clear_environment,
-                )
-
-            # Update list of cleanup commands
-            self.cleanup = list(command_config.run.cleanup) + self.cleanup
-
-            # Handle errors in commands
-            if proc.returncode != command_config.run.status_code:
-                raise RuntimeError(
-                    f"{command_config.command} failed with return code {proc.returncode} "
-                    f"(expected: {command_config.run.status_code})."
-                )
-
-            # Update the context from update_context
-            self.context.update(command_config.run.update_context)
-
-            if (command_chdir := command_config.run.chdir) is not None:
-                rendered_command_chdir = self.render(str(command_chdir))
-                rendered_command_chdir = self.render(str(command_chdir))
-                log.info("Changing working directory to %s.", command_chdir)
-                os.chdir(rendered_command_chdir)
-
-            # Run test commands
-            for test_command_config in command_config.run.test:
-                self.run_test(test_command_config, proc)
-
-            # Update environment (after test commands - they may update the context)
-            self.environment.update(
-                {k: self.render(v) for k, v in command_config.run.update_environment.items()}
+            proc = self.run_shell_command(
+                config.command,
+                show_output=config.run.show_output,
+                capture_output=capture_output,
+                input=proc_input,
+                environment=config.run.environment,
+                clear_environment=config.run.clear_environment,
             )
+
+        # Update list of cleanup commands
+        self.cleanup = list(config.run.cleanup) + self.cleanup
+
+        # Handle errors in commands
+        if proc.returncode != config.run.status_code:
+            raise RuntimeError(
+                f"{config.command} failed with return code {proc.returncode} "
+                f"(expected: {config.run.status_code})."
+            )
+
+        # Update the context from update_context
+        self.context.update(config.run.update_context)
+
+        if (command_chdir := config.run.chdir) is not None:
+            rendered_command_chdir = self.render(str(command_chdir))
+            log.info("Changing working directory to %s.", command_chdir)
+            os.chdir(rendered_command_chdir)
+
+        # Run test commands
+        for test_command_config in config.run.test:
+            self.run_test(test_command_config, proc)
+
+        # Update environment (after test commands - they may update the context)
+        self.environment.update({k: self.render(v) for k, v in config.run.update_environment.items()})
 
     def write_file(self, part: FilePartModel) -> None:
         """Write a file."""

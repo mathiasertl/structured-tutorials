@@ -33,7 +33,7 @@ from structured_tutorials.models import (
     TutorialModel,
 )
 from structured_tutorials.models.base import CommandType
-from structured_tutorials.models.parts import CleanupCommandModel
+from structured_tutorials.models.parts import CleanupCommandModel, CommandModel
 from structured_tutorials.models.tests import TestOutputModel
 from structured_tutorials.utils import chdir, check_count, cleanup, git_export
 
@@ -205,6 +205,13 @@ class RunnerBase(abc.ABC):
 
         return proc
 
+    def run_commands(self, part: CommandsPartModel) -> None:
+        for command_config in part.commands:
+            if command_config.run.skip:
+                continue
+
+            self.run_command(command_config)
+
     def run_prompt(self, part: PromptModel) -> None:
         prompt = self.render(part.prompt).strip() + " "
 
@@ -282,7 +289,7 @@ class RunnerBase(abc.ABC):
                 self.run_parts()
 
     @abc.abstractmethod
-    def run_commands(self, part: CommandsPartModel) -> None: ...
+    def run_command(self, config: CommandModel) -> None: ...
 
     @abc.abstractmethod
     def write_file(self, part: FilePartModel) -> None: ...

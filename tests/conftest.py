@@ -9,7 +9,8 @@ import pytest
 from pytest_subprocess import FakeProcess
 from sphinx.application import Sphinx
 
-from structured_tutorials.models import CommandsPartModel, FilePartModel, TutorialModel
+from structured_tutorials.models import FilePartModel, TutorialModel
+from structured_tutorials.models.parts import CommandModel
 from structured_tutorials.output import setup_logging
 from structured_tutorials.runners.base import RunnerBase
 
@@ -32,7 +33,7 @@ class Runner(RunnerBase):
 
     def write_file(self, part: FilePartModel) -> None: ...
 
-    def run_commands(self, part: CommandsPartModel) -> None: ...
+    def run_command(self, config: CommandModel) -> None: ...
 
 
 def pytest_configure(config: pytest.Config) -> None:
