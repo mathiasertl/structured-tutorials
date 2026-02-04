@@ -288,6 +288,14 @@ class RunnerBase(abc.ABC):
             with cleanup(self):
                 self.run_parts()
 
+    def prepare_tutorial(self) -> None:
+        """Function invoked before running the tutorial."""
+        return
+
+    def cleanup_tutorial(self) -> None:
+        """Function invoked after running the tutorial."""
+        return
+
     @abc.abstractmethod
     def run_command(self, config: CommandModel) -> None: ...
 

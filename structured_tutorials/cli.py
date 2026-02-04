@@ -86,7 +86,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 1
 
     try:
+        runner.prepare_tutorial()
         runner.run()
-    except RunTutorialException:
+    except RunTutorialException as ex:
+        error(str(ex))
         return 1  # ignored, already handled by cleanup
+    finally:
+        runner.cleanup_tutorial()
     return 0
