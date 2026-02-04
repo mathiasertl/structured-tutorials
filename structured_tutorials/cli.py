@@ -72,7 +72,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 1
 
     runner = LocalTutorialRunner(
-        tutorial,
+        path=args.path,
+        tutorial=tutorial,
         alternatives=tuple(args.alternatives),
         show_command_output=args.show_command_output,
         interactive=args.interactive,

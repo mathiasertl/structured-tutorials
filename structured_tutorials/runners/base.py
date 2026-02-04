@@ -48,11 +48,13 @@ class RunnerBase(abc.ABC):
     def __init__(
         self,
         tutorial: TutorialModel,
+        path: Path | None = None,
         alternatives: tuple[str, ...] = (),
         show_command_output: bool = True,
         interactive: bool = True,
         context: dict[str, Any] | None = None,
     ):
+        self.path = path
         self.tutorial = tutorial
 
         # Create Jinja2 environment for rendering templates

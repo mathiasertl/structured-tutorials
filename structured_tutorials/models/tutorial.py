@@ -6,20 +6,11 @@
 from pathlib import Path
 from typing import Annotated, Any
 
-from pydantic import (
-    BaseModel,
-    ConfigDict,
-    Discriminator,
-    Field,
-    RootModel,
-    Tag,
-    field_validator,
-    model_validator,
-)
+from pydantic import BaseModel, ConfigDict, Discriminator, Field, RootModel, Tag, model_validator
 from pydantic_core.core_schema import ValidationInfo
 from yaml import safe_load
 
-from structured_tutorials.models.base import DictRootModelMixin, default_tutorial_root_factory
+from structured_tutorials.models.base import DictRootModelMixin
 from structured_tutorials.models.parts import AlternativeModel, PartModels, PromptModel, part_discriminator
 from structured_tutorials.typing import Self
 
@@ -144,15 +135,10 @@ class TutorialModel(BaseModel):
 
     model_config = ConfigDict(extra="forbid", title="Tutorial")
 
-    # absolute path to YAML file
-    path: Path = Field(
-        description="Absolute path to the tutorial file. This field is populated automatically while loading the tutorial.",  # noqa: E501
-    )
     tutorial_root: Path = Field(
-        default_factory=default_tutorial_root_factory,
         description="Directory from which relative file paths are resolved. Defaults to the path of the "
         "tutorial file.",
-    )  # absolute path (input: relative to path)
+    )  # absolute path
     parts: tuple[
         Annotated[
             PartModels
@@ -164,28 +150,18 @@ class TutorialModel(BaseModel):
     ] = Field(description="The individual parts of this tutorial.")
     configuration: ConfigurationModel = Field(default=ConfigurationModel())
 
-    @field_validator("path", mode="after")
-    @classmethod
-    def validate_path(cls, value: Path, info: ValidationInfo) -> Path:
-        if not value.is_absolute():
-            raise ValueError(f"{value}: Must be an absolute path.")
-        return value
-
-    @field_validator("tutorial_root", mode="after")
-    @classmethod
-    def resolve_tutorial_root(cls, value: Path, info: ValidationInfo) -> Path:
-        if value.is_absolute():
-            raise ValueError(f"{value}: Must be a relative path (relative to the tutorial file).")
-        path: Path = info.data["path"]
-
-        return (path.parent / value).resolve()
-
     @model_validator(mode="after")
-    def update_context(self) -> Self:
-        self.configuration.run.context["tutorial_path"] = self.path
-        self.configuration.run.context["tutorial_dir"] = self.path.parent
-        self.configuration.doc.context["tutorial_path"] = self.path
-        self.configuration.doc.context["tutorial_dir"] = self.path.parent
+    def update_context(self, info: ValidationInfo) -> Self:
+        if isinstance(info.context, dict):
+            if path := info.context.get("path"):  # pragma: no branch
+                assert isinstance(path, Path)
+                self.configuration.run.context["tutorial_path"] = path
+                self.configuration.run.context["tutorial_dir"] = path.parent
+                self.configuration.doc.context["tutorial_path"] = path
+                self.configuration.doc.context["tutorial_dir"] = path.parent
+
+                if not self.tutorial_root.is_absolute():
+                    self.tutorial_root = (path.parent / self.tutorial_root).resolve()
         return self
 
     @model_validator(mode="after")
@@ -206,6 +182,6 @@ class TutorialModel(BaseModel):
         if not isinstance(tutorial_data, dict):
             raise ValueError("File does not contain a mapping at top level.")
 
-        tutorial_data["path"] = path.resolve()
+        tutorial_data.setdefault("tutorial_root", path.parent)
         tutorial = TutorialModel.model_validate(tutorial_data, context={"path": path})
         return tutorial

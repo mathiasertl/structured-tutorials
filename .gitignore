@@ -6,6 +6,7 @@ dist/
 wheels/
 *.egg-info
 tests/data/docs/_build/
+/schema.json
 
 # Virtual environments
 .venv

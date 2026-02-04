@@ -14,6 +14,7 @@ from pytest_subprocess import FakeProcess
 from structured_tutorials.cli import main
 from structured_tutorials.errors import RunTutorialException
 from structured_tutorials.models import TutorialModel
+from tests.conftest import TEST_TUTORIALS_DIR
 
 
 @pytest.fixture(autouse=True)
@@ -25,13 +26,13 @@ def mock_setup_logging() -> Iterator[None]:
 
 def test_simple_tutorial(fp: FakeProcess, simple_tutorial: TutorialModel) -> None:
     """Test the cli entry point function by running a simple tutorial."""
-    main([str(simple_tutorial.path)])
+    main([str(TEST_TUTORIALS_DIR / "simple.yaml")])
 
 
 def test_simple_tutorial_with_run_exception(fp: FakeProcess, simple_tutorial: TutorialModel) -> None:
     """Test the cli entry point function by running a simple tutorial."""
     with mock.patch("structured_tutorials.cli.LocalTutorialRunner.run", side_effect=RunTutorialException()):
-        main([str(simple_tutorial.path)])
+        main([str(TEST_TUTORIALS_DIR / "simple.yaml")])
 
 
 @pytest.mark.tutorial_path("command-undefined-variable")

@@ -27,7 +27,7 @@ def test_default_context(simple_tutorial: TutorialModel) -> None:
         "doc": False,
         "run": True,
         "tutorial_dir": simple_tutorial.tutorial_root,
-        "tutorial_path": simple_tutorial.path,
+        "tutorial_path": simple_tutorial.tutorial_root / "simple.yaml",
     }
     assert simple_tutorial.configuration.doc.context == {
         "cwd": "~",
@@ -37,33 +37,8 @@ def test_default_context(simple_tutorial: TutorialModel) -> None:
         "user": "user",
         "prompt_template": "{{ user }}@{{ host }}:{{ cwd }}{% if user == 'root' %}#{% else %}${% endif %} ",
         "tutorial_dir": simple_tutorial.tutorial_root,
-        "tutorial_path": simple_tutorial.path,
+        "tutorial_path": simple_tutorial.tutorial_root / "simple.yaml",
     }
-
-
-@pytest.mark.parametrize(
-    ("data", "expected_path", "expected_tutorial_root"),
-    (
-        ({"path": Path("/foo/bar/test.yaml")}, Path("/foo/bar/test.yaml"), Path("/foo/bar")),
-        (
-            {"path": Path("/foo/bar/test.yaml"), "tutorial_root": Path("..")},
-            Path("/foo/bar/test.yaml"),
-            Path("/foo/"),
-        ),
-        (
-            {"path": Path("/foo/bar/test.yaml"), "tutorial_root": Path("bla")},
-            Path("/foo/bar/test.yaml"),
-            Path("/foo/bar/bla"),
-        ),
-    ),
-)
-def test_path_and_tutorial_root(
-    data: dict[str, Any], expected_path: Path, expected_tutorial_root: Path
-) -> None:
-    """Test path and initial tutorial_root validation."""
-    model = TutorialModel.model_validate({**data, "parts": []})
-    assert model.path == expected_path
-    assert model.tutorial_root == expected_tutorial_root
 
 
 def test_simple_tutorial(simple_tutorial: TutorialModel) -> None:
@@ -88,18 +63,6 @@ def test_multiple_parts(tutorial: TutorialModel) -> None:
 
     assert tutorial.parts[3].index == 3
     assert tutorial.parts[3].id == "3"
-
-
-def test_relative_path() -> None:
-    """Test for validation error if tutorial is created with relative path."""
-    with pytest.raises(ValueError, match=r"foo/test\.yaml: Must be an absolute path\."):
-        TutorialModel.model_validate({"path": "foo/test.yaml", "parts": []})
-
-
-def test_absolute_tutorial_root() -> None:
-    """Test for validation error if tutorial is created with an absolute tutorial_root."""
-    with pytest.raises(ValueError, match=r"/foo: Must be a relative path \(relative to the tutorial file\)"):
-        TutorialModel.model_validate({"path": "/foo/test.yaml", "tutorial_root": "/foo", "parts": []})
 
 
 def test_file_part_with_absolute_source() -> None:

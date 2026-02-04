@@ -26,13 +26,6 @@ V = TypeVar("V")
 TEMPLATE_DESCRIPTION = "This value is rendered as a template with the current context."
 
 
-def default_tutorial_root_factory(data: dict[str, Any]) -> Path:
-    """Default factory for the tutorial_root variable."""
-    tutorial_root = data["path"].parent
-    assert isinstance(tutorial_root, Path)
-    return tutorial_root
-
-
 def template_field_title_generator(field_name: str, field_info: FieldInfo) -> str:
     """Field title generator for template fields."""
     return f"{field_name.title()} (template)"

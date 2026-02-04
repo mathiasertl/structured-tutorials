@@ -52,7 +52,7 @@ def wrapper(tutorial: TutorialModel) -> TutorialWrapper:
 )
 def test_code_block_output(commands: tuple[str, ...], expected: str) -> None:
     """Test rendering the output of code-blocks thoroughly."""
-    tutorial = TutorialModel.model_validate({"path": Path.cwd(), "parts": [{"commands": commands}]})
+    tutorial = TutorialModel.model_validate({"tutorial_root": Path.cwd(), "parts": [{"commands": commands}]})
     wrapper = TutorialWrapper(tutorial)
     assert wrapper.render_part() == f".. code-block:: console\n\n{textwrap.indent(expected, '    ')}"
 
@@ -119,7 +119,7 @@ def test_command_skip_single_command(wrapper: TutorialWrapper, expected_rst: str
 )
 def test_file_part_options(file_config: dict[str, Any], expected: str) -> None:
     """Test options for files."""
-    tutorial = TutorialModel.model_validate({"path": Path.cwd(), "parts": [file_config]})
+    tutorial = TutorialModel.model_validate({"tutorial_root": Path.cwd(), "parts": [file_config]})
     wrapper = TutorialWrapper(tutorial)
     language = file_config.get("doc", {}).get("language", "")
     if language:
@@ -134,7 +134,7 @@ def test_file_part_with_source() -> None:
     contents = f"test: {variable}"
     tutorial = TutorialModel.model_validate(
         {
-            "path": TEST_TUTORIALS_DIR / "fake.yaml",
+            "tutorial_root": TEST_TUTORIALS_DIR,
             "configuration": {"doc": {"context": {"variable": variable}}},
             "parts": [{"source": "file_contents.txt", "destination": destination}],
         }
@@ -163,7 +163,7 @@ def test_file_part_with_source_without_template() -> None:
     contents = "test: {{ variable }}"  # NOT expanded, b/c template is false
     tutorial = TutorialModel.model_validate(
         {
-            "path": TEST_TUTORIALS_DIR / "fake.yaml",
+            "tutorial_root": TEST_TUTORIALS_DIR,
             "configuration": {"doc": {"context": {"variable": variable}}},
             "parts": [{"source": "file_contents.txt", "destination": destination, "template": False}],
         }
@@ -176,7 +176,7 @@ def test_multiple_parts() -> None:
     """Test rendering multiple parts."""
     tutorial = TutorialModel.model_validate(
         {
-            "path": TEST_TUTORIALS_DIR / "fake.yaml",
+            "tutorial_root": TEST_TUTORIALS_DIR,
             "parts": [
                 {"commands": [{"command": "ls foo"}, {"command": "ls bar"}]},
                 {"commands": [{"command": "ls bla"}, {"command": "ls baz"}]},
@@ -195,7 +195,7 @@ def test_multiple_parts_with_skip() -> None:
     """Test rendering multiple parts with a skipped part in the middle."""
     tutorial = TutorialModel.model_validate(
         {
-            "path": TEST_TUTORIALS_DIR / "fake.yaml",
+            "tutorial_root": TEST_TUTORIALS_DIR,
             "parts": [
                 {"commands": [{"command": "ls foo"}, {"command": "ls bar"}]},
                 {"commands": [{"command": "ls not-rendered"}], "doc": {"skip": True}},
@@ -215,10 +215,8 @@ def test_multiple_parts_with_index_error() -> None:
     """Test rendering multiple parts with a skipped part in the middle."""
     tutorial = TutorialModel.model_validate(
         {
-            "path": TEST_TUTORIALS_DIR / "fake.yaml",
-            "parts": [
-                {"commands": [{"command": "ls foo"}, {"command": "ls bar"}]},
-            ],
+            "tutorial_root": TEST_TUTORIALS_DIR,
+            "parts": [{"commands": [{"command": "ls foo"}, {"command": "ls bar"}]}],
         }
     )
     wrapper = TutorialWrapper(tutorial)
@@ -245,7 +243,7 @@ def test_multiple_parts_with_index_error() -> None:
 )
 def test_prompt(parts: tuple[str, ...], expected: list[str]) -> None:
     """Test rendering a code block that is preceded by a prompt. First rendered part is code block."""
-    tutorial = TutorialModel.model_validate({"path": Path.cwd(), "parts": parts})
+    tutorial = TutorialModel.model_validate({"tutorial_root": Path.cwd(), "parts": parts})
     wrapper = TutorialWrapper(tutorial)
     assert wrapper.render_part() == f".. code-block:: console\n\n{textwrap.indent(expected[0], '    ')}"
     assert wrapper.render_part() == f".. code-block:: console\n\n{textwrap.indent(expected[1], '    ')}"
@@ -299,7 +297,7 @@ def test_alternatives(aliases: dict[str, str], alternatives: dict[str, Any], exp
     """Test alternative parts."""
     alternative_configs = {k: {"name": v} for k, v in aliases.items()}
     data = {
-        "path": "/dummy.yaml",
+        "tutorial_root": Path.cwd(),
         "configuration": {"doc": {"alternatives": alternative_configs}},
         "parts": [{"alternatives": alternatives}],
     }
