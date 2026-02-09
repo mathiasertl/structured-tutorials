@@ -51,7 +51,7 @@ def test_required_executables() -> None:
     tutorial = TutorialModel(
         configuration={"run": {"required_executables": ["git"]}},
         parts=[],
-        tutorial_root=Path.cwd(),
+        root=Path.cwd(),
     )
     Runner(tutorial)
 
@@ -61,7 +61,7 @@ def test_required_executables_in_alternatives() -> None:
     tutorial = TutorialModel(
         configuration={"run": {"alternatives": {"foo": {"required_executables": ["git"]}}}},
         parts=[],
-        tutorial_root=Path.cwd(),
+        root=Path.cwd(),
     )
     Runner(tutorial, alternatives=("foo",))
 
@@ -71,7 +71,7 @@ def test_required_executables_with_custom_path() -> None:
     tutorial = TutorialModel(
         configuration={"run": {"required_executables": ["git"], "environment": {"PATH": "/does/not/exist"}}},
         parts=[],
-        tutorial_root=Path.cwd(),
+        root=Path.cwd(),
     )
     with pytest.raises(RequiredExecutableNotFoundError, match=r"^git: Executable not found.$"):
         Runner(tutorial)
@@ -88,7 +88,7 @@ def test_required_executables_in_alternative_with_custom_path() -> None:
             },
         },
         parts=[],
-        tutorial_root=Path.cwd(),
+        root=Path.cwd(),
     )
     with pytest.raises(RequiredExecutableNotFoundError, match=r"^git: Executable not found.$"):
         Runner(tutorial, alternatives=("foo",))

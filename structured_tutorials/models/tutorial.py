@@ -135,10 +135,12 @@ class TutorialModel(BaseModel):
 
     model_config = ConfigDict(extra="forbid", title="Tutorial")
 
-    tutorial_root: Path = Field(
+    root: Path = Field(
+        json_schema_extra={"required": False},
         description="Directory from which relative file paths are resolved. Defaults to the path of the "
         "tutorial file.",
     )  # absolute path
+    configuration: ConfigurationModel = Field(default=ConfigurationModel())
     parts: tuple[
         Annotated[
             PartModels
@@ -148,7 +150,12 @@ class TutorialModel(BaseModel):
         ],
         ...,
     ] = Field(description="The individual parts of this tutorial.")
-    configuration: ConfigurationModel = Field(default=ConfigurationModel())
+
+    @classmethod
+    def model_json_schema(cls, **kwargs: Any) -> dict[str, Any]:  # type: ignore[override]  # pragma: no cover
+        schema = super().model_json_schema(**kwargs)
+        schema["required"].remove("root")
+        return schema
 
     @model_validator(mode="after")
     def update_context(self, info: ValidationInfo) -> Self:
@@ -160,8 +167,8 @@ class TutorialModel(BaseModel):
                 self.configuration.doc.context["tutorial_path"] = path
                 self.configuration.doc.context["tutorial_dir"] = path.parent
 
-                if not self.tutorial_root.is_absolute():
-                    self.tutorial_root = (path.parent / self.tutorial_root).resolve()
+                if not self.root.is_absolute():
+                    self.root = (path.parent / self.root).resolve()
         return self
 
     @model_validator(mode="after")
@@ -182,6 +189,6 @@ class TutorialModel(BaseModel):
         if not isinstance(tutorial_data, dict):
             raise ValueError("File does not contain a mapping at top level.")
 
-        tutorial_data.setdefault("tutorial_root", path.parent)
+        tutorial_data.setdefault("root", path.resolve().parent)
         tutorial = TutorialModel.model_validate(tutorial_data, context={"path": path})
         return tutorial

@@ -26,8 +26,8 @@ def test_default_context(simple_tutorial: TutorialModel) -> None:
         "cwd": Path.cwd(),
         "doc": False,
         "run": True,
-        "tutorial_dir": simple_tutorial.tutorial_root,
-        "tutorial_path": simple_tutorial.tutorial_root / "simple.yaml",
+        "tutorial_dir": simple_tutorial.root,
+        "tutorial_path": simple_tutorial.root / "simple.yaml",
     }
     assert simple_tutorial.configuration.doc.context == {
         "cwd": "~",
@@ -36,8 +36,8 @@ def test_default_context(simple_tutorial: TutorialModel) -> None:
         "host": "host",
         "user": "user",
         "prompt_template": "{{ user }}@{{ host }}:{{ cwd }}{% if user == 'root' %}#{% else %}${% endif %} ",
-        "tutorial_dir": simple_tutorial.tutorial_root,
-        "tutorial_path": simple_tutorial.tutorial_root / "simple.yaml",
+        "tutorial_dir": simple_tutorial.root,
+        "tutorial_path": simple_tutorial.root / "simple.yaml",
     }
 
 

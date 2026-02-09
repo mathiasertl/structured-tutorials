@@ -9,6 +9,7 @@ ChangeLog
 * Alternatives now allow specific context and environment variables.
 * The JSON schema is now available `here <_static/schema.json>`_ and can be used in IDEs such as PyCharm.
 * Add ability to specify required executables that are checked before running a tutorial.
+* Rename ``tutorial_root`` to ``root``.
 
 ******************
 0.3.0 (2025-12-26)

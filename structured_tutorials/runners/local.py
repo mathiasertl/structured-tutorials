@@ -77,7 +77,7 @@ class LocalTutorialRunner(RunnerBase):
 
         # Run the command and check status code
         if config.run.stdin and config.run.stdin.source and not config.run.stdin.template:
-            with open(self.tutorial.tutorial_root / config.run.stdin.source, "rb") as stdin:
+            with open(self.tutorial.root / config.run.stdin.source, "rb") as stdin:
                 proc = self.run_shell_command(
                     config.command,
                     show_output=config.run.show_output,
@@ -94,7 +94,7 @@ class LocalTutorialRunner(RunnerBase):
                     proc_input = self.render(stdin_config.contents).encode("utf-8")
                 elif stdin_config.template:  # source path, but template=True
                     assert stdin_config.source is not None
-                    with open(self.tutorial.tutorial_root / stdin_config.source) as stream:
+                    with open(self.tutorial.root / stdin_config.source) as stream:
                         stdin_template = stream.read()
                     proc_input = self.render(stdin_template).encode("utf-8")
 
@@ -159,7 +159,7 @@ class LocalTutorialRunner(RunnerBase):
             return
 
         if part.source:
-            with open(self.tutorial.tutorial_root / part.source) as source_stream:
+            with open(self.tutorial.root / part.source) as source_stream:
                 template = source_stream.read()
         else:
             assert isinstance(part.contents, str)  # assured by model validation

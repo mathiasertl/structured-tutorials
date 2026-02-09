@@ -94,7 +94,7 @@ def test_prompt_template() -> None:
         {
             "configuration": {"run": {"context": {"example": "dest/"}}},
             "parts": [{"prompt": "Go to {{ example }}"}],
-            "tutorial_root": Path.cwd(),
+            "root": Path.cwd(),
         }
     )
     runner = LocalTutorialRunner(configuration)

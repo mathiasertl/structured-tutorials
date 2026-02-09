@@ -146,7 +146,7 @@ class TutorialWrapper:
         content = part.contents
         if content is None:
             assert part.source is not None  # assured by model validation
-            with open(self.tutorial.tutorial_root / part.source) as stream:
+            with open(self.tutorial.root / part.source) as stream:
                 content = stream.read()
 
         # Only render template if it is configured to be a template.

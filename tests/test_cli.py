@@ -31,7 +31,9 @@ def test_simple_tutorial(fp: FakeProcess, simple_tutorial: TutorialModel) -> Non
 
 def test_simple_tutorial_with_run_exception(fp: FakeProcess, simple_tutorial: TutorialModel) -> None:
     """Test the cli entry point function by running a simple tutorial."""
-    with mock.patch("structured_tutorials.cli.LocalTutorialRunner.run", side_effect=RunTutorialException()):
+    with mock.patch(
+        "structured_tutorials.runners.local.LocalTutorialRunner.run", side_effect=RunTutorialException()
+    ):
         main([str(TEST_TUTORIALS_DIR / "simple.yaml")])
 
 
