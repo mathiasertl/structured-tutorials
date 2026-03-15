@@ -84,11 +84,19 @@ class DocumentationConfigurationModel(BaseModel):
         return self
 
 
+class RunnerConfig(BaseModel):
+    """Configuration for the runner itself."""
+
+    path: str = "structured_tutorials.runners.local.LocalTutorialRunner"
+    options: dict[str, Any] = Field(default_factory=dict)
+
+
 class RuntimeConfigurationModel(BaseModel):
     """Initial configuration for running the tutorial."""
 
     model_config = ConfigDict(extra="forbid", title="Runtime Configuration")
 
+    runner: RunnerConfig = RunnerConfig()
     context: dict[str, Any] = Field(
         default_factory=dict, description="Key/value pairs for the initial context when rendering templates."
     )

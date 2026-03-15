@@ -1,0 +1,25 @@
+configuration:
+  context:
+    stdin_test_path: /tmp/stdin.test
+  run:
+    runner:
+      path: structured_tutorials.runners.vagrant.VagrantRunner
+parts:
+  - commands:
+      - command: ls
+  - source: "vagrant.yaml"
+    # Write file to a destination that does not exist to test that parents are created
+    destination: "/tmp/does/not/exist/vagrant.yaml"
+    template: false
+  - source: "vagrant.yaml"
+    destination: "/tmp/rendered-template.yaml"
+  - commands:
+      - command: ls /
+      - command: [ls, /]
+      - command: [tee, "{{ stdin_test_path }}"]
+        run:
+          stdin:
+            contents: "writing stdin\n"
+      - command: "cat {{ stdin_test_path }}"
+
+  - prompt: "Confirm state?"

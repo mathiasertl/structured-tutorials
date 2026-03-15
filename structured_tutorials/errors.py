@@ -16,7 +16,11 @@ class InvalidAlternativesSelectedError(StructuredTutorialError):
     """Exception raised when an invalid alternative is selected."""
 
 
-class RequiredExecutableNotFoundError(RunTutorialException):
+class ConfigurationException(RunTutorialException):
+    """Exception raised when a configuration error occurs."""
+
+
+class RequiredExecutableNotFoundError(ConfigurationException):
     """Exception raised when a required executable is not found."""
 
 

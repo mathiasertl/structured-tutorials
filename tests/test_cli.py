@@ -29,12 +29,30 @@ def test_simple_tutorial(fp: FakeProcess, simple_tutorial: TutorialModel) -> Non
     main([str(TEST_TUTORIALS_DIR / "simple.yaml")])
 
 
-def test_simple_tutorial_with_run_exception(fp: FakeProcess, simple_tutorial: TutorialModel) -> None:
-    """Test the cli entry point function by running a simple tutorial."""
+def test_simple_tutorial_with_init_exception(
+    capsys: pytest.CaptureFixture[str], fp: FakeProcess, simple_tutorial: TutorialModel
+) -> None:
+    """Test error when constructor throws an exception."""
     with mock.patch(
-        "structured_tutorials.runners.local.LocalTutorialRunner.run", side_effect=RunTutorialException()
+        "structured_tutorials.runners.local.LocalTutorialRunner.__init__", side_effect=Exception("foo")
     ):
-        main([str(TEST_TUTORIALS_DIR / "simple.yaml")])
+        assert main([str(TEST_TUTORIALS_DIR / "simple.yaml")]) == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err == "foo\n"
+
+
+def test_simple_tutorial_with_run_exception(
+    capsys: pytest.CaptureFixture[str], fp: FakeProcess, simple_tutorial: TutorialModel
+) -> None:
+    """Test error when run() throws an exception."""
+    with mock.patch(
+        "structured_tutorials.runners.local.LocalTutorialRunner.run", side_effect=RunTutorialException("foo")
+    ):
+        assert main([str(TEST_TUTORIALS_DIR / "simple.yaml")]) == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err == "foo\n"
 
 
 @pytest.mark.tutorial_path("command-undefined-variable")
