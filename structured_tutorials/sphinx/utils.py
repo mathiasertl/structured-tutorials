@@ -199,6 +199,9 @@ class TutorialWrapper:
             additional_context = {"alternative": key, "alternative_name": name, **config.context}
 
             with self.update_context(additional_context):
+                if alternate_part.doc.skip:
+                    continue
+
                 if isinstance(alternate_part, CommandsPartModel):
                     tabs.append((name, self.render_code_block(alternate_part).strip()))
                 elif isinstance(alternate_part, FilePartModel):
