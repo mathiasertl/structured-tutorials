@@ -1,0 +1,12 @@
+configuration:
+  context:
+    stdin_test_path: /tmp/stdin.test
+  run:
+    runner:
+      path: structured_tutorials.runners.vagrant.VagrantRunner
+parts:
+  - commands:
+      - command: ls
+        run:
+          update_environment:
+            foo: bar

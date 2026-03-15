@@ -4,12 +4,13 @@
 """Conftest module for pytest."""
 
 from pathlib import Path
+from typing import Any
 
 import pytest
 from pytest_subprocess import FakeProcess
 from sphinx.application import Sphinx
 
-from structured_tutorials.models import FilePartModel, TutorialModel
+from structured_tutorials.models import TutorialModel
 from structured_tutorials.models.parts import CommandModel
 from structured_tutorials.output import setup_logging
 from structured_tutorials.runners.base import RunnerBase
@@ -24,16 +25,22 @@ DOCS_TUTORIALS_DIR = DOCS_DIR / "tutorials"
 assert TEST_TUTORIALS_DIR.exists()
 assert DOCS_TUTORIALS_DIR.exists()
 
-test_tutorials = [x / "tutorial.yaml" for x in TEST_TUTORIALS_DIR.iterdir() if x.is_dir()]
+test_tutorials = [x for x in TEST_TUTORIALS_DIR.glob("*.yaml") if not x.name.startswith("invalid")]
 docs_tutorials = [x / "tutorial.yaml" for x in DOCS_TUTORIALS_DIR.iterdir() if x.is_dir()]
 
 
 class Runner(RunnerBase):
     """Dummy runner in this module."""
 
-    def write_file(self, part: FilePartModel) -> None: ...
+    def chdir(self, path: str, runner_options: dict[str, Any]) -> None: ...
 
-    def run_command(self, config: CommandModel) -> None: ...
+    def copy_file(self, source: Path, destination: Path, runner_options: dict[str, Any]) -> None: ...
+
+    def write_file_from_string(
+        self, contents: str, destination: Path, runner_options: dict[str, Any]
+    ) -> None: ...
+
+    def run_command(self, config: CommandModel, runner_options: dict[str, Any]) -> None: ...
 
 
 def pytest_configure(config: pytest.Config) -> None:

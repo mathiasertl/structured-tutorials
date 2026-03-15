@@ -9,9 +9,11 @@ import logging
 import os
 import shlex
 import shutil
+import socket
 import subprocess
 import sys
 import tempfile
+import time
 from copy import deepcopy
 from pathlib import Path
 from subprocess import CompletedProcess
@@ -21,6 +23,7 @@ from jinja2 import Environment
 
 from structured_tutorials.errors import (
     CommandOutputTestError,
+    CommandTestError,
     InvalidAlternativesSelectedError,
     PromptNotConfirmedError,
     RequiredExecutableNotFoundError,
@@ -34,7 +37,7 @@ from structured_tutorials.models import (
 )
 from structured_tutorials.models.base import CommandType
 from structured_tutorials.models.parts import CleanupCommandModel, CommandModel
-from structured_tutorials.models.tests import TestOutputModel
+from structured_tutorials.models.tests import TestCommandModel, TestOutputModel, TestPortModel
 from structured_tutorials.utils import chdir, check_count, cleanup, git_export
 
 log = logging.getLogger(__name__)
@@ -100,9 +103,9 @@ class RunnerBase(abc.ABC):
 
     def render_command(self, command: CommandType, **context: Any) -> CommandType:
         if isinstance(command, str):
-            return self.render(command)
+            return self.render(command, **context)
 
-        return tuple(self.render(token) for token in command)
+        return tuple(self.render(token, **context) for token in command)
 
     def test_output(self, proc: subprocess.CompletedProcess[bytes], test: TestOutputModel) -> None:
         if test.stream == "stderr":
@@ -141,7 +144,7 @@ class RunnerBase(abc.ABC):
 
                 if part.required and len(selected) == 0:
                     raise InvalidAlternativesSelectedError(f"Part {part_no}: No alternative selected.")
-                elif len(selected) != 1:
+                elif len(selected) > 1:
                     raise InvalidAlternativesSelectedError(
                         f"Part {part_no}: More then one alternative selected: {selected}"
                     )
@@ -155,6 +158,7 @@ class RunnerBase(abc.ABC):
         input: bytes | None = None,
         environment: dict[str, Any] | None = None,
         clear_environment: bool = False,
+        options: dict[str, Any] | None = None,
     ) -> CompletedProcess[bytes]:
         # Only show output if runner itself is not configured to hide all output
         if show_output:
@@ -209,12 +213,16 @@ class RunnerBase(abc.ABC):
 
         return proc
 
-    def run_commands(self, part: CommandsPartModel) -> None:
+    def run_commands(self, part: CommandsPartModel, runner_options: dict[str, Any] | None = None) -> None:
+        if runner_options is None:
+            runner_options = {}
+        runner_options = {**runner_options, **part.run.runner}
+
         for command_config in part.commands:
             if command_config.run.skip:
                 continue
 
-            self.run_command(command_config)
+            self.run_command(command_config, runner_options)
 
     def run_prompt(self, part: PromptModel) -> None:
         prompt = self.render(part.prompt).strip() + " "
@@ -235,13 +243,14 @@ class RunnerBase(abc.ABC):
 
         # Note: The CLI agent already verifies this - just assert this to be sure.
         assert len(selected) <= 1, "More then one part selected."
+        runner_options = part.run.runner
 
         if selected:
             selected_part = part.alternatives[next(iter(selected))]
             if isinstance(selected_part, CommandsPartModel):
-                self.run_commands(selected_part)
+                self.run_commands(selected_part, runner_options)
             elif isinstance(selected_part, FilePartModel):
-                self.write_file(selected_part)
+                self.write_file(selected_part, runner_options)
             else:  # pragma: no cover
                 raise RuntimeError(f"{selected_part} is not supported as alternative.")
 
@@ -300,8 +309,178 @@ class RunnerBase(abc.ABC):
         """Function invoked after running the tutorial."""
         return
 
-    @abc.abstractmethod
-    def run_command(self, config: CommandModel) -> None: ...
+    def update_environment_variable(self, key: str, value: str, options: dict[str, Any]) -> None:
+        """Set an environment variable."""
+        self.environment[key] = value
+
+    def update_environment(self, env: dict[str, str], options: dict[str, Any]) -> None:
+        env = {k: self.render(v) for k, v in env.items() if v is not None}
+        for key, value in env.items():
+            self.update_environment_variable(key, value, options)
+
+    def write_file(self, part: FilePartModel, runner_options: dict[str, Any] | None = None) -> None:
+        """Write a file."""
+        if runner_options is None:
+            runner_options = {}
+        runner_options = {**runner_options, **part.run.runner}
+
+        raw_destination = self.render(part.destination)
+        destination = Path(raw_destination)
+
+        if raw_destination.endswith(os.path.sep):
+            # Model validation already validates that the destination does not look like a directory, if no
+            # source is set, but this could be tricked if the destination is a template.
+            if not part.source:
+                raise RuntimeError(
+                    f"{raw_destination}: Destination is directory, but no source given to derive filename."
+                )
+
+            destination.mkdir(parents=True, exist_ok=True)
+            destination = destination / part.source.name
+        elif destination.exists():
+            raise RuntimeError(f"{destination}: Destination already exists.")
+
+        # If template=False and source is set, we just copy the file as is, without ever reading it
+        if not part.template and part.source:
+            self.copy_file(self.tutorial.root / part.source, destination, runner_options)
+            return
+
+        if part.source:
+            with open(self.tutorial.root / part.source) as source_stream:
+                template = source_stream.read()
+        else:
+            assert isinstance(part.contents, str)  # assured by model validation
+            template = part.contents
+
+        if part.template:
+            contents = self.render(template)
+        else:
+            contents = template
+
+        self.write_file_from_string(contents, destination, runner_options)
+
+    def run_test(
+        self,
+        test: TestCommandModel | TestPortModel | TestOutputModel,
+        proc: subprocess.CompletedProcess[bytes],
+        runner_options: dict[str, Any],
+    ) -> None:
+        # If the test is for an output stream, we can run it right away (the process has already finished).
+        if isinstance(test, TestOutputModel):
+            self.test_output(proc, test)
+            return
+
+        # If an initial delay is configured, wait that long
+        if test.delay > 0:
+            time.sleep(test.delay)
+
+        tries = 0
+        while tries <= test.retry:
+            tries += 1
+
+            if isinstance(test, TestCommandModel):
+                test_proc = self.run_shell_command(
+                    test.command,
+                    show_output=test.show_output,
+                    environment=test.environment,
+                    clear_environment=test.clear_environment,
+                    options=runner_options,
+                )
+
+                # Update environment regardless of success of command
+                self.update_environment(test.update_environment, runner_options)
+
+                if test.status_code == test_proc.returncode:
+                    return
+                else:
+                    log.error("%s: Test command failed.", shlex.join(test_proc.args))
+            else:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                try:
+                    s.connect((test.host, test.port))
+                except Exception:
+                    log.error("%s:%s: failed to connect.", test.host, test.port)
+                else:
+                    return
+
+            wait = test.backoff_factor * (2 ** (tries - 1))
+            if wait > 0 and tries <= test.retry:
+                time.sleep(wait)
+
+        raise CommandTestError("Test did not pass")
+
+    def run_command(self, config: CommandModel, options: dict[str, Any]) -> None:
+        # Capture output if any test is for the output.
+        capture_output = any(isinstance(test, TestOutputModel) for test in config.run.test)
+        options = {**options, **config.run.runner}
+
+        # Run the command and check status code
+        if config.run.stdin and config.run.stdin.source and not config.run.stdin.template:
+            with open(self.tutorial.root / config.run.stdin.source, "rb") as stdin:
+                proc = self.run_shell_command(
+                    config.command,
+                    show_output=config.run.show_output,
+                    capture_output=capture_output,
+                    stdin=stdin,
+                    environment=config.run.environment,
+                    clear_environment=config.run.clear_environment,
+                    options=options,
+                )
+        else:
+            # Configure stdin
+            proc_input = None
+            if stdin_config := config.run.stdin:
+                if stdin_config.contents:
+                    proc_input = self.render(stdin_config.contents).encode("utf-8")
+                elif stdin_config.template:  # source path, but template=True
+                    assert stdin_config.source is not None
+                    with open(self.tutorial.root / stdin_config.source) as stream:
+                        stdin_template = stream.read()
+                    proc_input = self.render(stdin_template).encode("utf-8")
+
+                else:  # pragma: no cover
+                    raise RuntimeError("Invalid configuration.")
+
+            proc = self.run_shell_command(
+                config.command,
+                show_output=config.run.show_output,
+                capture_output=capture_output,
+                input=proc_input,
+                environment=config.run.environment,
+                clear_environment=config.run.clear_environment,
+                options=options,
+            )
+
+        # Update list of cleanup commands
+        self.cleanup = list(config.run.cleanup) + self.cleanup
+
+        # Handle errors in commands
+        if proc.returncode != config.run.status_code:
+            raise RuntimeError(
+                f"{config.command} failed with return code {proc.returncode} "
+                f"(expected: {config.run.status_code})."
+            )
+
+        # Update the context from update_context
+        self.context.update(config.run.update_context)
+
+        if (command_chdir := config.run.chdir) is not None:
+            rendered_command_chdir = self.render(str(command_chdir))
+            log.info("Changing working directory to %s.", command_chdir)
+            self.chdir(rendered_command_chdir, options)
+
+        # Run test commands
+        for test_command_config in config.run.test:
+            self.run_test(test_command_config, proc, options)
+
+        # Update environment (after test commands - they may update the context)
+        self.update_environment(config.run.update_environment, options)
 
     @abc.abstractmethod
-    def write_file(self, part: FilePartModel) -> None: ...
+    def chdir(self, path: str, options: dict[str, Any]) -> None: ...
+
+    @abc.abstractmethod
+    def copy_file(self, source: Path, destination: Path, options: dict[str, Any]) -> None: ...
+
+    @abc.abstractmethod
+    def write_file_from_string(self, contents: str, destination: Path, options: dict[str, Any]) -> None: ...

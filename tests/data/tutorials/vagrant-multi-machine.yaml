@@ -1,0 +1,21 @@
+configuration:
+  run:
+    runner:
+      path: structured_tutorials.runners.vagrant.VagrantRunner
+parts:
+  - commands:
+      - command: ls multi
+        run:
+          runner:
+            machines: [ foo, bar ]
+      - command: ls single
+        run:
+          runner:
+            machines: [ foo ]
+      - command: ls no machines
+  - source: "vagrant.yaml"
+    destination: "/tmp/rendered-template.yaml"
+    run:
+      runner:
+        machines: [ foo, bar ]
+

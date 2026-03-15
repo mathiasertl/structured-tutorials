@@ -1,0 +1,26 @@
+configuration:
+  run:
+    runner:
+      path: structured_tutorials.runners.vagrant.VagrantRunner
+parts:
+  - commands:
+      - command: ls multi
+        run:
+          runner:
+            cwd: /tmp/
+            machines: [ foo, bar ]
+      # overlap command will run in /tmp in foo, but not in bla - chdir was never done for that machine
+      - command: ls overlap
+        run:
+          runner:
+            machines: [ foo, bla ]
+  - commands:
+      - command: ls multi2
+        run:
+          chdir: /new/
+          runner:
+            machines: [ foo, default ]
+      - command: ls 3
+  - commands:
+      - command: ls 4
+

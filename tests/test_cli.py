@@ -29,12 +29,30 @@ def test_simple_tutorial(fp: FakeProcess, simple_tutorial: TutorialModel) -> Non
     main([str(TEST_TUTORIALS_DIR / "simple.yaml")])
 
 
-def test_simple_tutorial_with_run_exception(fp: FakeProcess, simple_tutorial: TutorialModel) -> None:
-    """Test the cli entry point function by running a simple tutorial."""
+def test_simple_tutorial_with_init_exception(
+    capsys: pytest.CaptureFixture[str], fp: FakeProcess, simple_tutorial: TutorialModel
+) -> None:
+    """Test error when constructor throws an exception."""
     with mock.patch(
-        "structured_tutorials.runners.local.LocalTutorialRunner.run", side_effect=RunTutorialException()
+        "structured_tutorials.runners.local.LocalTutorialRunner.__init__", side_effect=Exception("foo")
     ):
-        main([str(TEST_TUTORIALS_DIR / "simple.yaml")])
+        assert main([str(TEST_TUTORIALS_DIR / "simple.yaml")]) == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err == "foo\n"
+
+
+def test_simple_tutorial_with_run_exception(
+    capsys: pytest.CaptureFixture[str], fp: FakeProcess, simple_tutorial: TutorialModel
+) -> None:
+    """Test error when run() throws an exception."""
+    with mock.patch(
+        "structured_tutorials.runners.local.LocalTutorialRunner.run", side_effect=RunTutorialException("foo")
+    ):
+        assert main([str(TEST_TUTORIALS_DIR / "simple.yaml")]) == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err == "foo\n"
 
 
 @pytest.mark.tutorial_path("command-undefined-variable")
@@ -70,7 +88,7 @@ def test_invalid_model(capsys: pytest.CaptureFixture[str], tutorial_path: Path) 
     assert "invalid-model.yaml: File is not a valid Tutorial" in captured.err
 
 
-@pytest.mark.tutorial_path("empty")
+@pytest.mark.tutorial_path("invalid-empty")
 def test_empty_file(capsys: pytest.CaptureFixture[str], tutorial_path: Path) -> None:
     """Test error when loading an empty file (equal to an empty model)."""
     assert main([str(tutorial_path)]) == 1
@@ -78,7 +96,7 @@ def test_empty_file(capsys: pytest.CaptureFixture[str], tutorial_path: Path) -> 
 
     assert captured.out == ""
     assert (
-        "empty.yaml: File is not a valid Tutorial:\n"
+        "invalid-empty.yaml: File is not a valid Tutorial:\n"
         "File does not contain a mapping at top level." in captured.err
     )
 

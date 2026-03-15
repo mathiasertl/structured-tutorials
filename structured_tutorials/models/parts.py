@@ -75,6 +75,7 @@ class CommandRuntimeConfigurationModel(ConfigurationMixin, CommandBaseModel):
     cleanup: tuple[CleanupCommandModel, ...] = tuple()
     test: tuple[TestCommandModel | TestPortModel | TestOutputModel, ...] = tuple()
     stdin: StdinCommandModel | None = None
+    runner: dict[str, Any] = Field(default_factory=dict)
 
 
 class CommandDocumentationConfigurationModel(ConfigurationMixin, BaseModel):
@@ -104,6 +105,8 @@ class CommandsRuntimeConfigurationModel(ConfigurationMixin, BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
+    runner: dict[str, Any] = Field(default_factory=dict)
+
 
 class CommandsDocumentationConfigurationModel(ConfigurationMixin, DocumentationConfigurationMixin, BaseModel):
     """Documentation configuration for an entire commands part."""
@@ -127,6 +130,8 @@ class FileRuntimeConfigurationModel(ConfigurationMixin, BaseModel):
     """Configure a file part when running the tutorial."""
 
     model_config = ConfigDict(extra="forbid", title="File part runtime configuration")
+
+    runner: dict[str, Any] = Field(default_factory=dict)
 
 
 class FileDocumentationConfigurationModel(ConfigurationMixin, DocumentationConfigurationMixin, BaseModel):
@@ -206,6 +211,8 @@ class AlternativeRuntimeConfigurationModel(ConfigurationMixin, BaseModel):
     """Configure an alternative part when running the tutorial."""
 
     model_config = ConfigDict(extra="forbid", title="File part runtime configuration")
+
+    runner: dict[str, Any] = Field(default_factory=dict)
 
 
 class AlternativeDocumentationConfigurationModel(

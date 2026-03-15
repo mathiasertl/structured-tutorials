@@ -1,0 +1,13 @@
+configuration:
+  context:
+    stdin_test_path: /tmp/stdin.test
+  run:
+    runner:
+      path: structured_tutorials.runners.vagrant.VagrantRunner
+      options:
+        prepare_box:
+          cwd: box
+          name: prepared-box
+parts:
+  - commands:
+      - command: ls

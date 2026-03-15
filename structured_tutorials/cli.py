@@ -6,6 +6,7 @@
 import argparse
 import sys
 from collections.abc import Sequence
+from importlib import import_module
 from pathlib import Path
 
 import yaml
@@ -13,8 +14,18 @@ import yaml
 from structured_tutorials import __version__
 from structured_tutorials.errors import InvalidAlternativesSelectedError, RunTutorialException
 from structured_tutorials.models import TutorialModel
+from structured_tutorials.models.tutorial import RunnerConfig
 from structured_tutorials.output import error, setup_logging
-from structured_tutorials.runners.local import LocalTutorialRunner
+from structured_tutorials.runners.base import RunnerBase
+
+
+def get_runner(config: RunnerConfig) -> type[RunnerBase]:
+    """Get runner class."""
+    mod_path, cls_name = config.path.rsplit(".", 1)
+    mod = import_module(mod_path)
+    cls = getattr(mod, cls_name)
+    assert issubclass(cls, RunnerBase)
+    return cls  # type: ignore[no-any-return]
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -71,14 +82,19 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(ex, file=sys.stderr)
         return 1
 
-    runner = LocalTutorialRunner(
-        path=args.path,
-        tutorial=tutorial,
-        alternatives=tuple(args.alternatives),
-        show_command_output=args.show_command_output,
-        interactive=args.interactive,
-        context=context,
-    )
+    try:
+        runner_cls = get_runner(tutorial.configuration.run.runner)
+        runner = runner_cls(
+            path=args.path,
+            tutorial=tutorial,
+            alternatives=tuple(args.alternatives),
+            show_command_output=args.show_command_output,
+            interactive=args.interactive,
+            context=context,
+        )
+    except Exception as ex:
+        error(str(ex))
+        return 1
 
     try:
         runner.validate_alternatives()
