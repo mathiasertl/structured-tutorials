@@ -41,6 +41,7 @@ class TestOutputModel(BaseModel):
     )
     line_count: COUNT_TYPE = Field(default=None, description="Test for the given line count.")
     character_count: COUNT_TYPE = Field(default=None, description="Test for the given character count.")
+    strip: bool = Field(default=True, description="Whether to strip the output before testing.")
 
     @model_validator(mode="after")
     def validate_tests(self) -> Self:
