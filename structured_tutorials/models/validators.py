@@ -4,6 +4,7 @@
 """Validators for various models."""
 
 import re
+from pathlib import Path
 from typing import Any
 
 from pydantic import NonNegativeInt
@@ -14,6 +15,13 @@ def validate_regex(value: Any) -> Any:
     if isinstance(value, str):
         return re.compile(value.encode())
     return value  # pragma: no cover
+
+
+def validate_relative_path(value: Path) -> Path:
+    """Validate that a path is relative."""
+    if value.is_absolute():
+        raise ValueError(f"Path must be relative, got: {value!r}")
+    return value
 
 
 def validate_count_tuple(
