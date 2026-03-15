@@ -138,7 +138,8 @@ def test_command_capture_output(
     capsys: pytest.CaptureFixture[str], fp: FakeProcess, runner: LocalTutorialRunner
 ) -> None:
     """Test running a commands with capturing the output."""
-    recorder = fp.register("echo foo bar bla", stdout="foo bar bla", stderr="foo bla bla")
+    # Note: add space in output to make sure it's stripped
+    recorder = fp.register("echo foo bar bla", stdout="foo bar bla ", stderr="foo bla bla ")
     runner.run()
     expected: dict[str, Any] = {
         "shell": True,
@@ -149,7 +150,7 @@ def test_command_capture_output(
     }
     assert recorder.calls[0].kwargs == expected
     output = capsys.readouterr()
-    assert output.out == "--- stdout ---\nfoo bar bla\n--- stderr ---\nfoo bla bla\n"
+    assert output.out == "--- stdout ---\nfoo bar bla \n--- stderr ---\nfoo bla bla \n"
     assert output.err == ""
     assert runner.context["stdout"] == "bar"
     assert runner.context["stderr"] == "bla"

@@ -109,6 +109,8 @@ class RunnerBase(abc.ABC):
             value = proc.stderr
         else:
             value = proc.stdout
+        if test.strip:
+            value = value.strip()
 
         if test.regex:
             if (match := test.regex.search(value)) is not None:
