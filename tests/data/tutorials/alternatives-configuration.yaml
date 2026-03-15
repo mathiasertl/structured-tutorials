@@ -32,6 +32,11 @@ parts:
       bar:
         commands:
           - command: "ls {{ alternative }} {{ alternative_name }}: {{ key }}"
+      skipped:
+        commands:
+          - command: "only shown at runtime"
+        doc:
+          skip: true
   # to test that variables now disappear
   - commands:
       - command: "echo x{{ alternative }}x y{{ alternative_name }}y z{{ key }}z"
