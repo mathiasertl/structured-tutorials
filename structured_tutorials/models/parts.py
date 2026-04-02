@@ -92,11 +92,13 @@ class CommandModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     command: CommandType = Field(description="The command to run.")
-    run: CommandRuntimeConfigurationModel = Field(
-        default=CommandRuntimeConfigurationModel(), description="The runtime configuration."
+    run: CommandRuntimeConfigurationModel | Literal[False] = Field(
+        default=CommandRuntimeConfigurationModel(),
+        description="The runtime configuration (or `False` to skip at runtime).",
     )
-    doc: CommandDocumentationConfigurationModel = Field(
-        default=CommandDocumentationConfigurationModel(), description="The documentation configuration."
+    doc: CommandDocumentationConfigurationModel | Literal[False] = Field(
+        default=CommandDocumentationConfigurationModel(),
+        description="The documentation configuration (or `False` to skip at runtime).",
     )
 
 
@@ -122,8 +124,8 @@ class CommandsPartModel(PartMixin, BaseModel):
     type: Literal["commands"] = "commands"
     commands: tuple[CommandModel, ...]
 
-    run: CommandsRuntimeConfigurationModel = CommandsRuntimeConfigurationModel()
-    doc: CommandsDocumentationConfigurationModel = CommandsDocumentationConfigurationModel()
+    run: CommandsRuntimeConfigurationModel | Literal[False] = CommandsRuntimeConfigurationModel()
+    doc: CommandsDocumentationConfigurationModel | Literal[False] = CommandsDocumentationConfigurationModel()
 
 
 class FileRuntimeConfigurationModel(ConfigurationMixin, BaseModel):
@@ -175,8 +177,8 @@ class FilePartModel(PartMixin, FileMixin, BaseModel):
         description=f"The destination path of the file. {TEMPLATE_DESCRIPTION}",
     )
 
-    doc: FileDocumentationConfigurationModel = FileDocumentationConfigurationModel()
-    run: FileRuntimeConfigurationModel = FileRuntimeConfigurationModel()
+    doc: FileDocumentationConfigurationModel | Literal[False] = FileDocumentationConfigurationModel()
+    run: FileRuntimeConfigurationModel | Literal[False] = FileRuntimeConfigurationModel()
 
     @model_validator(mode="after")
     def validate_destination(self) -> Self:

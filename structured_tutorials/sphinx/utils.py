@@ -98,10 +98,11 @@ class TutorialWrapper:
 
     def render_code_block(self, part: CommandsPartModel) -> str:
         """Render a CommandsPartModel as a code-block."""
+        assert part.doc is not False  # Already checked by the caller
         commands = []
         for command_config in part.commands:
             # Skip individual commands if marked as skipped for documentation
-            if command_config.doc.skip:
+            if command_config.doc is False or command_config.doc.skip:
                 continue
 
             # Render the prompt
@@ -143,6 +144,7 @@ class TutorialWrapper:
         )
 
     def render_file(self, part: FilePartModel) -> str:
+        assert part.doc is not False  # Already checked by the caller
         content = part.contents
         if content is None:
             assert part.source is not None  # assured by model validation
@@ -199,7 +201,7 @@ class TutorialWrapper:
             additional_context = {"alternative": key, "alternative_name": name, **config.context}
 
             with self.update_context(additional_context):
-                if alternate_part.doc.skip:
+                if alternate_part.doc is False or alternate_part.doc.skip:
                     continue
 
                 if isinstance(alternate_part, CommandsPartModel):
@@ -235,7 +237,7 @@ class TutorialWrapper:
                 continue
 
             # If the part is not configured to be skipped for docs, use it.
-            if not part.doc.skip:
+            if part.doc is not False and part.doc.skip is False:
                 if part_id is not None and part.id != part_id:
                     raise ExtensionError(f"{part_id}: Part is not the next part (next one is {part.id}).")
                 break

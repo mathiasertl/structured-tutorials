@@ -214,12 +214,13 @@ class RunnerBase(abc.ABC):
         return proc
 
     def run_commands(self, part: CommandsPartModel, runner_options: dict[str, Any] | None = None) -> None:
+        assert part.run is not False  # Already checked by the caller
         if runner_options is None:
             runner_options = {}
         runner_options = {**runner_options, **part.run.runner}
 
         for command_config in part.commands:
-            if command_config.run.skip:
+            if command_config.run is False or command_config.run.skip:
                 continue
 
             self.run_command(command_config, runner_options)
@@ -260,7 +261,7 @@ class RunnerBase(abc.ABC):
                 if self.interactive:
                     self.run_prompt(part)
                 continue
-            if part.run.skip:
+            if part.run is False or part.run.skip:
                 continue
 
             if part.name:  # pragma: no cover
@@ -320,6 +321,7 @@ class RunnerBase(abc.ABC):
 
     def write_file(self, part: FilePartModel, runner_options: dict[str, Any] | None = None) -> None:
         """Write a file."""
+        assert part.run is not False  # Already checked by the caller
         if runner_options is None:
             runner_options = {}
         runner_options = {**runner_options, **part.run.runner}
@@ -410,6 +412,7 @@ class RunnerBase(abc.ABC):
         raise CommandTestError("Test did not pass")
 
     def run_command(self, config: CommandModel, options: dict[str, Any]) -> None:
+        assert config.run is not False  # Already checked by the caller
         # Capture output if any test is for the output.
         capture_output = any(isinstance(test, TestOutputModel) for test in config.run.test)
         options = {**options, **config.run.runner}
