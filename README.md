@@ -9,8 +9,8 @@
 `structured-tutorials` allows you to write tutorials that can be rendered as documentation and run on your
 system to verify correctness.
 
-With `structured-tutorials` you to specify steps in a configuration file. A Sphinx plugin allows you to
-render those commands in your project documentation. A command-line tool can load the configuration file and
+With `structured-tutorials` you to specify steps (commands, files to create, ...) in a YAML file. A Sphinx
+plugin allows you to render them in your project documentation. A command-line tool can load the YAML file and
 run it on your local system.
 
 Please see the [official documentation](https://structured-tutorials.readthedocs.io/) for more detailed
@@ -33,7 +33,7 @@ extensions = [
 ]
 
 # Optional: Root directory for tutorials (default: location of conf.py)
-#structured_tutorials_root = DOC_ROOT / "tutorials"
+# structured_tutorials_root = DOC_ROOT / "tutorials"
 ```
 
 ## Your first (trivial) tutorial

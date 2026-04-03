@@ -1,10 +1,12 @@
 structured-tutorials documentation
 ==================================
 
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
+`structured-tutorials` allows you to write tutorials that can be rendered as documentation and run on your
+system to verify correctness.
 
+With `structured-tutorials` you to specify steps (commands, files to create, ...) in a YAML file. A Sphinx
+plugin allows you to render them in your project documentation. A command-line tool can load the YAML file and
+run it on your local system.
 
 .. toctree::
    :maxdepth: 1
