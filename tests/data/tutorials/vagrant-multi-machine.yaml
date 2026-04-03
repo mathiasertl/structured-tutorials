@@ -4,18 +4,20 @@ configuration:
       path: structured_tutorials.runners.vagrant.VagrantRunner
 parts:
   - commands:
-      - command: ls multi
+      - command: ls a
+      - command: ls b
         run:
           options:
-            machines: [ foo, bar ]
-      - command: ls single
-        run:
-          options:
-            machines: [ foo ]
-      - command: ls no machines
+            machine: bar
+      - command: ls c
+    run:
+      options:
+        machine: foo
   - source: "vagrant.yaml"
     destination: "/tmp/rendered-template.yaml"
     run:
       options:
-        machines: [ foo, bar ]
-
+        machine: bar
+  # This is on the default machine again
+  - commands:
+      - command: ls

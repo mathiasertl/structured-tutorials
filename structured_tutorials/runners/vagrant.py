@@ -77,17 +77,9 @@ class VagrantRunner(RunnerBase):
             raise RunTutorialException(f"{joined_command} exited with status code {proc.returncode}.")
         return proc
 
-    def get_machines(self, options: dict[str, Any]) -> list[str]:
-        machines: str | list[str] = options.get("machines", "default")
-        if not machines:
-            raise ConfigurationException("empty list of machines passed.")
-        if isinstance(machines, str):
-            machines = [machines]
-        return machines
-
     def chdir(self, path: str, options: dict[str, Any]) -> None:
-        for machine in self.get_machines(options):
-            self.cwds[machine] = path
+        machine = options.get("machine", "default")
+        self.cwds[machine] = path
 
     def run_shell_command(
         self,
@@ -103,28 +95,27 @@ class VagrantRunner(RunnerBase):
         if options is None:  # pragma: no cover  # doesn't happen in real time
             options = {}
 
-        machines = self.get_machines(options)
+        machine = options.get("machine", "default")
         command = self.render_command(command)
         if isinstance(command, tuple):
             command = shlex.join(command)
 
-        for machine in machines:
-            cmd = command
-            cwd = self.cwds.get(machine)
-            if cwd:
-                cmd = f"{shlex.join(['cd', cwd])} && {command}"
+        cmd = command
+        cwd = self.cwds.get(machine)
+        if cwd:
+            cmd = f"{shlex.join(['cd', cwd])} && {command}"
 
-            vagrant_command = ["vagrant", "ssh", machine, "-c", cmd]
+        vagrant_command = ["vagrant", "ssh", machine, "-c", cmd]
 
-            proc = super().run_shell_command(
-                tuple(vagrant_command),
-                show_output=show_output,
-                capture_output=capture_output,
-                stdin=stdin,
-                input=input,
-                environment=self.config.environment,
-                clear_environment=True,
-            )
+        proc = super().run_shell_command(
+            tuple(vagrant_command),
+            show_output=show_output,
+            capture_output=capture_output,
+            stdin=stdin,
+            input=input,
+            environment=self.config.environment,
+            clear_environment=True,
+        )
         return proc
 
     def prepare_vagrantfile(self, path: Path) -> None:
@@ -191,8 +182,8 @@ class VagrantRunner(RunnerBase):
         self.vagrant(["destroy", "-f"])
 
     def copy_file(self, source: Path, destination: Path, options: dict[str, Any]) -> None:
-        for machine in self.get_machines(options):
-            self.vagrant(["upload", str(source), str(destination), machine])
+        machine = options.get("machine", "default")
+        self.vagrant(["upload", str(source), str(destination), machine])
 
     def write_file_from_string(self, contents: str, destination: Path, options: dict[str, Any]) -> None:
         # Only way to write a file from string is to write it to a temporary file on the host system

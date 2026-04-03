@@ -17,7 +17,7 @@ parts:
       - command: ls /
         run:
           options:
-            machines: [ machine_a, machine_b ]
+            machine: machine_a
       - command: [ ls, / ]
       - command: [ tee, "{{ stdin_test_path }}" ]
         run:

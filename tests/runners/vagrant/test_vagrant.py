@@ -32,7 +32,6 @@ def test_vagrant(fp: FakeProcess, runner: VagrantRunner) -> None:
     fp.register(["vagrant", "upload", path, "/tmp/does/not/exist/vagrant.yaml", "default"])
     fp.register(["vagrant", "upload", tmp_path, "/tmp/rendered-template.yaml", "default"])
     fp.register(["vagrant", "ssh", "machine_a", "-c", "ls /"])  # first ls on two VMs
-    fp.register(["vagrant", "ssh", "machine_b", "-c", "ls /"])
     fp.register(["vagrant", "ssh", "default", "-c", "ls /"])
     fp.register(["vagrant", "ssh", "default", "-c", "tee /tmp/stdin.test"])
     fp.register(["vagrant", "ssh", "default", "-c", "cat /tmp/stdin.test"])
@@ -130,16 +129,15 @@ def test_vagrant_prepare_vagrantfile_directory_not_found(
 
 
 @pytest.mark.tutorial("vagrant-multi-machine")
-def test_vagrant_with_multi_machine(fp: FakeProcess, runner: VagrantRunner) -> None:
+def test_vagrant_with_machines(fp: FakeProcess, runner: VagrantRunner) -> None:
     """Test running a vagrant tutorial for multiple machines."""
     tmp_path = "/tmp/mocked.txt"
     fp.register(["vagrant", "up"])
-    fp.register(["vagrant", "ssh", "foo", "-c", "ls multi"])
-    fp.register(["vagrant", "ssh", "bar", "-c", "ls multi"])
-    fp.register(["vagrant", "ssh", "foo", "-c", "ls single"])
-    fp.register(["vagrant", "ssh", "default", "-c", "ls no machines"])
-    fp.register(["vagrant", "upload", "/tmp/mocked.txt", "/tmp/rendered-template.yaml", "foo"])
+    fp.register(["vagrant", "ssh", "foo", "-c", "ls a"])
+    fp.register(["vagrant", "ssh", "bar", "-c", "ls b"])
+    fp.register(["vagrant", "ssh", "foo", "-c", "ls c"])
     fp.register(["vagrant", "upload", "/tmp/mocked.txt", "/tmp/rendered-template.yaml", "bar"])
+    fp.register(["vagrant", "ssh", "default", "-c", "ls"])
     fp.register(["vagrant", "destroy", "-f"])
 
     with patch("structured_tutorials.runners.vagrant.tempfile.NamedTemporaryFile") as mock_ntf:
@@ -150,18 +148,6 @@ def test_vagrant_with_multi_machine(fp: FakeProcess, runner: VagrantRunner) -> N
         runner.prepare_tutorial()
         runner.run()
         runner.cleanup_tutorial()
-
-
-@pytest.mark.tutorial("vagrant-multi-machine")
-def test_vagrant_with_multi_machine_with_empty_machines(fp: FakeProcess, runner: VagrantRunner) -> None:
-    """Test running a vagrant tutorial for multiple machines."""
-    runner.tutorial.parts[0].commands[0].run.options["machines"] = []  # type: ignore[union-attr]
-    fp.register(["vagrant", "up"])
-    fp.register(["vagrant", "ssh", "foo", "-c", "ls multi"])
-
-    runner.prepare_tutorial()
-    with pytest.raises(RunTutorialException, match=r"empty list of machines passed\."):
-        runner.run()
 
 
 @pytest.mark.tutorial("vagrant-cwd")
