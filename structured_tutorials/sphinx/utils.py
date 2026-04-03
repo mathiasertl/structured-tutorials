@@ -245,7 +245,7 @@ class TutorialWrapper:
                     raise ExtensionError(f"{part_id}: Part is not the next part (next one is {part.id}).")
                 break
         else:
-            raise ExtensionError("No more parts left in tutorial.")
+            raise ExtensionError(f"{self.tutorial.root}: No more parts left in tutorial.")
 
         if isinstance(part, CommandsPartModel):
             text = self.render_code_block(part)

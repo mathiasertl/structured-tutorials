@@ -1,0 +1,16 @@
+configuration:
+  run:
+    runner:
+      path: structured_tutorials.runners.vagrant.VagrantRunner
+parts:
+  - commands:
+      - command: echo foo
+    run:
+      options:
+        machine: foo
+
+  - commands:
+      - command: echo bar
+    run:
+      options:
+        machine: bar

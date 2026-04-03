@@ -1,0 +1,9 @@
+Vagrant.configure("2") do |config|
+  config.vm.define "foo" do |foo|
+    foo.vm.box = "hashicorp-education/ubuntu-24-04"
+  end
+
+  config.vm.define "bar" do |bar|
+    bar.vm.box = "hashicorp-education/ubuntu-24-04"
+  end
+end

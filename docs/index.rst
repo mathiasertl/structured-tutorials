@@ -24,3 +24,4 @@ How-Tos
    :caption: More specific How-Tos:
 
    /howto/chdir
+   /howto/vagrant

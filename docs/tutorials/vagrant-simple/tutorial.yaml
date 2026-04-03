@@ -1,0 +1,7 @@
+configuration:
+  run:
+    runner:
+      path: structured_tutorials.runners.vagrant.VagrantRunner
+parts:
+  - commands:
+      - command: ls
