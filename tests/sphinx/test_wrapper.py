@@ -19,7 +19,7 @@ from tests.conftest import TEST_TUTORIALS_DIR
 @pytest.fixture
 def wrapper(tutorial: TutorialModel) -> TutorialWrapper:
     """Fixture to get a wrapper from the tutorial fixture."""
-    return TutorialWrapper(tutorial)
+    return TutorialWrapper(tutorial, Path(__file__))
 
 
 @pytest.mark.parametrize(
@@ -53,7 +53,7 @@ def wrapper(tutorial: TutorialModel) -> TutorialWrapper:
 def test_code_block_output(commands: tuple[str, ...], expected: str) -> None:
     """Test rendering the output of code-blocks thoroughly."""
     tutorial = TutorialModel.model_validate({"root": Path.cwd(), "parts": [{"commands": commands}]})
-    wrapper = TutorialWrapper(tutorial)
+    wrapper = TutorialWrapper(tutorial, Path(__file__))
     assert wrapper.render_part() == f".. code-block:: console\n\n{textwrap.indent(expected, '    ')}"
 
 
@@ -120,7 +120,7 @@ def test_command_skip_single_command(wrapper: TutorialWrapper, expected_rst: str
 def test_file_part_options(file_config: dict[str, Any], expected: str) -> None:
     """Test options for files."""
     tutorial = TutorialModel.model_validate({"root": Path.cwd(), "parts": [file_config]})
-    wrapper = TutorialWrapper(tutorial)
+    wrapper = TutorialWrapper(tutorial, Path(__file__))
     language = file_config.get("doc", {}).get("language", "")
     if language:
         language = f" {language}"
@@ -139,7 +139,7 @@ def test_file_part_with_source() -> None:
             "parts": [{"source": "file_contents.txt", "destination": destination}],
         }
     )
-    wrapper = TutorialWrapper(tutorial)
+    wrapper = TutorialWrapper(tutorial, Path(__file__))
     assert wrapper.render_part() == f".. code-block::\n    :caption: {destination}\n\n    {contents}"
 
 
@@ -168,7 +168,7 @@ def test_file_part_with_source_without_template() -> None:
             "parts": [{"source": "file_contents.txt", "destination": destination, "template": False}],
         }
     )
-    wrapper = TutorialWrapper(tutorial)
+    wrapper = TutorialWrapper(tutorial, Path(__file__))
     assert wrapper.render_part() == f".. code-block::\n    :caption: {destination}\n\n    {contents}"
 
 
@@ -183,7 +183,7 @@ def test_multiple_parts() -> None:
             ],
         }
     )
-    wrapper = TutorialWrapper(tutorial)
+    wrapper = TutorialWrapper(tutorial, Path(__file__))
 
     expected = ".. code-block:: console\n\n    user@host:~$ ls foo\n    user@host:~$ ls bar\n"
     assert wrapper.render_part() == expected
@@ -203,7 +203,7 @@ def test_multiple_parts_with_skip() -> None:
             ],
         }
     )
-    wrapper = TutorialWrapper(tutorial)
+    wrapper = TutorialWrapper(tutorial, Path(__file__))
 
     expected = ".. code-block:: console\n\n    user@host:~$ ls foo\n    user@host:~$ ls bar\n"
     assert wrapper.render_part() == expected
@@ -216,7 +216,7 @@ def test_multiple_parts_with_index_error() -> None:
     tutorial = TutorialModel.model_validate(
         {"root": TEST_TUTORIALS_DIR, "parts": [{"commands": [{"command": "ls foo"}, {"command": "ls bar"}]}]}
     )
-    wrapper = TutorialWrapper(tutorial)
+    wrapper = TutorialWrapper(tutorial, Path(__file__))
 
     expected = ".. code-block:: console\n\n    user@host:~$ ls foo\n    user@host:~$ ls bar\n"
     assert wrapper.render_part() == expected
@@ -241,7 +241,7 @@ def test_multiple_parts_with_index_error() -> None:
 def test_prompt(parts: tuple[str, ...], expected: list[str]) -> None:
     """Test rendering a code block that is preceded by a prompt. First rendered part is code block."""
     tutorial = TutorialModel.model_validate({"root": Path.cwd(), "parts": parts})
-    wrapper = TutorialWrapper(tutorial)
+    wrapper = TutorialWrapper(tutorial, Path(__file__))
     assert wrapper.render_part() == f".. code-block:: console\n\n{textwrap.indent(expected[0], '    ')}"
     assert wrapper.render_part() == f".. code-block:: console\n\n{textwrap.indent(expected[1], '    ')}"
     assert wrapper.render_part() == f".. code-block:: console\n\n{textwrap.indent(expected[2], '    ')}"
@@ -299,7 +299,7 @@ def test_alternatives(aliases: dict[str, str], alternatives: dict[str, Any], exp
         "parts": [{"alternatives": alternatives}],
     }
     tutorial = TutorialModel.model_validate(data)
-    wrapper = TutorialWrapper(tutorial)
+    wrapper = TutorialWrapper(tutorial, Path(__file__))
     assert wrapper.render_part() == expected
 
 

@@ -60,8 +60,13 @@ class TutorialWrapper:
     """
 
     def __init__(
-        self, tutorial: TutorialModel, context: dict[str, Any] | None = None, command_text_width: int = 75
+        self,
+        tutorial: TutorialModel,
+        path: Path,
+        context: dict[str, Any] | None = None,
+        command_text_width: int = 75,
     ) -> None:
+        self.path = path
         self.tutorial = tutorial
         self.next_part = 0
         self.env = Environment(keep_trailing_newline=True)
@@ -91,7 +96,7 @@ class TutorialWrapper:
     ) -> "TutorialWrapper":
         """Factory method for creating a TutorialWrapper from a file."""
         tutorial = TutorialModel.from_file(path)
-        return cls(tutorial, context=context, command_text_width=command_text_width)
+        return cls(tutorial, path, context=context, command_text_width=command_text_width)
 
     def render(self, template: str) -> str:
         return self.env.from_string(template).render(self.context)
@@ -245,7 +250,7 @@ class TutorialWrapper:
                     raise ExtensionError(f"{part_id}: Part is not the next part (next one is {part.id}).")
                 break
         else:
-            raise ExtensionError(f"{self.tutorial.root}: No more parts left in tutorial.")
+            raise ExtensionError(f"{self.path}: No more parts left in tutorial.")
 
         if isinstance(part, CommandsPartModel):
             text = self.render_code_block(part)
