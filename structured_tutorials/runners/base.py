@@ -467,9 +467,9 @@ class RunnerBase(abc.ABC):
         # Update the context from update_context
         self.context.update(config.run.update_context)
 
-        if (command_chdir := config.run.chdir) is not None:
+        if (command_chdir := config.chdir) is not None:
             rendered_command_chdir = self.render(str(command_chdir))
-            log.info("Changing working directory to %s.", command_chdir)
+            log.info("Changing working directory to %s.", rendered_command_chdir)
             self.chdir(rendered_command_chdir, options)
 
         # Run test commands

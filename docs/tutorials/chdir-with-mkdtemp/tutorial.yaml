@@ -1,0 +1,18 @@
+configuration:
+  doc:
+    context:
+      WORKDIR: /tmp/docs # set only in docs
+parts:
+  - commands:
+      - command: mktemp -d
+        doc: false  # do not show mktemp in docs
+        run:
+          test:
+            - regex: "(?P<WORKDIR>.*)"  # update context with output
+          cleanup: # make sure dir is removed in the end
+            - command: rm -r {{ WORKDIR }}
+      - command: cd {{ WORKDIR }}
+        chdir: "{{ WORKDIR }}"
+      - command: ls
+        doc:
+          output: "contents of {{ WORKDIR }}..."

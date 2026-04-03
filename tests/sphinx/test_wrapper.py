@@ -408,4 +408,4 @@ def test_chdir_with_multiple_parts(wrapper: TutorialWrapper) -> None:
     """Test chdir with multiple parts."""
     assert wrapper.render_part() == ".. code-block:: console\n\n    user@host:~$ ls 1\n"
     assert wrapper.render_part() == ".. code-block::\n    :caption: /does/not/exist/file\n\n    foo"
-    assert wrapper.render_part() == ".. code-block:: console\n\n    user@host:/does/not/exist/doc/$ ls 2\n"
+    assert wrapper.render_part() == ".. code-block:: console\n\n    user@host:/does/not/exist$ ls 2\n"

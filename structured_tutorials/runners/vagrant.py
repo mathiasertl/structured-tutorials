@@ -109,10 +109,6 @@ class VagrantRunner(RunnerBase):
             command = shlex.join(command)
 
         for machine in machines:
-            # update config from runner options
-            if cwd := options.get("cwd"):
-                self.cwds[machine] = cwd
-
             cmd = command
             cwd = self.cwds.get(machine)
             if cwd:

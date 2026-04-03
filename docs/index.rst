@@ -1,8 +1,3 @@
-.. structured-tutorials documentation master file, created by
-   sphinx-quickstart on Sun May 25 11:37:47 2025.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 structured-tutorials documentation
 ==================================
 
@@ -21,3 +16,11 @@ documentation for details.
    /changelog
    /dev
 
+How-Tos
+-------
+
+.. toctree::
+   :maxdepth: 1
+   :caption: More specific How-Tos:
+
+   /howto/chdir

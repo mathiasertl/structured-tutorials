@@ -67,11 +67,6 @@ class CommandRuntimeConfigurationModel(ConfigurationMixin, CommandBaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    chdir: Path | None = Field(
-        default=None,
-        description=f"Change working directory to this path. This change affects all subsequent commands."
-        f" {TEMPLATE_DESCRIPTION}",
-    )
     cleanup: tuple[CleanupCommandModel, ...] = tuple()
     test: tuple[TestCommandModel | TestPortModel | TestOutputModel, ...] = tuple()
     stdin: StdinCommandModel | None = None
@@ -92,6 +87,11 @@ class CommandModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     command: CommandType = Field(description="The command to run.")
+    chdir: Path | None = Field(
+        default=None,
+        description=f"Change working directory to this path *after* running this command. "
+        f"This change affects all subsequent commands. {TEMPLATE_DESCRIPTION}",
+    )
     run: CommandRuntimeConfigurationModel | Literal[False] = Field(
         default=CommandRuntimeConfigurationModel(),
         description="The runtime configuration (or `False` to skip at runtime).",

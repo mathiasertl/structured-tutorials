@@ -132,6 +132,8 @@ class TutorialWrapper:
 
             # Update the context from update_context
             self.context.update(command_config.doc.update_context)
+            if command_config.chdir:
+                self.context["cwd"] = self.render(str(command_config.chdir))
 
         template_str = TEMPLATE_DIR.joinpath("commands_part.rst.template").read_text("utf-8")
         template = self.env.from_string(template_str)

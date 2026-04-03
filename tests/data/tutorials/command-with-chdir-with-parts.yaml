@@ -1,11 +1,7 @@
 parts:
   - commands:
       - command: ls 1
-        run:
-          chdir: /does/not/exist
-        doc:
-          update_context:
-            cwd: /does/not/exist/doc/
+        chdir: /does/not/exist
   - contents: foo
     destination: /does/not/exist/file
   - commands:

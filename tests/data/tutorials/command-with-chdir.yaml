@@ -1,5 +1,4 @@
 parts:
   - commands:
       - command: ls
-        run:
-          chdir: /does/not/exist
+        chdir: /does/not/exist

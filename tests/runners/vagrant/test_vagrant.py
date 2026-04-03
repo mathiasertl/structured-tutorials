@@ -169,11 +169,13 @@ def test_vagrant_with_chdir(fp: FakeProcess, runner: VagrantRunner) -> None:
     """Test running a vagrant tutorial for multiple machines, and changing dirs."""
     tmp_path = "/tmp/mocked.txt"
     fp.register(["vagrant", "up"])
-    fp.register(["vagrant", "ssh", "foo", "-c", "cd /tmp/ && ls multi"])
-    fp.register(["vagrant", "ssh", "bar", "-c", "cd /tmp/ && ls multi"])
-    fp.register(["vagrant", "ssh", "foo", "-c", "cd /tmp/ && ls overlap"])
+    fp.register(["vagrant", "ssh", "foo", "-c", "cd /tmp/"])
+    fp.register(["vagrant", "ssh", "bar", "-c", "cd /tmp/"])
+    fp.register(["vagrant", "ssh", "foo", "-c", "cd /tmp && ls multi"])
+    fp.register(["vagrant", "ssh", "bar", "-c", "cd /tmp && ls multi"])
+    fp.register(["vagrant", "ssh", "foo", "-c", "cd /tmp && ls overlap"])
     fp.register(["vagrant", "ssh", "bla", "-c", "ls overlap"])
-    fp.register(["vagrant", "ssh", "foo", "-c", "cd /tmp/ && ls multi2"])
+    fp.register(["vagrant", "ssh", "foo", "-c", "cd /tmp && ls multi2"])
     fp.register(["vagrant", "ssh", "default", "-c", "ls multi2"])
     fp.register(["vagrant", "ssh", "default", "-c", "cd /new && ls 3"])
     fp.register(["vagrant", "ssh", "default", "-c", "cd /new && ls 4"])

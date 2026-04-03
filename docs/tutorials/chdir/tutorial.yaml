@@ -1,0 +1,24 @@
+configuration:
+  run:
+    context:
+      WORKDIR: /tmp/run
+  doc:
+    context:
+      WORKDIR: /tmp/docs
+parts:
+  - commands:
+      - command: cd /tmp/
+        chdir: /tmp/
+      - command: ls
+        doc:
+          output: "contents of /tmp/..."
+  - commands:
+      - command: mkdir {{ WORKDIR }}
+        run:
+          cleanup:
+            - command: rm -r {{ WORKDIR }}
+      - command: cd {{ WORKDIR }}
+        chdir: "{{ WORKDIR }}"
+      - command: ls
+        doc:
+          output: "contents of {{ WORKDIR }}..."
