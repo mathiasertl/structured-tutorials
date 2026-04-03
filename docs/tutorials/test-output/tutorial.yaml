@@ -4,18 +4,26 @@ configuration:
       timestamp: "<timestamp>"
 parts:
   - commands:
-    - command: date +%s
-      doc:
-        output: "{{ timestamp }}"
-      run:
-        show_output: false
-        test:
-          # Test that stdout matches the given regular expression.
-          - regex: ^(?P<timestamp>\d*)$
-            # Optional: test stderr instead
-            #stream: stderr
+      - command: date +%s
+        doc:
+          output: "{{ timestamp }}"
+        run:
+          show_output: false
+          test:
+            # Test that stdout matches the given regular expression.
+            - regex: ^(?P<timestamp>\d*)$
+              # Optional: test stderr instead
+              #stream: stderr
 
-    # If named patterns are tested, you can use matches in subsequent commands
-    - command: "echo \"It is now: {{ timestamp }}\""
-      doc:
-        output: "It is now: {{ timestamp }}"
+              # Both line and character count can be tested with an integer (= exact match)
+              # or a tuple (from/to, with either optionally null):
+              line_count: 1
+              character_count: [ 8, 11 ]  # or [null, 11] == up to 11 characters
+              # Optional: do not strip output before testing
+              #strip: false
+
+
+        # If named patterns are tested, you can use matches in subsequent commands
+      - command: "echo \"It is now: {{ timestamp }}\""
+        doc:
+          output: "It is now: {{ timestamp }}"

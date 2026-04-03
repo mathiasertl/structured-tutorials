@@ -26,4 +26,5 @@ How-Tos
    :caption: More specific How-Tos:
 
    /howto/chdir
+   /howto/test-commands
    /howto/vagrant

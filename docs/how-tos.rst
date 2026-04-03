@@ -42,15 +42,6 @@ message:
 
 .. structured-tutorial-part::
 
-Test the status code
-====================
-
-``structured-tutorials`` will abort a tutorial if  a specified command does not exit with a status code of
-``0``. To check for a different status code, simply specify ``status_code``:
-
-.. literalinclude:: /tutorials/exit_code/tutorial.yaml
-    :language: yaml
-
 Cleanup after running a tutorial
 ================================
 
@@ -79,7 +70,7 @@ run, in order, ``clean3``, ``clean1`` and ``clean2``. Should ``cmd1`` return a n
 Skip a part at runtime
 ======================
 
-To skip an entire part at runtime, but still show it in documentation, you can use the ``skip`` configuration:
+To skip an entire part at runtime, but still show it in documentation, simply set ``run: false``:
 
 .. literalinclude:: /tutorials/skip-part-run/tutorial.yaml
     :language: yaml

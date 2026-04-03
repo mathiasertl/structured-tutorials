@@ -192,56 +192,9 @@ You can verify the success of commands by checking the status code, the output o
 opened properly. You can add multiple tests, and when testing the output, update the context for successive
 commands.
 
-For ports and commands, you can also specify a `retry` to run the test command multiple times before the main
-command is considered to have failed. A `delay` will delay the first run of the command and a
-`backoff_factor` will introduce an increasing delay between retries. A common use case is a daemon that
-will *eventually* open a port, but subsequent commands want to connect to that daemon.
+See :doc:`/howto/test-commands` for more information.
 
-Test status code
-----------------
 
-By default, a non-zero status code is considered an error, but you can also require a non-zero status
-code:
-
-.. literalinclude:: /tutorials/exit_code/tutorial.yaml
-    :caption: docs/tutorials/exit_code/tutorial.yaml
-    :language: yaml
-
-Test output
------------
-
-You can test either the standard output or standard error stream of a command with a regular expression. You
-can also use named patterns to update the context for later commands:
-
-.. tab:: Configuration
-
-    .. literalinclude:: /tutorials/test-output/tutorial.yaml
-        :caption: docs/tutorials/test-output/tutorial.yaml
-        :language: yaml
-
-.. tab:: Documentation
-
-    .. structured-tutorial:: test-output/tutorial.yaml
-
-    .. structured-tutorial-part::
-
-Run a test command
-------------------
-
-You can run a test command to verify that the command actually ran successfully:
-
-.. literalinclude:: /tutorials/test-command/tutorial.yaml
-    :caption: docs/tutorials/test-command/tutorial.yaml
-    :language: yaml
-
-Test port
----------
-
-You can test that a port is opened by the command:
-
-.. literalinclude:: /tutorials/test-port/tutorial.yaml
-    :caption: docs/tutorials/test-port/tutorial.yaml
-    :language: yaml
 
 Select alternatives
 ===================

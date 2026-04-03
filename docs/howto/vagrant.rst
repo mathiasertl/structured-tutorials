@@ -1,5 +1,5 @@
 ###########################
-Run a tutorial with vagrant
+Run a tutorial with Vagrant
 ###########################
 
 You can use `Vagrant <https://developer.hashicorp.com/vagrant>`_ to run a tutorial inside one (or more)
