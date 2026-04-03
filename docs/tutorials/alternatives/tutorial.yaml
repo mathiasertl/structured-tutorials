@@ -28,10 +28,9 @@ parts:
         commands:
           - command: sudo apt install {{ package }}
       postgresql: *install-package
-    run:
-      # Skip installation of packages at runtime (we don't want the tutorial
-      # to require sudo)
-      skip: true
+    # Skip installation of packages at runtime (we don't want the tutorial
+    # to require sudo)
+    run: false
 
   # part 2: configure some application for that database
   - alternatives:

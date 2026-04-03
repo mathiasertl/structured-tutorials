@@ -35,8 +35,7 @@ parts:
       skipped:
         commands:
           - command: "only shown at runtime"
-        doc:
-          skip: true
+        doc: false
   # to test that variables now disappear
   - commands:
       - command: "echo x{{ alternative }}x y{{ alternative_name }}y z{{ key }}z"

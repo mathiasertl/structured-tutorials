@@ -102,7 +102,7 @@ class TutorialWrapper:
         commands = []
         for command_config in part.commands:
             # Skip individual commands if marked as skipped for documentation
-            if command_config.doc is False or command_config.doc.skip:
+            if command_config.doc is False:
                 continue
 
             # Render the prompt
@@ -193,6 +193,7 @@ class TutorialWrapper:
         return value
 
     def render_alternatives(self, part: AlternativeModel) -> str:
+        assert part.doc is not False  # Already checked by the caller
         tabs = []
         for key, alternate_part in part.alternatives.items():
             config = self.tutorial.configuration.doc.alternatives.get(
@@ -203,7 +204,7 @@ class TutorialWrapper:
             additional_context = {"alternative": key, "alternative_name": name, **config.context}
 
             with self.update_context(additional_context):
-                if alternate_part.doc is False or alternate_part.doc.skip:
+                if alternate_part.doc is False:
                     continue
 
                 if isinstance(alternate_part, CommandsPartModel):
@@ -239,7 +240,7 @@ class TutorialWrapper:
                 continue
 
             # If the part is not configured to be skipped for docs, use it.
-            if part.doc is not False and part.doc.skip is False:
+            if part.doc is not False:
                 if part_id is not None and part.id != part_id:
                     raise ExtensionError(f"{part_id}: Part is not the next part (next one is {part.id}).")
                 break

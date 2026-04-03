@@ -60,7 +60,6 @@ class TestSpecificationMixin:
 class ConfigurationMixin:
     """Mixin for configuration models."""
 
-    skip: bool = Field(default=False, description="Skip this part.")
     update_context: dict[str, Any] = Field(default_factory=dict)
 
 

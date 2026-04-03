@@ -244,5 +244,7 @@ class AlternativeModel(PartMixin, BaseModel):
     type: Literal["alternatives"] = "alternatives"
     alternatives: dict[str, Annotated[PartModels, Discriminator(part_discriminator)]]
     required: bool = Field(default=True, description="Whether one of the alternatives is required.")
-    doc: AlternativeDocumentationConfigurationModel = AlternativeDocumentationConfigurationModel()
-    run: AlternativeRuntimeConfigurationModel = AlternativeRuntimeConfigurationModel()
+    doc: AlternativeDocumentationConfigurationModel | Literal[False] = (
+        AlternativeDocumentationConfigurationModel()
+    )
+    run: AlternativeRuntimeConfigurationModel | Literal[False] = AlternativeRuntimeConfigurationModel()

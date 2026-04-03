@@ -220,7 +220,7 @@ class RunnerBase(abc.ABC):
         options = {**options, **part.run.options}
 
         for command_config in part.commands:
-            if command_config.run is False or command_config.run.skip:
+            if command_config.run is False:
                 continue
 
             self.run_command(command_config, options)
@@ -240,6 +240,7 @@ class RunnerBase(abc.ABC):
                 raise PromptNotConfirmedError(error)
 
     def run_alternative(self, part: AlternativeModel) -> None:
+        assert part.run is not False  # Already checked by the caller
         selected = set(self.alternatives) & set(part.alternatives)
 
         # Note: The CLI agent already verifies this - just assert this to be sure.
@@ -261,7 +262,7 @@ class RunnerBase(abc.ABC):
                 if self.interactive:
                     self.run_prompt(part)
                 continue
-            if part.run is False or part.run.skip:
+            if part.run is False:
                 continue
 
             if part.name:  # pragma: no cover

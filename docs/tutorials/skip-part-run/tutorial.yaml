@@ -3,18 +3,15 @@ parts:
       - command: ls /tmp
         doc:
           output: ...
-    run:
-      skip: true
+    run: false
     # We could also skip part in documentation instead:
-    #doc:
-    #  skip: true
+    #doc: false
   - commands:
       - command: ls /etc
         doc:
           output: ...
       # Or we could skip just a command, not the entire part, at runtime:
       - command: ls /tmp
-        run:
-          skip: true
+        run: false
         doc:
           output: ...

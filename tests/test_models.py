@@ -17,6 +17,7 @@ from structured_tutorials.models.tests import TestCommandModel, TestOutputModel,
 
 def test_from_file(tutorial_paths: Path) -> None:
     """Test loading all known tutorials."""
+    print(tutorial_paths)
     assert isinstance(TutorialModel.from_file(tutorial_paths), TutorialModel)
 
 

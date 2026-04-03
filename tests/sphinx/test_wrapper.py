@@ -198,7 +198,7 @@ def test_multiple_parts_with_skip() -> None:
             "root": TEST_TUTORIALS_DIR,
             "parts": [
                 {"commands": [{"command": "ls foo"}, {"command": "ls bar"}]},
-                {"commands": [{"command": "ls not-rendered"}], "doc": {"skip": True}},
+                {"commands": [{"command": "ls not-rendered"}], "doc": False},
                 {"commands": [{"command": "ls bla"}, {"command": "ls baz"}]},
             ],
         }

@@ -4,10 +4,8 @@ parts:
         doc:
           output: ...
     # We could also skip part at runtime instead:
-    #run:
-    #  skip: true
-    doc:
-      skip: true
+    #run: false
+    doc: false
   - commands:
       - command: ls /etc
         doc:

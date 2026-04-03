@@ -1,9 +1,7 @@
 parts:
   - commands:
-    - command: echo 1
-    - command: echo 2
-      doc:
-        skip: true
-    - command: echo 3
-      run:
-        skip: true
+      - command: echo 1
+      - command: echo 2
+        doc: false
+      - command: echo 3
+        run: false
