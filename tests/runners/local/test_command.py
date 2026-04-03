@@ -6,6 +6,7 @@
 import io
 import os
 import subprocess
+from pathlib import Path
 from typing import Any
 from unittest import mock
 
@@ -13,6 +14,7 @@ import pytest
 from pytest_subprocess import FakeProcess
 
 from structured_tutorials.errors import RunTutorialException
+from structured_tutorials.models import FilePartModel
 from structured_tutorials.runners.local import LocalTutorialRunner
 
 
@@ -95,6 +97,23 @@ def test_command_with_chdir_with_template(fp: FakeProcess, runner: LocalTutorial
     with mock.patch("os.chdir", autospec=True) as mock_chdir:
         runner.run()
     mock_chdir.assert_called_once_with("/does/not/exist")
+
+
+@pytest.mark.tutorial("command-with-chdir-with-parts")
+def test_command_with_chdir_with_parts(tmp_path: Path, fp: FakeProcess, runner: LocalTutorialRunner) -> None:
+    """Test changing the working directory after a command, with multiple parts."""
+    file_part = runner.tutorial.parts[1]
+    assert isinstance(file_part, FilePartModel)
+    destination = tmp_path / "write"
+    file_part.destination = str(destination)
+
+    fp.register("ls 1")
+    fp.register("ls 2")
+    with mock.patch("os.chdir", autospec=True) as mock_chdir:
+        runner.run()
+
+    mock_chdir.assert_called_once_with("/does/not/exist")  # chdir was called exactly once to desired location
+    assert destination.exists()
 
 
 @pytest.mark.tutorial("command-stdin")
