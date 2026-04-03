@@ -69,6 +69,22 @@ def test_command_skip_single_command(wrapper: TutorialWrapper, expected_rst: str
     assert wrapper.render_part() == expected_rst
 
 
+@pytest.mark.tutorial("initial-context")
+def test_render_initial_context(wrapper: TutorialWrapper) -> None:
+    """Test rendering of initial context in documentation."""
+    assert (
+        wrapper.render_part()
+        == """.. code-block:: console
+
+    user@host:~$ echo "foo-doc-overwrite"
+    user@host:~$ echo "BAR: foo-doc-overwrite"
+    user@host:~$ echo "bla-doc"
+    user@host:~$ echo "baz-doc: bla-doc"
+    user@host:~$ echo "doc-defined"
+"""
+    )
+
+
 @pytest.mark.parametrize(
     ("file_config", "expected"),
     (

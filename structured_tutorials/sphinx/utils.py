@@ -76,6 +76,12 @@ class TutorialWrapper:
         if context:
             self.context.update(context)
 
+        # Render context variables incrementally
+        for key, value in [(k, v) for k, v in self.context.items() if isinstance(v, str)]:
+            if key.endswith("_template"):
+                continue
+            self.context[key] = self.render(value, _key=key)
+
         # settings from sphinx:
         self.command_text_width = command_text_width
 
@@ -98,8 +104,8 @@ class TutorialWrapper:
         tutorial = TutorialModel.from_file(path)
         return cls(tutorial, path, context=context, command_text_width=command_text_width)
 
-    def render(self, template: str) -> str:
-        return self.env.from_string(template).render(self.context)
+    def render(self, template: str, **context: Any) -> str:
+        return self.env.from_string(template).render({**self.context, **context})
 
     def render_code_block(self, part: CommandsPartModel) -> str:
         """Render a CommandsPartModel as a code-block."""

@@ -1,0 +1,28 @@
+configuration:
+  context:
+    FOO: foo
+    BAR: "{{ _key }}: {{ FOO }}"
+    example_template: "{{ undefined_value }}"
+  run:
+    context:
+      FOO: foo-overwrite
+      BLA: bla-run
+      BAZ: "baz-run: {{ BLA }}"
+  doc:
+    context:
+      FOO: foo-doc-overwrite
+      BLA: bla-doc
+      BAZ: "baz-doc: {{ BLA }}"
+parts:
+  - commands:
+      - command: echo "{{ FOO }}"
+      - command: echo "{{ BAR }}"
+      - command: echo "{{ BLA }}"
+      - command: echo "{{ BAZ }}"
+        run:
+          update_context:
+            undefined_value: run-defined
+        doc:
+          update_context:
+            undefined_value: doc-defined
+      - command: echo "{{ undefined_value }}"

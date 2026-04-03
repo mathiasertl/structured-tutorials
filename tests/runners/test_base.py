@@ -6,9 +6,11 @@
 from pathlib import Path
 
 import pytest
+from pytest_subprocess import FakeProcess
 
 from structured_tutorials.errors import InvalidAlternativesSelectedError, RequiredExecutableNotFoundError
 from structured_tutorials.models import TutorialModel
+from structured_tutorials.runners.local import LocalTutorialRunner
 from tests.conftest import Runner
 
 

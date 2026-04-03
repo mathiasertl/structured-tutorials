@@ -175,6 +175,17 @@ def test_command_capture_output(
     assert runner.context["stderr"] == "bla"
 
 
+@pytest.mark.tutorial("initial-context")
+def test_render_initial_context(fp: FakeProcess, runner: LocalTutorialRunner) -> None:
+    """Test rendering of initial context at runtime."""
+    fp.register('echo "foo-overwrite"')
+    fp.register('echo "BAR: foo-overwrite"')
+    fp.register('echo "bla-run"')
+    fp.register('echo "baz-run: bla-run"')
+    fp.register('echo "run-defined"')
+    runner.run()
+
+
 @pytest.mark.tutorial("command-test-output-count")
 def test_command_with_line_and_character_count(fp: FakeProcess, runner: LocalTutorialRunner) -> None:
     """Test running a command and testing line/character count."""

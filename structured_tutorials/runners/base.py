@@ -69,6 +69,12 @@ class RunnerBase(abc.ABC):
         if context:
             self.context.update(context)
 
+        # Render context variables incrementally
+        for key, value in [(k, v) for k, v in self.context.items() if isinstance(v, str)]:
+            if key.endswith("_template"):
+                continue
+            self.context[key] = self.render(value, _key=key)
+
         # Set up the environment for commands
         if tutorial.configuration.run.clear_environment:
             environment: dict[str, str | None] = {}
