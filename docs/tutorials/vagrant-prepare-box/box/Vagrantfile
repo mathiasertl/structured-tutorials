@@ -1,0 +1,9 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "hashicorp-education/ubuntu-24-04"
+
+  # Do not update SSH key with generated one, provisioning script copies it to /root to allow SSH access.
+  config.ssh.insert_key = false
+
+  # provision base box
+  config.vm.provision "shell", name: "provision", path: "provision.sh"
+end

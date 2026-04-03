@@ -6,7 +6,7 @@ configuration:
       path: structured_tutorials.runners.vagrant.VagrantRunner
       options:
         prepare_box:
-          cwd: box
+          path: box
           name: prepared-box
 parts:
   - commands:

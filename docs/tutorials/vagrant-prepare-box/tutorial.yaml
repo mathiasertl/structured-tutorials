@@ -1,0 +1,21 @@
+configuration:
+  run:
+    runner:
+      path: structured_tutorials.runners.vagrant.VagrantRunner
+      options:
+        # Prepare a custom box as base for boxes in the main Vagrantfile:
+        prepare_box:
+          path: box/  # where the base box Vagrantfile is
+          name: prepared-box
+parts:
+  - commands:
+      # Works, because default user of prepared box is now root
+      - command: apt-get install -y nginx
+    run:
+      options:
+        machine: web
+  - commands:
+      - command: apt-get install -y postgresql
+    run:
+      options:
+        machine: web

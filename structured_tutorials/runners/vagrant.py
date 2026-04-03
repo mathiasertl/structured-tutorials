@@ -34,7 +34,7 @@ class PrepareBoxOptions(BaseModel):
     """Options for preparing a box."""
 
     name: str
-    cwd: RelativePath
+    path: RelativePath
 
 
 class VagrantOptions(BaseModel):
@@ -137,7 +137,7 @@ class VagrantRunner(RunnerBase):
 
     def prepare_box(self, config: PrepareBoxOptions) -> None:
         """Prepare the box before running the tutorial, if requested."""
-        vagrant_cwd = self.tutorial.root / config.cwd
+        vagrant_cwd = self.tutorial.root / config.path
         self.context["box"] = config.name  # update context with name of box
 
         # Render the Vagrantfile to prepare the box

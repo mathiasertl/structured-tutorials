@@ -73,5 +73,41 @@ The first `commands` block will run in the `foo` VM:
 
 .. structured-tutorial-part::
 
-Prepare a "base" box
-====================
+Prepare a custom base box
+=========================
+
+Sometimes you need to prepare a custom base box for the main tutorial. Known use cases are preparing a box
+that already has some tools installed or changing the VM so that it connects using a different user.
+
+The following tutorial is a contrived example showing a user how to set up PostgreSQL on a "db" host and
+Nginx on a "web" host. VMs are started from a custom-built "base" box that already has some common tools
+installed and allows SSH access as root:
+
+.. literalinclude:: /tutorials/vagrant-prepare-box/tutorial.yaml
+    :caption: tutorial.yaml
+    :language: yaml
+
+As per the `prepare_box` directive, we have to specify a Vagrantfile for the base box in the ``box/`` folder:
+
+.. literalinclude:: /tutorials/vagrant-prepare-box/box/Vagrantfile
+    :caption: box/Vagrantfile
+
+And the provisioning script in the same location:
+
+.. literalinclude:: /tutorials/vagrant-prepare-box/box/provision.sh
+    :caption: box/provision.sh
+
+And finally the main Vagrantfile specifying the `db` and `web` VMs from the tutorial configuration file:
+
+.. literalinclude:: /tutorials/vagrant-prepare-box/Vagrantfile
+    :caption: Vagrantfile
+
+.. structured-tutorial:: vagrant-prepare-box/tutorial.yaml
+
+The first `commands` block will run in the `web` VM:
+
+.. structured-tutorial-part::
+
+... while the second block will run in the `db` VM:
+
+.. structured-tutorial-part::
