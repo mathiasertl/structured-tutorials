@@ -15,6 +15,7 @@ Assuming you have Vagrant installed, getting started is very simple.
 First, let's write a trivial tutorial file and tell `structured-tutorials` to use the Vagrant runner:
 
 .. literalinclude:: /tutorials/vagrant-simple/tutorial.yaml
+    :caption: tutorial.yaml
     :language: yaml
 
 Then, in same folder as your :file:`tutorial.yaml`, place a simple :file:`Vagrantfile`:
@@ -28,7 +29,7 @@ You can now run your tutorial in Vagrant:
 
 .. code-block:: console
 
-   user@host:~$ structured-tutorial docs/tutorials/vagrant-simple/tutorial.yaml
+   user@host:~$ structured-tutorial tutorial.yaml
 
 Configure Vagrant environment
 =================================

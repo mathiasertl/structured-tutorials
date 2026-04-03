@@ -4,7 +4,7 @@ configuration:
       path: structured_tutorials.runners.vagrant.VagrantRunner
       options:
         environment:
-          VAGRANT_CWD: /home/mati/git/mati/structured-tutorials/docs/tutorials/vagrant-subdir/subdir
+          VAGRANT_CWD: subdir
 parts:
   - commands:
       - command: ls

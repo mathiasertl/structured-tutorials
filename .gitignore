@@ -1,16 +1,16 @@
-# Python-generated files
-__pycache__/
+*.box
+*.egg-info
 *.py[oc]
+.config/
+.vagrant.d/
+.vagrant/
+/schema.json
+__pycache__/
 build/
 dist/
-wheels/
-*.egg-info
 tests/data/docs/_build/
-/schema.json
-.vagrant/
 tests/data/tutorials/Vagrantfile
-.vagrant.d/
-.config/
+wheels/
 
 # Virtual environments
 .venv

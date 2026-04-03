@@ -29,6 +29,14 @@ from structured_tutorials.runners.base import RunnerBase
 log = logging.getLogger(__name__)
 command_logger = logging.getLogger("command")
 
+PATH_ENVIRONMENT_VARIABLES = (
+    "VAGRANT_CWD",
+    "SSL_CERT_FILE",
+    "VAGRANT_ALIAS_FILE",
+    "VAGRANT_DOTFILE_PATH",
+    "VAGRANT_HOME",
+)
+
 
 class PrepareBoxOptions(BaseModel):
     """Options for preparing a box."""
@@ -59,6 +67,14 @@ class VagrantRunner(RunnerBase):
         self.config.environment.setdefault("VAGRANT_CWD", str(self.tutorial.root))
         self.config.environment.setdefault("PATH", os.environ["PATH"])
         self.cwds: dict[str, str] = self.config.cwds.copy()
+
+        # convert relative paths to absolute paths for known path variables:
+        for key, value in self.config.environment.items():
+            if key in PATH_ENVIRONMENT_VARIABLES:
+                value_path = Path(value)
+                if not value_path.is_absolute():
+                    value_path = self.tutorial.root / value_path
+                    self.config.environment[key] = str(value_path.resolve())
 
     def vagrant(
         self, args: Sequence[str], env: dict[str, str] | None = None, check: bool = True

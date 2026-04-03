@@ -9,3 +9,7 @@ backend
 reStructuredText
 bugfix
 executables
+Vagrantfile
+Nginx
+subdir
+Tos

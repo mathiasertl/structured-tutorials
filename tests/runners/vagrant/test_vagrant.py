@@ -16,11 +16,16 @@ from structured_tutorials.errors import (
 )
 from structured_tutorials.models import TutorialModel
 from structured_tutorials.runners.vagrant import VagrantRunner
+from tests.conftest import TEST_TUTORIALS_DIR
 
 
 @pytest.mark.tutorial("vagrant")
 def test_vagrant(fp: FakeProcess, runner: VagrantRunner) -> None:
     """Test running a vagrant tutorial."""
+    # Test environment variable parsing:
+    assert runner.config.environment["SSL_CERT_FILE"] == "/absolute/path"
+    assert runner.config.environment["VAGRANT_CWD"] == str(TEST_TUTORIALS_DIR / "box")
+
     path = runner.tutorial.configuration.run.context["tutorial_path"]
     tmp_path = "/tmp/mocked.txt"
 
@@ -90,7 +95,7 @@ def test_vagrant_prepare_box_vagrantfile_exists(
     tmp_path: Path, fp: FakeProcess, runner: VagrantRunner
 ) -> None:
     """Test running a vagrant tutorial where a box is prepared, but already exists."""
-    runner.config.prepare_box.cwd = tmp_path  # type: ignore[union-attr]
+    runner.config.prepare_box.path = tmp_path  # type: ignore[union-attr]
     (tmp_path / "Vagrantfile").touch()
 
     # preparation of box
@@ -111,7 +116,7 @@ def test_vagrant_prepare_vagrantfile_not_found(
     tmp_path: Path, fp: FakeProcess, runner: VagrantRunner
 ) -> None:
     """Test running a vagrant tutorial where the Vagrantfile is not found."""
-    runner.config.prepare_box.cwd = tmp_path  # type: ignore[union-attr]
+    runner.config.prepare_box.path = tmp_path  # type: ignore[union-attr]
 
     with pytest.raises(ConfigurationException, match="Vagrantfile not found:"):
         runner.prepare_tutorial()
@@ -122,7 +127,7 @@ def test_vagrant_prepare_vagrantfile_directory_not_found(
     tmp_path: Path, fp: FakeProcess, runner: VagrantRunner
 ) -> None:
     """Test running a vagrant tutorial where the folder where the Vagrantfile should be is not found."""
-    runner.config.prepare_box.cwd = tmp_path / "foo"  # type: ignore[union-attr]
+    runner.config.prepare_box.path = tmp_path / "foo"  # type: ignore[union-attr]
 
     with pytest.raises(ConfigurationException, match=r"Directory not found\."):
         runner.prepare_tutorial()

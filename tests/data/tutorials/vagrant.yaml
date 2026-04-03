@@ -4,6 +4,10 @@ configuration:
   run:
     runner:
       path: structured_tutorials.runners.vagrant.VagrantRunner
+      options:
+        environment:
+          SSL_CERT_FILE: /absolute/path
+          VAGRANT_CWD: box
 parts:
   - commands:
       - command: ls

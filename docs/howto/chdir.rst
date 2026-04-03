@@ -36,7 +36,7 @@ Use a true temporary directory at runtime
 =========================================
 
 Since ``chdir`` is a template value and ``update_context`` and/or output tests (that may update the context)
-are run before applying it, the best way is simply use mkdir only at runtime:
+are run before applying it, the best way is simply use ``mkdir`` only at runtime:
 
 .. literalinclude:: /tutorials/chdir-with-mkdtemp/tutorial.yaml
     :language: yaml
