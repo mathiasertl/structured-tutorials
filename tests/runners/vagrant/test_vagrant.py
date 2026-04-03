@@ -155,7 +155,7 @@ def test_vagrant_with_multi_machine(fp: FakeProcess, runner: VagrantRunner) -> N
 @pytest.mark.tutorial("vagrant-multi-machine")
 def test_vagrant_with_multi_machine_with_empty_machines(fp: FakeProcess, runner: VagrantRunner) -> None:
     """Test running a vagrant tutorial for multiple machines."""
-    runner.tutorial.parts[0].commands[0].run.runner["machines"] = []  # type: ignore[union-attr]
+    runner.tutorial.parts[0].commands[0].run.options["machines"] = []  # type: ignore[union-attr]
     fp.register(["vagrant", "up"])
     fp.register(["vagrant", "ssh", "foo", "-c", "ls multi"])
 

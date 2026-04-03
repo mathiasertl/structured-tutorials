@@ -6,16 +6,16 @@ parts:
   - commands:
       - command: ls multi
         run:
-          runner:
+          options:
             machines: [ foo, bar ]
       - command: ls single
         run:
-          runner:
+          options:
             machines: [ foo ]
       - command: ls no machines
   - source: "vagrant.yaml"
     destination: "/tmp/rendered-template.yaml"
     run:
-      runner:
+      options:
         machines: [ foo, bar ]
 

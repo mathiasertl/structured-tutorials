@@ -21,6 +21,11 @@ from structured_tutorials.models.base import (
 from structured_tutorials.models.tests import TestCommandModel, TestOutputModel, TestPortModel
 from structured_tutorials.typing import Self
 
+OPTIONS_TYPE = Annotated[
+    dict[str, Any],
+    Field(default_factory=dict, description="Custom options for the selected runtime backend."),
+]
+
 
 def part_discriminator(value: Any) -> str | None:
     """Discriminator for parts."""
@@ -70,7 +75,7 @@ class CommandRuntimeConfigurationModel(ConfigurationMixin, CommandBaseModel):
     cleanup: tuple[CleanupCommandModel, ...] = tuple()
     test: tuple[TestCommandModel | TestPortModel | TestOutputModel, ...] = tuple()
     stdin: StdinCommandModel | None = None
-    runner: dict[str, Any] = Field(default_factory=dict)
+    options: OPTIONS_TYPE
 
 
 class CommandDocumentationConfigurationModel(ConfigurationMixin, BaseModel):
@@ -107,7 +112,7 @@ class CommandsRuntimeConfigurationModel(ConfigurationMixin, BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    runner: dict[str, Any] = Field(default_factory=dict)
+    options: OPTIONS_TYPE
 
 
 class CommandsDocumentationConfigurationModel(ConfigurationMixin, DocumentationConfigurationMixin, BaseModel):
@@ -133,7 +138,7 @@ class FileRuntimeConfigurationModel(ConfigurationMixin, BaseModel):
 
     model_config = ConfigDict(extra="forbid", title="File part runtime configuration")
 
-    runner: dict[str, Any] = Field(default_factory=dict)
+    options: OPTIONS_TYPE
 
 
 class FileDocumentationConfigurationModel(ConfigurationMixin, DocumentationConfigurationMixin, BaseModel):
@@ -214,7 +219,7 @@ class AlternativeRuntimeConfigurationModel(ConfigurationMixin, BaseModel):
 
     model_config = ConfigDict(extra="forbid", title="File part runtime configuration")
 
-    runner: dict[str, Any] = Field(default_factory=dict)
+    options: OPTIONS_TYPE
 
 
 class AlternativeDocumentationConfigurationModel(

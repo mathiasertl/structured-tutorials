@@ -213,17 +213,17 @@ class RunnerBase(abc.ABC):
 
         return proc
 
-    def run_commands(self, part: CommandsPartModel, runner_options: dict[str, Any] | None = None) -> None:
+    def run_commands(self, part: CommandsPartModel, options: dict[str, Any] | None = None) -> None:
         assert part.run is not False  # Already checked by the caller
-        if runner_options is None:
-            runner_options = {}
-        runner_options = {**runner_options, **part.run.runner}
+        if options is None:
+            options = {}
+        options = {**options, **part.run.options}
 
         for command_config in part.commands:
             if command_config.run is False or command_config.run.skip:
                 continue
 
-            self.run_command(command_config, runner_options)
+            self.run_command(command_config, options)
 
     def run_prompt(self, part: PromptModel) -> None:
         prompt = self.render(part.prompt).strip() + " "
@@ -244,14 +244,14 @@ class RunnerBase(abc.ABC):
 
         # Note: The CLI agent already verifies this - just assert this to be sure.
         assert len(selected) <= 1, "More then one part selected."
-        runner_options = part.run.runner
+        options = part.run.options
 
         if selected:
             selected_part = part.alternatives[next(iter(selected))]
             if isinstance(selected_part, CommandsPartModel):
-                self.run_commands(selected_part, runner_options)
+                self.run_commands(selected_part, options)
             elif isinstance(selected_part, FilePartModel):
-                self.write_file(selected_part, runner_options)
+                self.write_file(selected_part, options)
             else:  # pragma: no cover
                 raise RuntimeError(f"{selected_part} is not supported as alternative.")
 
@@ -319,12 +319,12 @@ class RunnerBase(abc.ABC):
         for key, value in env.items():
             self.update_environment_variable(key, value, options)
 
-    def write_file(self, part: FilePartModel, runner_options: dict[str, Any] | None = None) -> None:
+    def write_file(self, part: FilePartModel, options: dict[str, Any] | None = None) -> None:
         """Write a file."""
         assert part.run is not False  # Already checked by the caller
-        if runner_options is None:
-            runner_options = {}
-        runner_options = {**runner_options, **part.run.runner}
+        if options is None:
+            options = {}
+        options = {**options, **part.run.options}
 
         raw_destination = self.render(part.destination)
         destination = Path(raw_destination)
@@ -344,7 +344,7 @@ class RunnerBase(abc.ABC):
 
         # If template=False and source is set, we just copy the file as is, without ever reading it
         if not part.template and part.source:
-            self.copy_file(self.tutorial.root / part.source, destination, runner_options)
+            self.copy_file(self.tutorial.root / part.source, destination, options)
             return
 
         if part.source:
@@ -359,13 +359,13 @@ class RunnerBase(abc.ABC):
         else:
             contents = template
 
-        self.write_file_from_string(contents, destination, runner_options)
+        self.write_file_from_string(contents, destination, options)
 
     def run_test(
         self,
         test: TestCommandModel | TestPortModel | TestOutputModel,
         proc: subprocess.CompletedProcess[bytes],
-        runner_options: dict[str, Any],
+        options: dict[str, Any],
     ) -> None:
         # If the test is for an output stream, we can run it right away (the process has already finished).
         if isinstance(test, TestOutputModel):
@@ -386,11 +386,11 @@ class RunnerBase(abc.ABC):
                     show_output=test.show_output,
                     environment=test.environment,
                     clear_environment=test.clear_environment,
-                    options=runner_options,
+                    options=options,
                 )
 
                 # Update environment regardless of success of command
-                self.update_environment(test.update_environment, runner_options)
+                self.update_environment(test.update_environment, options)
 
                 if test.status_code == test_proc.returncode:
                     return
@@ -415,7 +415,7 @@ class RunnerBase(abc.ABC):
         assert config.run is not False  # Already checked by the caller
         # Capture output if any test is for the output.
         capture_output = any(isinstance(test, TestOutputModel) for test in config.run.test)
-        options = {**options, **config.run.runner}
+        options = {**options, **config.run.options}
 
         # Run the command and check status code
         if config.run.stdin and config.run.stdin.source and not config.run.stdin.template:

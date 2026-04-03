@@ -7,22 +7,25 @@ parts:
       - command: cd /tmp/
         chdir: /tmp/
         run:
-          runner:
+          options:
             machines: [ foo, bar ]
       - command: ls multi
         run:
-          runner:
+          options:
             machines: [ foo, bar ]
       # overlap command will run in /tmp in foo, but not in bla - chdir was never done for that machine
       - command: ls overlap
         run:
-          runner:
+          options:
             machines: [ foo, bla ]
+    run:
+      options:
+        machine: foo
   - commands:
       - command: ls multi2
         chdir: /new/
         run:
-          runner:
+          options:
             machines: [ foo, default ]
       - command: ls 3
   - commands:
