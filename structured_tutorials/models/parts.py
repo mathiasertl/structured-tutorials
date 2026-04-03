@@ -22,8 +22,7 @@ from structured_tutorials.models.tests import TestCommandModel, TestOutputModel,
 from structured_tutorials.typing import Self
 
 OPTIONS_TYPE = Annotated[
-    dict[str, Any],
-    Field(default_factory=dict, description="Custom options for the selected runtime backend."),
+    dict[str, Any], Field(description="Custom options for the selected runtime backend.")
 ]
 
 
@@ -75,7 +74,7 @@ class CommandRuntimeConfigurationModel(ConfigurationMixin, CommandBaseModel):
     cleanup: tuple[CleanupCommandModel, ...] = tuple()
     test: tuple[TestCommandModel | TestPortModel | TestOutputModel, ...] = tuple()
     stdin: StdinCommandModel | None = None
-    options: OPTIONS_TYPE
+    options: OPTIONS_TYPE = Field(default_factory=dict)
 
 
 class CommandDocumentationConfigurationModel(ConfigurationMixin, BaseModel):
@@ -112,7 +111,7 @@ class CommandsRuntimeConfigurationModel(ConfigurationMixin, BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    options: OPTIONS_TYPE
+    options: OPTIONS_TYPE = Field(default_factory=dict)
 
 
 class CommandsDocumentationConfigurationModel(ConfigurationMixin, DocumentationConfigurationMixin, BaseModel):
@@ -138,7 +137,7 @@ class FileRuntimeConfigurationModel(ConfigurationMixin, BaseModel):
 
     model_config = ConfigDict(extra="forbid", title="File part runtime configuration")
 
-    options: OPTIONS_TYPE
+    options: OPTIONS_TYPE = Field(default_factory=dict)
 
 
 class FileDocumentationConfigurationModel(ConfigurationMixin, DocumentationConfigurationMixin, BaseModel):
@@ -219,7 +218,7 @@ class AlternativeRuntimeConfigurationModel(ConfigurationMixin, BaseModel):
 
     model_config = ConfigDict(extra="forbid", title="File part runtime configuration")
 
-    options: OPTIONS_TYPE
+    options: OPTIONS_TYPE = Field(default_factory=dict)
 
 
 class AlternativeDocumentationConfigurationModel(
