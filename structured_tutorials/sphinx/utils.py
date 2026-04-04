@@ -81,9 +81,11 @@ class TutorialWrapper:
             if key.endswith("_template"):
                 continue
             self.context[key] = self.render(value, _key=key)
+        self.orig_cwd = self.context["cwd"]
 
         # settings from sphinx:
         self.command_text_width = command_text_width
+        self.orig_cwd = self.context["cwd"]
 
     @contextmanager
     def update_context(self, context: dict[str, Any]) -> Iterator[None]:
@@ -145,6 +147,8 @@ class TutorialWrapper:
             self.context.update(command_config.doc.update_context)
             if command_config.chdir:
                 self.context["cwd"] = self.render(str(command_config.chdir))
+            elif command_config.chdir is False:
+                self.context["cwd"] = self.orig_cwd
 
         template_str = TEMPLATE_DIR.joinpath("commands_part.rst.template").read_text("utf-8")
         template = self.env.from_string(template_str)
@@ -212,8 +216,10 @@ class TutorialWrapper:
             )
             name = config.name or key
 
+            # When rendering documentation, any changes to the context are discarded after the alternative,
+            # as different alternatives could set different values and this would be pretty unpredictable
+            # for the user.
             additional_context = {"alternative": key, "alternative_name": name, **config.context}
-
             with self.update_context(additional_context):
                 if alternate_part.doc is False:
                     continue
@@ -241,6 +247,8 @@ class TutorialWrapper:
 
         if part.chdir:
             self.context["cwd"] = self.render(str(part.chdir))
+        elif part.chdir is False:
+            self.context["cwd"] = self.orig_cwd
 
         return value.strip()
 

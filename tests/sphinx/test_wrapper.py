@@ -22,6 +22,12 @@ def wrapper(tutorial: TutorialModel) -> TutorialWrapper:
     return TutorialWrapper(tutorial, Path(__file__))
 
 
+@pytest.fixture
+def doc_wrapper(doc_tutorial: TutorialModel) -> TutorialWrapper:
+    """Fixture to get a wrapper from the tutorial fixture."""
+    return TutorialWrapper(doc_tutorial, Path(__file__))
+
+
 @pytest.mark.parametrize(
     ("commands", "expected"),
     (
@@ -363,27 +369,29 @@ def test_alternatives_with_chdir(wrapper: TutorialWrapper) -> None:
     assert wrapper.render_part() == ".. code-block:: console\n\n    user@host:~$ ls\n"
 
 
-@pytest.mark.tutorial("alternatives-chdir-in-top-level")
-def test_alternatives_with_chdir_in_top_level(wrapper: TutorialWrapper) -> None:
+@pytest.mark.doc_tutorial("alternatives-chdir-at-top-level")
+def test_alternatives_with_chdir_at_top_level(doc_wrapper: TutorialWrapper) -> None:
     """Test alternative parts with chdir at top-level.
 
     The alternative itself calls chdir, which is why in documentation this is shown in subsequent commands.
     """
     assert (
-        wrapper.render_part()
+        doc_wrapper.render_part()
         == """.. tab:: foo
 
     .. code-block:: console
 
-        user@host:~$ ls foo
+        user@host:~$ cd /foo
+        user@host:/foo$ echo foo
 
 .. tab:: bar
 
     .. code-block:: console
 
-        user@host:~$ ls bar"""
+        user@host:~$ cd /bar
+        user@host:/bar$ echo bar"""
     )
-    assert wrapper.render_part() == ".. code-block:: console\n\n    user@host:/alt$ ls\n"
+    assert doc_wrapper.render_part() == ".. code-block:: console\n\n    user@host:/alt$ ls\n"
 
 
 @pytest.mark.tutorial("alternatives-chdir-false")
@@ -486,6 +494,19 @@ def test_alternative_with_before_after_text(wrapper: TutorialWrapper) -> None:
 
 """
     assert wrapper.render_part() == f"before2: value\n\n{code}after2: value"
+
+
+@pytest.mark.doc_tutorial("chdir-false")
+def test_chdir_false(doc_wrapper: TutorialWrapper) -> None:
+    """Test passing chdir `False` in a simple tutorial."""
+    assert (
+        doc_wrapper.render_part()
+        == """.. code-block:: console
+
+    user@host:~$ cd /tmp
+    user@host:/tmp$ cd
+    user@host:~$ echo back to the start\n"""
+    )
 
 
 @pytest.mark.tutorial("command-with-chdir-with-parts")

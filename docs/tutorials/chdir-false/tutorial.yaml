@@ -4,4 +4,4 @@ parts:
         chdir: /tmp
       - command: cd
         chdir: false
-      - command: echo back home
+      - command: echo back to the start

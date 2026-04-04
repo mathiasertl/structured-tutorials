@@ -63,13 +63,16 @@ def test_alternatives_with_chdir(fp: FakeProcess, tutorial: TutorialModel, alter
     mock_chdir.assert_called_once_with(f"/{alternative}")
 
 
-@pytest.mark.tutorial("alternatives-chdir-in-top-level")
+@pytest.mark.doc_tutorial("alternatives-chdir-at-top-level")
 @pytest.mark.parametrize("alternative", ("foo", "bar"))
-def test_alternatives_with_toplevel_chdir(fp: FakeProcess, tutorial: TutorialModel, alternative: str) -> None:
+def test_alternatives_with_toplevel_chdir(
+    fp: FakeProcess, doc_tutorial: TutorialModel, alternative: str
+) -> None:
     """Run with an alternative that calls chdir."""
-    fp.register(f"ls {alternative}")
+    fp.register(f"cd /{alternative}")
+    fp.register(f"echo {alternative}")
     fp.register("ls")
-    runner = LocalTutorialRunner(tutorial, alternatives=(alternative,))
+    runner = LocalTutorialRunner(doc_tutorial, alternatives=(alternative,))
     with mock.patch("os.chdir", autospec=True) as mock_chdir:
         runner.run()
     mock_chdir.assert_has_calls([mock.call(f"/{alternative}"), mock.call("/alt")])
