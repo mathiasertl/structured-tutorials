@@ -107,10 +107,10 @@ class RunnerBase(abc.ABC):
             k: self.render(v, ignore_errors=True) for k, v in environment.items() if v is not None
         }
 
-    def render(self, value: str, ignore_errors=False, **context: Any) -> str:
+    def render(self, value: str, ignore_errors: bool = False, **context: Any) -> str:
         try:
             return self.env.from_string(value).render({**self.context, **context})
-        except TemplateSyntaxError:
+        except TemplateSyntaxError:  # pragma: no cover
             if ignore_errors:
                 return value
             raise

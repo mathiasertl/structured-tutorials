@@ -2,15 +2,19 @@
 ChangeLog
 #########
 
-***********
-0.4.0 (TBR)
-***********
+******************
+0.4.0 (2026-04-04)
+******************
 
+* Added support for running tutorials in Vagrant.
+* Initial context variables are now rendered.
 * Alternatives now allow specific context and environment variables.
 * The JSON schema is now available `here <_static/schema.json>`_ and can be used in IDEs such as PyCharm.
 * Add ability to specify required executables that are checked before running a tutorial.
 * Rename ``tutorial_root`` to ``root``.
 * Alternatives can now be skipped in documentation.
+* Changing the working directory moved out of doc/run blocks as it is common functionality.
+* ``chdir`` can now be ``False`` to switch back to where the tutorial started.
 
 ******************
 0.3.0 (2025-12-26)

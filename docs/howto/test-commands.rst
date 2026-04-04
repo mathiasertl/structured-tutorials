@@ -23,7 +23,7 @@ Test output of the command
 **************************
 
 You can test either the standard output or standard error stream of a command with a regular expression. You
-can also test line and character cound. Regular expressions with named patterns can be used to update the
+can also test line and character count. Regular expressions with named patterns can be used to update the
 context for later commands:
 
 .. tab:: Configuration
