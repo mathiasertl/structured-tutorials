@@ -59,6 +59,7 @@ class RunnerBase(abc.ABC):
     ):
         self.path = path
         self.tutorial = tutorial
+        self.orig_cwd = Path.cwd()
 
         # Create Jinja2 environment for rendering templates
         self.env = Environment(keep_trailing_newline=True)
@@ -266,6 +267,9 @@ class RunnerBase(abc.ABC):
                 rendered_chdir = self.render(str(part.chdir))
                 log.info("Changing working directory to %s.", rendered_chdir)
                 self.chdir(rendered_chdir, part.run.options)
+            elif part.chdir is False:
+                log.info("Changing working directory to %s.", self.orig_cwd)
+                self.chdir(str(self.orig_cwd), part.run.options)
 
     def run_parts(self) -> None:
         for part in self.tutorial.parts:
@@ -300,6 +304,7 @@ class RunnerBase(abc.ABC):
                 self.context["orig_cwd"] = Path.cwd()
 
                 with chdir(tmpdir_name), cleanup(self):
+                    self.orig_cwd = Path.cwd()
                     self.run_parts()
         elif self.tutorial.configuration.run.git_export:
             with tempfile.TemporaryDirectory() as tmpdir_name:
@@ -309,6 +314,7 @@ class RunnerBase(abc.ABC):
                 self.context["orig_cwd"] = Path.cwd()
 
                 with chdir(work_dir), cleanup(self):
+                    self.orig_cwd = Path.cwd()
                     self.run_parts()
         else:
             with cleanup(self):
@@ -479,10 +485,13 @@ class RunnerBase(abc.ABC):
         # Update the context from update_context
         self.context.update(config.run.update_context)
 
-        if (command_chdir := config.chdir) is not None:
-            rendered_chdir = self.render(str(command_chdir))
+        if config.chdir:
+            rendered_chdir = self.render(str(config.chdir))
             log.info("Changing working directory to %s.", rendered_chdir)
             self.chdir(rendered_chdir, options)
+        elif config.chdir is False:
+            log.info("Changing working directory to %s.", self.orig_cwd)
+            self.chdir(str(self.orig_cwd), options)
 
         # Run test commands
         for test_command_config in config.run.test:

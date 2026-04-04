@@ -3,6 +3,7 @@
 
 """Test alternatives."""
 
+import os
 from pathlib import Path
 from unittest import mock
 
@@ -72,3 +73,17 @@ def test_alternatives_with_toplevel_chdir(fp: FakeProcess, tutorial: TutorialMod
     with mock.patch("os.chdir", autospec=True) as mock_chdir:
         runner.run()
     mock_chdir.assert_has_calls([mock.call(f"/{alternative}"), mock.call("/alt")])
+
+
+@pytest.mark.tutorial("alternatives-chdir-false")
+@pytest.mark.parametrize("alternative", ("foo", "bar"))
+def test_alternatives_with_chdir_false(fp: FakeProcess, tutorial: TutorialModel, alternative: str) -> None:
+    """Run with an alternative that calls chdir."""
+    orig_cwd = os.getcwd()
+    fp.register(f"ls {alternative}")
+    fp.register("ls")
+    runner = LocalTutorialRunner(tutorial, alternatives=(alternative,))
+    with mock.patch("os.chdir", autospec=True) as mock_chdir:
+        runner.run()
+    # Switch back twice for part and alternative
+    mock_chdir.assert_has_calls([mock.call(orig_cwd), mock.call(orig_cwd)])

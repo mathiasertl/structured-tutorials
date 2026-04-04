@@ -24,7 +24,7 @@ from structured_tutorials.typing import Self
 OPTIONS_TYPE = Annotated[
     dict[str, Any], Field(description="Custom options for the selected runtime backend.")
 ]
-CHDIR_TYPE = Path | None
+CHDIR_TYPE = Path | Literal[False] | None
 
 
 def part_discriminator(value: Any) -> str | None:

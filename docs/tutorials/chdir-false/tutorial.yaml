@@ -1,0 +1,7 @@
+parts:
+  - commands:
+      - command: cd /tmp
+        chdir: /tmp
+      - command: cd
+        chdir: false
+      - command: echo back home

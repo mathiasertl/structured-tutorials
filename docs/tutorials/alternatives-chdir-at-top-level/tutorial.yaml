@@ -1,0 +1,18 @@
+# Tutorial that has a foo and a bar alternative, but also uses chdir
+parts:
+  - alternatives:
+      foo:
+        commands:
+          - command: cd /foo
+            chdir: /foo  # discarded for the next part
+          - command: echo foo
+      bar:
+        commands:
+          - command: cd /bar
+            chdir: /bar  # discarded for the next part
+          - command: echo bar
+    # Sets working directory for next part, regardless
+    # of mode or selected alternative
+    chdir: /alt
+  - commands:
+      - command: ls

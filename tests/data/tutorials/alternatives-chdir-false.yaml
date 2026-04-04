@@ -4,11 +4,11 @@ parts:
       foo:
         commands:
           - command: ls foo
-            chdir: /foo
+            chdir: false
       bar:
         commands:
           - command: ls bar
-            chdir: /bar
-    chdir: /alt
+            chdir: false
+    chdir: false
   - commands:
       - command: ls
