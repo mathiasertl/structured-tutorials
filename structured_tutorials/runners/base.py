@@ -262,6 +262,11 @@ class RunnerBase(abc.ABC):
             else:  # pragma: no cover
                 raise RuntimeError(f"{selected_part} is not supported as alternative.")
 
+            if part.chdir:
+                rendered_chdir = self.render(str(part.chdir))
+                log.info("Changing working directory to %s.", rendered_chdir)
+                self.chdir(rendered_chdir, part.run.options)
+
     def run_parts(self) -> None:
         for part in self.tutorial.parts:
             if isinstance(part, PromptModel):
@@ -475,9 +480,9 @@ class RunnerBase(abc.ABC):
         self.context.update(config.run.update_context)
 
         if (command_chdir := config.chdir) is not None:
-            rendered_command_chdir = self.render(str(command_chdir))
-            log.info("Changing working directory to %s.", rendered_command_chdir)
-            self.chdir(rendered_command_chdir, options)
+            rendered_chdir = self.render(str(command_chdir))
+            log.info("Changing working directory to %s.", rendered_chdir)
+            self.chdir(rendered_chdir, options)
 
         # Run test commands
         for test_command_config in config.run.test:

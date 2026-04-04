@@ -238,6 +238,10 @@ class TutorialWrapper:
                 "text_before": self.render(part.doc.text_before),
             }
         )
+
+        if part.chdir:
+            self.context["cwd"] = self.render(str(part.chdir))
+
         return value.strip()
 
     def render_part(self, part_id: str | None = None) -> str:

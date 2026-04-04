@@ -24,6 +24,7 @@ from structured_tutorials.typing import Self
 OPTIONS_TYPE = Annotated[
     dict[str, Any], Field(description="Custom options for the selected runtime backend.")
 ]
+CHDIR_TYPE = Path | None
 
 
 def part_discriminator(value: Any) -> str | None:
@@ -91,7 +92,7 @@ class CommandModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     command: CommandType = Field(description="The command to run.")
-    chdir: Path | None = Field(
+    chdir: CHDIR_TYPE = Field(
         default=None,
         description=f"Change working directory to this path *after* running this command. "
         f"This change affects all subsequent commands. {TEMPLATE_DESCRIPTION}",
@@ -243,6 +244,11 @@ class AlternativeModel(PartMixin, BaseModel):
     type: Literal["alternatives"] = "alternatives"
     alternatives: dict[str, Annotated[PartModels, Discriminator(part_discriminator)]]
     required: bool = Field(default=True, description="Whether one of the alternatives is required.")
+    chdir: CHDIR_TYPE = Field(
+        default=None,
+        description=f"Change working directory to this path *after* this Alternatives block. "
+        f"This change affects all subsequent commands. {TEMPLATE_DESCRIPTION}",
+    )
     doc: AlternativeDocumentationConfigurationModel | Literal[False] = (
         AlternativeDocumentationConfigurationModel()
     )

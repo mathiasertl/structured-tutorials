@@ -363,6 +363,29 @@ def test_alternatives_with_chdir(wrapper: TutorialWrapper) -> None:
     assert wrapper.render_part() == ".. code-block:: console\n\n    user@host:~$ ls\n"
 
 
+@pytest.mark.tutorial("alternatives-chdir-in-top-level")
+def test_alternatives_with_chdir_in_top_level(wrapper: TutorialWrapper) -> None:
+    """Test alternative parts with chdir at top-level.
+
+    The alternative itself calls chdir, which is why in documentation this is shown in subsequent commands.
+    """
+    assert (
+        wrapper.render_part()
+        == """.. tab:: foo
+
+    .. code-block:: console
+
+        user@host:~$ ls foo
+
+.. tab:: bar
+
+    .. code-block:: console
+
+        user@host:~$ ls bar"""
+    )
+    assert wrapper.render_part() == ".. code-block:: console\n\n    user@host:/alt$ ls\n"
+
+
 @pytest.mark.tutorial("named-part")
 def test_named_part(wrapper: TutorialWrapper) -> None:
     """Test naming individual parts by id."""
