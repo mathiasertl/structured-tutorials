@@ -18,6 +18,7 @@ class LocalTutorialRunner(RunnerBase):
     """Runner implementation that runs a tutorial on the local machine."""
 
     def chdir(self, path: str, options: dict[str, Any]) -> None:
+        print("### chdir?")
         os.chdir(str(path))
 
     def copy_file(self, source: Path, destination: Path, options: dict[str, Any]) -> None:

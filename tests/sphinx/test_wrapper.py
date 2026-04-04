@@ -340,6 +340,29 @@ def test_alternatives_with_configuration(wrapper: TutorialWrapper) -> None:
     assert wrapper.render_part() == ".. code-block:: console\n\n    user@host:~$ echo xx yy zz\n"
 
 
+@pytest.mark.tutorial("alternatives-chdir")
+def test_alternatives_with_chdir(wrapper: TutorialWrapper) -> None:
+    """Test alternative parts with chdir.
+
+    NOTE: second part does not preserve chdir, as different alternatives could chdir to different locations.
+    """
+    assert (
+        wrapper.render_part()
+        == """.. tab:: foo
+
+    .. code-block:: console
+
+        user@host:~$ ls foo
+
+.. tab:: bar
+
+    .. code-block:: console
+
+        user@host:~$ ls bar"""
+    )
+    assert wrapper.render_part() == ".. code-block:: console\n\n    user@host:~$ ls\n"
+
+
 @pytest.mark.tutorial("named-part")
 def test_named_part(wrapper: TutorialWrapper) -> None:
     """Test naming individual parts by id."""

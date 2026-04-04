@@ -4,6 +4,7 @@
 """Test alternatives."""
 
 from pathlib import Path
+from unittest import mock
 
 import pytest
 from pytest_subprocess import FakeProcess
@@ -47,3 +48,15 @@ def test_alternatives_with_no_selected_part(tutorial: TutorialModel) -> None:
         runner.validate_alternatives()
     # Running the tutorial itself does not check if an alternative is selected.
     runner.run()
+
+
+@pytest.mark.tutorial("alternatives-chdir")
+@pytest.mark.parametrize("alternative", ("foo", "bar"))
+def test_alternatives_with_chdir(fp: FakeProcess, tutorial: TutorialModel, alternative: str) -> None:
+    """Run with an alternative that calls chdir."""
+    fp.register(f"ls {alternative}")
+    fp.register("ls")
+    runner = LocalTutorialRunner(tutorial, alternatives=(alternative,))
+    with mock.patch("os.chdir", autospec=True) as mock_chdir:
+        runner.run()
+    mock_chdir.assert_called_once_with(f"/{alternative}")

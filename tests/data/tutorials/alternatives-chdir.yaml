@@ -1,0 +1,13 @@
+# Tutorial that has a foo and a bar alternative, but also uses chdir
+parts:
+  - alternatives:
+      foo:
+        commands:
+          - command: ls foo
+            chdir: /foo
+      bar:
+        commands:
+          - command: ls bar
+            chdir: /bar
+  - commands:
+      - command: ls
