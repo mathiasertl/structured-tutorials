@@ -19,7 +19,7 @@ from pathlib import Path
 from subprocess import CompletedProcess
 from typing import Any
 
-from jinja2 import Environment
+from jinja2 import Environment, TemplateSyntaxError
 
 from structured_tutorials.errors import (
     CommandOutputTestError,
@@ -103,10 +103,17 @@ class RunnerBase(abc.ABC):
         self.show_command_output = show_command_output
         self.interactive = interactive
 
-        self.environment = {k: self.render(v) for k, v in environment.items() if v is not None}
+        self.environment = {
+            k: self.render(v, ignore_errors=True) for k, v in environment.items() if v is not None
+        }
 
-    def render(self, value: str, **context: Any) -> str:
-        return self.env.from_string(value).render({**self.context, **context})
+    def render(self, value: str, ignore_errors=False, **context: Any) -> str:
+        try:
+            return self.env.from_string(value).render({**self.context, **context})
+        except TemplateSyntaxError:
+            if ignore_errors:
+                return value
+            raise
 
     def render_command(self, command: CommandType, **context: Any) -> CommandType:
         if isinstance(command, str):
